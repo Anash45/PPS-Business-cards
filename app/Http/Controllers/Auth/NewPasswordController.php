@@ -27,6 +27,12 @@ class NewPasswordController extends Controller
         ]);
     }
 
+
+    public function createLinkSuccess(Request $request): Response
+    {
+        return Inertia::render('Auth/ResetLinkSuccess');
+    }
+
     /**
      * Handle an incoming new password request.
      *
