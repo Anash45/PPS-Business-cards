@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Template – PPS Business Cards</title>
+  <meta name="description" content="Template für digitale Visitenkarten konfigurieren" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%23000'/%3E%3Cpath d='M9 16a7 7 0 1114 0 7 7 0 01-14 0zm7-5a5 5 0 100 10 5 5 0 000-10z' fill='%23fff'/%3E%3C/svg%3E" />
+  <style>
+    :root{
+      --bg:#f7f7f8;--bg-elevated:#fff;--card:#fff;--text:#0b0b0c;--muted:#6b7280;--border:#e5e7eb;--accent:#16A34A;--accent-weak:#e7f7ec;--shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.04);--radius:16px
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;background:var(--bg);color:var(--text);line-height:1.45}
+    a{text-decoration:none;color:inherit}
+
+    .app{display:grid;grid-template-columns:280px 1fr;min-height:100dvh}
+    .sidebar{position:sticky;top:0;height:100dvh;border-right:1px solid var(--border);background:linear-gradient(180deg,var(--bg-elevated),var(--bg));padding:20px 16px}
+    .brand{display:flex;gap:12px;align-items:center;padding:6px 8px}
+    .brand-logo{width:32px;height:32px;border-radius:999px;background:#111;color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+    .brand-name{font-weight:700}
+    .nav{margin-top:18px;display:grid;gap:4px}
+    .nav h4{margin:18px 8px 6px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;border:1px solid transparent}
+    .nav a:hover{background:var(--accent-weak);border-color:var(--border)}
+    .nav a.active{background:var(--card);border-color:var(--border);box-shadow:var(--shadow)}
+
+    .header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:linear-gradient(180deg,var(--bg-elevated),rgba(255,255,255,0));border-bottom:1px solid var(--border)}
+    .header h1{margin:0;font-size:18px}
+    .avatar{width:32px;height:32px;border-radius:999px;background:var(--border);display:grid;place-items:center;font-weight:700}
+
+    .content{padding:20px;display:grid;gap:18px}
+    .grid12{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .panel-body{padding:16px}
+
+    /* Controls */
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field input[type=color],.field input[type=text],.field input[type=url],.field select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--bg-elevated);outline:none}
+    label{font-weight:600;font-size:13px}
+    .subhead{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+    .btn{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--card);box-shadow:var(--shadow);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+    .btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+    .btn.inline{padding:8px 10px;font-size:13px}
+
+    /* Mobile-realistische Preview-Breite */
+    #previewRoot{--tpl-bg:#fff;--tpl-name:#0b0b0c;--tpl-role:#6b7280;--tpl-cta-bg:#F7F7F8;--tpl-cta-text:#0b0b0c;--tpl-sec-bg:#f3f4f6;--tpl-sec-text:#0b0b0c;width:390px;max-width:100%;margin:0 auto;display:block}
+
+    /* Preview */
+    .banner{position:relative;height:160px;border-radius:14px;background:linear-gradient(180deg,rgba(2,132,199,.15),rgba(2,132,199,0));box-shadow:var(--shadow) inset;background-size:cover;background-position:center;margin-bottom:56px}
+    .avatar-preview{width:140px;height:140px;border-radius:999px;object-fit:cover;position:absolute;left:50%;transform:translateX(-50%);bottom:-70px;border:4px solid var(--card);box-shadow:var(--shadow);background:#fff;z-index:3}
+    .identity{margin-top:90px;text-align:center}
+    .identity .name{font-weight:700;font-size:20px;color:var(--tpl-name)}
+    .identity .role{color:var(--tpl-role)}
+    .identity .company{color:var(--tpl-role);margin-top:2px}
+
+    .social-row{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin:10px 0 6px}
+    .social-row a{display:inline-flex;width:28px;height:28px}
+    .social-row img{width:28px;height:28px;display:block}
+
+    .list{display:grid;gap:10px;margin-top:12px}
+    .item{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--border);background:var(--tpl-sec-bg);border-radius:12px;color:var(--tpl-sec-text)}
+    .item .ic{font-size:20px;line-height:1;width:28px;display:grid;place-items:center;color:var(--tpl-sec-text)}
+    .item .txt{display:flex;flex-direction:column;color:var(--tpl-sec-text)}
+    .item .txt .label{font-weight:600}
+    .item .txt .sub{opacity:.8;font-size:13px}
+
+    .cta{background:var(--tpl-cta-bg);color:var(--tpl-cta-text)!important;border-color:transparent}
+    .cta.big{display:block;width:max-content;margin:12px auto 0}
+    .preview-canvas{background:var(--tpl-bg);padding:16px;border-radius:14px;border:1px solid var(--border)}
+
+    /* Rows */
+    .rows{display:grid;gap:10px}
+    .row{display:grid;grid-template-columns:56px 1fr 120px 1.6fr 40px;gap:10px;align-items:center}
+    .row-website{display:grid;grid-template-columns:56px 1fr 2fr 40px;gap:10px;align-items:center}
+    .row-social{display:grid;grid-template-columns:160px 1fr 40px;gap:10px;align-items:center}
+    .row-address{display:grid;grid-template-columns:56px 160px minmax(220px,2fr) 110px minmax(180px,1.4fr) 100px 40px;gap:10px;align-items:center}
+    .row input[type=text],.row input[type=url],.row select,.row-website input,.row-website select,.row-social input,.row-social select,.row-address input,.row-address select{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--bg-elevated)}
+    .row .emoji{font-size:20px;text-align:center}
+    .remove{display:grid;place-items:center;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--bg-elevated);cursor:pointer}
+
+    @media (max-width:980px){
+      .app{grid-template-columns:1fr}
+      .grid12{grid-template-columns:1fr}
+      .switches{grid-template-columns:repeat(3,1fr)}
+      .row{grid-template-columns:56px 1fr 120px 1fr 40px}
+      .row-website{grid-template-columns:56px 1fr 1fr 40px}
+      .row-social{grid-template-columns:160px 1fr 40px}
+      .row-address{grid-template-columns:56px 1fr 2fr 1fr 1.2fr 1fr 40px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">PPS</div>
+        <div>
+          <div class="brand-name">PPS Business Cards</div>
+          <div id="companyNameBadge" style="color:var(--muted);font-size:12px">Mustermann GmbH</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <h4>Übersicht</h4>
+        <a href="dashboard.html"><span>🏠</span><span>Dashboard</span></a>
+        <div style="height:1px;background:var(--border);margin:10px 0;border-radius:2px"></div>
+        <h4>Visitenkarten</h4>
+        <a href="cards.html"><span>🗂️</span><span>Alle Karten</span></a>
+        <a href="new.html"><span>➕</span><span>Erstellen</span></a>
+        <a href="import.html"><span>⬆️</span><span>CSV-Import</span></a>
+        <h4>Design</h4>
+        <a class="active" href="template.html"><span>🎨</span><span>Template</span></a>
+        <h4>System</h4>
+        <a href="settings.html"><span>⚙️</span><span>Einstellungen</span></a>
+        <a href="docs.html"><span>📘</span><span>API-Dokumentation</span></a>
+      </nav>
+    </aside>
+
+    <div class="main">
+      <header class="header">
+        <h1>Template</h1>
+        <div class="avatar">A</div>
+      </header>
+
+      <main class="content">
+        <section class="grid12">
+          <!-- Tabs: Landingpage / Wallet -->
+          <div class="tabs" style="grid-column: span 12;">
+            <nav class="segment" role="tablist" aria-label="Konfigurator">
+              <a class="active" role="tab" aria-selected="true" href="template.html">Landingpage</a>
+              <a role="tab" aria-selected="false" href="template-wallet.html">Wallet</a>
+            </nav>
+          </div>
+
+          <!-- FORM (left) -->
+          <form id="tplForm" class="grid12" onsubmit="return false;" style="grid-column: span 7;">
+            <!-- Branding -->
+            <div class="subhead" style="grid-column: span 12;">Branding</div>
+            <div class="field" style="grid-column: span 12;"><label>Banner</label><input type="file" id="banner" accept="image/*" /></div>
+
+            <div class="subhead" style="grid-column: span 12; margin-top:4px;">Farben</div>
+            <div class="field" style="grid-column: span 6;"><label>Seiten‑Hintergrund</label><input id="bgColor" type="color" value="#ffffff" /></div>
+            <div class="field" style="grid-column: span 6;"><label>Textfarbe – Name</label><input id="nameColor" type="color" value="#0b0b0c" /></div>
+            <div class="field" style="grid-column: span 6;"><label>Textfarbe – Position & Abteilung</label><input id="roleColor" type="color" value="#6b7280" /></div>
+            <div class="field" style="grid-column: span 6;"><label>CTA‑Button</label><input id="ctaBgColor" type="color" value="#F7F7F8" /></div>
+            <div class="field" style="grid-column: span 6;"><label>CTA‑Text</label><input id="ctaTextColor" type="color" value="#0b0b0c" /></div>
+            <div class="field" style="grid-column: span 6;"><label>Weitere Buttons</label><input id="secBtnBgColor" type="color" value="#f3f4f6" /></div>
+            <div class="field" style="grid-column: span 6;"><label>Text – Weitere Buttons</label><input id="secBtnTextColor" type="color" value="#0b0b0c" /></div>
+
+            <!-- Company defaults -->
+            <div class="subhead" style="grid-column: span 12; margin-top:8px;">Allgemeine Firmendaten</div>
+            <div class="field" style="grid-column: span 12;"><label>Firmenname</label><input id="companyName" type="text" placeholder="Firmenname" value="Mustermann GmbH" /></div>
+
+            <!-- Websites (Template-level) -->
+            <div class="subhead" style="grid-column: span 12;">Websites (Buttons)</div>
+            <div id="webRows" class="rows" style="grid-column: span 12;">
+              <div class="row-website" data-key="site1">
+                <div class="emoji" contenteditable="true" aria-label="Emoji" title="Emoji">🌐</div>
+                <input type="text" placeholder="Label (z. B. Website)" value="Website" />
+                <input type="url" placeholder="https://…" value="https://firma.de" />
+                <button class="remove" type="button" title="Entfernen">✖</button>
+              </div>
+            </div>
+            <div style="grid-column: span 12; display:flex; gap:8px; align-items:center;">
+              <button class="btn inline" id="addWebsite" type="button">＋ Website hinzufügen</button>
+              <span class="note">Diese Websites erscheinen automatisch als Buttons bei neuen Visitenkarten.</span>
+            </div>
+
+            <!-- Addresses (Template-level) -->
+            <div class="subhead" style="grid-column: span 12; margin-top:8px;">Adressen</div>
+            <div id="addrRows" class="rows" style="grid-column: span 12;">
+              <div class="row-address" data-key="addr1">
+                <div class="emoji" contenteditable="true" aria-label="Emoji" title="Emoji">📍</div>
+                <select title="Typ">
+                  <option value="work" selected>Geschäftlich</option>
+                  <option value="home">Privat</option>
+                  <option value="other">Sonstiges</option>
+                </select>
+                <input type="text" placeholder="Straße" value="Hauptstraße 1" />
+                <input type="text" placeholder="PLZ" value="10115" />
+                <input type="text" placeholder="Stadt" value="Berlin" />
+                <input type="text" placeholder="Land" value="DE" />
+                <button class="remove" type="button" title="Entfernen">✖</button>
+              </div>
+            </div>
+            <div style="grid-column: span 12; display:flex; gap:8px; align-items:center;">
+              <button class="btn inline" id="addAddress" type="button">＋ Adresse hinzufügen</button>
+              <span class="note">Max. 3 Adressen. Werden beim Erstellen einer Visitenkarte übernommen.</span>
+            </div>
+
+            <!-- Socials (Template-level) -->
+            <div class="subhead" style="grid-column: span 12; margin-top:8px;">Social Media Links</div>
+            <div id="socialRows" class="rows" style="grid-column: span 12;">
+              <div class="row-social" data-key="soc1">
+                <select title="Plattform">
+                  <option value="linkedin" selected>LinkedIn</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="youtube">YouTube</option>
+                </select>
+                <input type="url" placeholder="https://…" value="https://linkedin.com/company/firma" />
+                <button class="remove" type="button" title="Entfernen">✖</button>
+              </div>
+              <div class="row-social" data-key="soc2">
+                <select title="Plattform">
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="whatsapp" selected>WhatsApp</option>
+                  <option value="youtube">YouTube</option>
+                </select>
+                <input type="url" placeholder="https://…" value="https://wa.me/491234567890" />
+                <button class="remove" type="button" title="Entfernen">✖</button>
+              </div>
+            </div>
+            <div style="grid-column: span 12; display:flex; gap:8px; align-items:center;">
+              <button class="btn inline" id="addSocial" type="button">＋ Social hinzufügen</button>
+              <span class="note">Diese Social-Links erscheinen nur, wenn befüllt. Mitarbeitende können sie in der Karte anpassen.</span>
+            </div>
+
+            <!-- Additional Buttons (Template-level) -->
+            <div class="subhead" style="grid-column: span 12; margin-top:8px;">Zusätzliche Buttons</div>
+            <div class="rows" id="btnRows" style="grid-column: span 12;">
+              <div class="row" data-key="btn1">
+                <div class="emoji" contenteditable="true" aria-label="Emoji" title="Emoji">🔗</div>
+                <input type="text" placeholder="Label" value="Broschüre" />
+                <input type="text" placeholder="Schlüssel" value="btn1" readonly style="opacity:.7" />
+                <input type="url" placeholder="https://…" value="https://firma.de/brochure.pdf" />
+                <button class="remove" type="button" title="Entfernen">✖</button>
+              </div>
+              <div class="row" data-key="btn2">
+                <div class="emoji" contenteditable="true" aria-label="Emoji" title="Emoji">🗓️</div>
+                <input type="text" placeholder="Label (z. B. Termin buchen)" value="Termin buchen" />
+                <input type="text" placeholder="Schlüssel (z. B. btn2)" value="btn2" readonly style="opacity:.7" />
+                <input type="url" placeholder="https://…" value="https://cal.com/firma/team" />
+                <button class="remove" type="button" title="Entfernen">✖</button>
+              </div>
+            </div>
+            <div style="grid-column: span 12; display:flex; gap:8px; align-items:center;">
+              <button class="btn inline" id="addRow" type="button">＋ Button hinzufügen</button>
+              <span class="note">Max. 6 zusätzliche Buttons. Diese werden bei neuen Karten vorbelegt und sind pro Karte anpassbar.</span>
+            </div>
+
+            <div style="grid-column: span 12; display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+              <button class="btn" type="button">Entwurf speichern</button>
+              <button class="btn primary" type="button">Template speichern</button>
+            </div>
+          </form>
+
+          <!-- PREVIEW (right) -->
+          <aside class="panel" style="grid-column: span 5;">
+            <div class="panel-header">
+              <strong>Live-Preview</strong><span class="muted">Landingpage (mobile)</span>
+            </div>
+            <div class="panel-body">
+              <div id="previewRoot" class="preview-canvas">
+                <div class="banner" id="previewBanner">
+                  <img id="previewPhoto" class="avatar-preview" alt="Foto" src="../assets/foto.webp" />
+                </div>
+                <div class="identity">
+                  <div class="name">Max Mustermann</div>
+                  <div class="role">Sales Manager · Sales</div>
+                  <div class="company" id="previewCompany">Mustermann GmbH</div>
+                </div>
+                <a class="btn big cta" href="#">Kontaktdaten speichern</a>
+                <div class="social-row" id="socialIcons"></div>
+                <div class="list" id="webButtons"></div>
+                <div class="list" id="addrButtons"></div>
+                <div class="list" id="tplButtonsList"></div>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // ===== Helpers =====
+    function readAsDataURL(file, cb){ const r=new FileReader(); r.onload=()=>cb(r.result); r.readAsDataURL(file); }
+
+    // ===== Branding Farben anwenden =====
+    const root=document.getElementById('previewRoot');
+    function applyColors(){
+      root.style.setProperty('--tpl-bg', document.getElementById('bgColor').value);
+      root.style.setProperty('--tpl-name', document.getElementById('nameColor').value);
+      root.style.setProperty('--tpl-role', document.getElementById('roleColor').value);
+      root.style.setProperty('--tpl-cta-bg', document.getElementById('ctaBgColor').value);
+      root.style.setProperty('--tpl-cta-text', document.getElementById('ctaTextColor').value);
+      root.style.setProperty('--tpl-sec-bg', document.getElementById('secBtnBgColor').value);
+      root.style.setProperty('--tpl-sec-text', document.getElementById('secBtnTextColor').value);
+    }
+    ['bgColor','nameColor','roleColor','ctaBgColor','ctaTextColor','secBtnBgColor','secBtnTextColor']
+      .forEach(id=>document.getElementById(id).addEventListener('input',applyColors));
+    applyColors();
+
+    // ===== Banner Upload =====
+    const bannerInput=document.getElementById('banner');
+    const bannerEl=document.getElementById('previewBanner');
+    bannerInput.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; readAsDataURL(f,(src)=>{ bannerEl.style.backgroundImage=`url('${src}')`; }); });
+
+    // ===== Company Name live in Sidebar + Preview =====
+    const companyNameInput=document.getElementById('companyName');
+    const companyNameBadge=document.getElementById('companyNameBadge');
+    const previewCompany=document.getElementById('previewCompany');
+    companyNameInput.addEventListener('input',()=>{ const v=companyNameInput.value||'—'; companyNameBadge.textContent=v; previewCompany.textContent=v; });
+
+    // ===== Websites =====
+    const webRows=document.getElementById('webRows');
+    const webButtons=document.getElementById('webButtons');
+    document.getElementById('addWebsite').addEventListener('click',()=>{
+      const div=document.createElement('div'); div.className='row-website';
+      div.innerHTML=`
+        <div class=\"emoji\" contenteditable=\"true\" aria-label=\"Emoji\" title=\"Emoji\">🌐</div>
+        <input type=\"text\" placeholder=\"Label\" />
+        <input type=\"url\" placeholder=\"https://…\" />
+        <button class=\"remove\" type=\"button\" title=\"Entfernen\">✖</button>`;
+      webRows.appendChild(div); renderWebsites();
+    });
+    webRows.addEventListener('input',renderWebsites);
+    webRows.addEventListener('click',(e)=>{ if(e.target.closest('.remove')){ e.target.closest('.row-website').remove(); renderWebsites(); }});
+    function serializeWebsites(){
+      return [...webRows.querySelectorAll('.row-website')].map(r=>{
+        const emoji=(r.querySelector('.emoji')?.textContent||'🌐').trim();
+        const [label,url]=r.querySelectorAll('input');
+        return {emoji, label:label.value.trim(), url:url.value.trim()};
+      }).filter(x=>x.label&&x.url);
+    }
+    function renderWebsites(){
+      webButtons.innerHTML='';
+      serializeWebsites().forEach(r=>{
+        const a=document.createElement('a'); a.href=r.url; a.target='_blank'; a.rel='noopener'; a.className='item';
+        const ic=document.createElement('div'); ic.className='ic'; ic.textContent=r.emoji; a.appendChild(ic);
+        const txt=document.createElement('div'); txt.className='txt';
+        const l=document.createElement('div'); l.className='label'; l.textContent=r.label; txt.appendChild(l);
+        const s=document.createElement('div'); s.className='sub'; s.textContent=r.url; txt.appendChild(s);
+        a.appendChild(txt); webButtons.appendChild(a);
+      });
+    }
+    renderWebsites();
+
+    // ===== Addresses =====
+    const addrRows=document.getElementById('addrRows');
+    const addrButtons=document.getElementById('addrButtons');
+    document.getElementById('addAddress').addEventListener('click',()=>{
+      const count=addrRows.querySelectorAll('.row-address').length; if(count>=3) return;
+      const div=document.createElement('div'); div.className='row-address';
+      div.innerHTML=`
+        <div class=\"emoji\" contenteditable=\"true\" aria-label=\"Emoji\" title=\"Emoji\">📍</div>
+        <select title=\"Typ\">
+          <option value=\"work\" selected>Geschäftlich</option>
+          <option value=\"home\">Privat</option>
+          <option value=\"other\">Sonstiges</option>
+        </select>
+        <input type=\"text\" placeholder=\"Straße\" />
+        <input type=\"text\" placeholder=\"PLZ\" />
+        <input type=\"text\" placeholder=\"Stadt\" />
+        <input type=\"text\" placeholder=\"Land\" />
+        <button class=\"remove\" type=\"button\" title=\"Entfernen\">✖</button>`;
+      addrRows.appendChild(div); renderAddresses();
+    });
+    addrRows.addEventListener('input',renderAddresses);
+    addrRows.addEventListener('click',(e)=>{ if(e.target.closest('.remove')){ e.target.closest('.row-address').remove(); renderAddresses(); }});
+    function serializeAddresses(){
+      return [...addrRows.querySelectorAll('.row-address')].map(r=>{
+        const emoji=(r.querySelector('.emoji')?.textContent||'📍').trim();
+        const nodes=r.querySelectorAll('select, input');
+        const typeSel=nodes[0]; const street=nodes[1]; const zip=nodes[2]; const city=nodes[3]; const country=nodes[4];
+        return {emoji,type:typeSel?.value||'work',street:street?.value?.trim()||'',postal_code:zip?.value?.trim()||'',locality:city?.value?.trim()||'',country:country?.value?.trim()||''};
+      }).filter(a=>a.street&&a.postal_code&&a.locality&&a.country);
+    }
+    function mapsUrl(a){ const q=`${a.street}, ${a.postal_code} ${a.locality}, ${a.country}`; return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`; }
+    function renderAddresses(){
+      addrButtons.innerHTML='';
+      serializeAddresses().forEach(a=>{
+        const link=document.createElement('a'); link.href=mapsUrl(a); link.target='_blank'; link.rel='noopener'; link.className='item';
+        const ic=document.createElement('div'); ic.className='ic'; ic.textContent=a.emoji; link.appendChild(ic);
+        const txt=document.createElement('div'); txt.className='txt';
+        const l=document.createElement('div'); l.className='label'; l.textContent=a.street; txt.appendChild(l);
+        const s=document.createElement('div'); s.className='sub'; s.textContent=`${a.postal_code} ${a.locality}, ${a.country}`; txt.appendChild(s);
+        link.appendChild(txt); addrButtons.appendChild(link);
+      });
+    }
+    renderAddresses();
+
+    // ===== Socials =====
+    const socialRows=document.getElementById('socialRows');
+    const socialIcons=document.getElementById('socialIcons');
+    document.getElementById('addSocial').addEventListener('click',()=>{
+      const div=document.createElement('div'); div.className='row-social';
+      div.innerHTML=`
+        <select title=\"Plattform\">
+          <option value=\"linkedin\" selected>LinkedIn</option>
+          <option value=\"instagram\">Instagram</option>
+          <option value=\"facebook\">Facebook</option>
+          <option value=\"tiktok\">TikTok</option>
+          <option value=\"whatsapp\">WhatsApp</option>
+          <option value=\"youtube\">YouTube</option>
+        </select>
+        <input type=\"url\" placeholder=\"https://…\" />
+        <button class=\"remove\" type=\"button\" title=\"Entfernen\">✖</button>`;
+      socialRows.appendChild(div); renderSocials();
+    });
+    socialRows.addEventListener('input',renderSocials);
+    socialRows.addEventListener('click',(e)=>{ if(e.target.closest('.remove')){ e.target.closest('.row-social').remove(); renderSocials(); }});
+    const ICONS={linkedin:'../assets/icons8-linkedin-50.png',instagram:'../assets/icons8-instagram-50.png',facebook:'../assets/icons8-facebook-50.png',tiktok:'../assets/icons8-tiktok-50.png',whatsapp:'../assets/icons8-whatsapp-50.png',youtube:'../assets/icons8-youtube-50.png'};
+    function serializeSocials(){ return [...socialRows.querySelectorAll('.row-social')].map(r=>{ const sel=r.querySelector('select'); const url=r.querySelector('input'); return {platform:sel.value,url:url.value.trim()}; }).filter(x=>x.url); }
+    function renderSocials(){ socialIcons.innerHTML=''; serializeSocials().forEach(s=>{ const a=document.createElement('a'); a.href=s.url; a.title=s.platform; a.target='_blank'; a.rel='noopener'; const img=document.createElement('img'); img.src=ICONS[s.platform]||ICONS.linkedin; img.alt=s.platform; a.appendChild(img); socialIcons.appendChild(a); }); }
+    renderSocials();
+
+    // ===== Template Buttons =====
+    const btnRows=document.getElementById('btnRows');
+    const tplButtonsList=document.getElementById('tplButtonsList');
+    function serializeTplButtons(){ return [...btnRows.querySelectorAll('.row')].map(row=>{ const emoji=row.querySelector('.emoji').textContent.trim()||'🔗'; const [label,key,url]=row.querySelectorAll('input'); return {emoji,label:(label?.value||'').trim(),key:(key?.value||'').trim(),url:(url?.value||'').trim()}; }).filter(r=>r.label&&r.key&&r.url); }
+    function renderTplButtons(){ tplButtonsList.innerHTML=''; serializeTplButtons().forEach(r=>{ const a=document.createElement('a'); a.href=r.url; a.className='item'; a.target='_blank'; a.rel='noopener'; const ic=document.createElement('div'); ic.className='ic'; ic.textContent=r.emoji; a.appendChild(ic); const txt=document.createElement('div'); txt.className='txt'; const l=document.createElement('div'); l.className='label'; l.textContent=r.label; txt.appendChild(l); const s=document.createElement('div'); s.className='sub'; s.textContent=r.url; txt.appendChild(s); a.appendChild(txt); tplButtonsList.appendChild(a); }); }
+    btnRows.addEventListener('input',renderTplButtons);
+    btnRows.addEventListener('click',(e)=>{ if(e.target.closest('.remove')){ e.target.closest('.row').remove(); renderTplButtons(); } });
+    document.getElementById('addRow').addEventListener('click',()=>{ const count=btnRows.querySelectorAll('.row').length; if(count>=6) return; const idx=count+1; const div=document.createElement('div'); div.className='row'; div.dataset.key='btn'+idx; div.innerHTML=`<div class=\"emoji\" contenteditable=\"true\" aria-label=\"Emoji\" title=\"Emoji\">🔗</div><input type=\"text\" placeholder=\"Label (z. B. Link ${idx})\" /><input type=\"text\" placeholder=\"Schlüssel (z. B. btn${idx})\" value=\"btn${idx}\" readonly style=\"opacity:.7\" /><input type=\"url\" placeholder=\"https://…\" /><button class=\"remove\" type=\"button\" title=\"Entfernen\">✖</button>`; btnRows.appendChild(div); renderTplButtons(); });
+
+    // enforce readonly for all key fields (also dynamic)
+    (function(){
+      const mo=new MutationObserver(()=>{
+        btnRows.querySelectorAll('.row').forEach(row=>{
+          const key=row.querySelectorAll('input')[1];
+          if(key){ key.readOnly=true; key.style.opacity='.7'; }
+        });
+      });
+      mo.observe(btnRows,{childList:true,subtree:true});
+    })();
+
+    renderTplButtons();
+  </script>
+</body>
+</html>

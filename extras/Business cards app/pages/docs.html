@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>API-Dokumentation – PPS Business Cards</title>
+  <meta name="description" content="REST API Dokumentation für die digitale Visitenkarten-App" />
+  <style>
+    :root {
+      --bg: #f7f7f8;
+      --bg-elevated: #ffffff;
+      --card: #ffffff;
+      --text: #0b0b0c;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #0ea5e9;
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.04);
+      --radius: 16px;
+    }
+    body { margin:0; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif; background:var(--bg); color:var(--text); }
+    .app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+    .sidebar { border-right:1px solid var(--border); background:linear-gradient(180deg,var(--bg-elevated),var(--bg)); padding:20px 16px; }
+    .brand { display:flex;align-items:center;gap:12px;padding:6px 8px;font-weight:600; }
+    .nav { margin-top:18px; display:grid; gap:4px; }
+    .nav a { padding:10px 12px; border-radius:12px; }
+    .nav a.active { background:var(--card); border:1px solid var(--border); box-shadow:var(--shadow); }
+    .header { padding:16px 20px; border-bottom:1px solid var(--border); }
+    .header h1 { margin:0; font-size:18px; }
+    .content { padding:20px; display:grid; gap:20px; }
+    .panel { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .panel-header { padding:14px 16px; border-bottom:1px solid var(--border); font-weight:600; }
+    .panel-body { padding:16px; }
+    .key { font-family: ui-monospace, monospace; }
+    .btn { padding:8px 12px; border-radius:10px; border:1px solid var(--border); cursor:pointer; font-size:13px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); font-size:14px; }
+    th { font-size:12px; text-transform:uppercase; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">📘 PPS Business Cards</div>
+      <nav class="nav">
+        <a href="dashboard.html">🏠 Dashboard</a>
+        <a href="cards.html">🗂️ Karten</a>
+        <a href="new.html">➕ Erstellen</a>
+        <a href="template.html">🎨 Template</a>
+        <a href="settings.html">⚙️ Einstellungen</a>
+        <a href="docs.html" class="active">📘 API-Dokumentation</a>
+      </nav>
+    </aside>
+    <div class="main">
+      <header class="header"><h1>API-Dokumentation</h1></header>
+      <main class="content">
+        <!-- API Key -->
+        <section class="panel">
+          <div class="panel-header">API Key</div>
+          <div class="panel-body">
+            <p>Dein persönlicher API Key:</p>
+            <div class="key">sk_live_••••••••••••abcd 
+              <button class="btn" id="copyBtn" data-key="sk_live_example_abcd">Kopieren</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Endpoints -->
+        <section class="panel">
+          <div class="panel-header">Endpoints</div>
+          <div class="panel-body">
+            <table>
+              <thead><tr><th>Methode</th><th>Pfad</th><th>Beschreibung</th></tr></thead>
+              <tbody>
+                <tr><td>GET</td><td>/v1/cards</td><td>Liste aller Karten</td></tr>
+                <tr><td>POST</td><td>/v1/cards</td><td>Neue Karte anlegen</td></tr>
+                <tr><td>GET</td><td>/v1/cards/{id}</td><td>Karte lesen</td></tr>
+                <tr><td>PATCH</td><td>/v1/cards/{id}</td><td>Karte aktualisieren</td></tr>
+                <tr><td>DELETE</td><td>/v1/cards/{id}</td><td>Karte löschen/deaktivieren</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('copyBtn').addEventListener('click', async (e)=>{
+      const key = e.target.getAttribute('data-key');
+      try {
+        await navigator.clipboard.writeText(key);
+        e.target.textContent = 'Kopiert ✓';
+        setTimeout(()=> e.target.textContent='Kopieren', 1200);
+      } catch(err){ e.target.textContent='Fehler'; }
+    });
+  </script>
+</body>
+</html>

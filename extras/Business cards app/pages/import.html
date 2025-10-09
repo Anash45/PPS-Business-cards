@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSV-Import – PPS Business Cards</title>
+  <meta name="description" content="CSV-Import" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%23000'/%3E%3Cpath d='M9 16a7 7 0 1114 0 7 7 0 01-14 0zm7-5a5 5 0 100 10 5 5 0 000-10z' fill='%23fff'/%3E%3C/svg%3E" />
+  
+  <style>
+    :root {
+      --bg: #f7f7f8;
+      --bg-elevated: #ffffff;
+      --card: #ffffff;
+      --text: #0b0b0c;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #0ea5e9;
+      --accent-weak: #e0f2fe;
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.04);
+      --radius: 16px;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+    :root.dark {
+      --bg: #0b0c0f;
+      --bg-elevated: #0f1115;
+      --card: #12141a;
+      --text: #f5f7fa;
+      --muted: #98a2b3;
+      --border: #252a33;
+      --accent: #38bdf8;
+      --accent-weak: #0b2a3a;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.35);
+      --danger: #f87171;
+      --success: #34d399;
+      --warning: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: inherit; text-decoration: none; }
+    .app { display: grid; grid-template-columns: 280px 1fr; min-height: 100dvh; }
+    .sidebar { position: sticky; top: 0; height: 100dvh; border-right: 1px solid var(--border); background: linear-gradient(180deg, var(--bg-elevated), var(--bg)); padding: 20px 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 12px; }
+    .brand-logo { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; background: #111; color: #fff; font-weight: 600; font-size: 14px; }
+    .brand-name { font-weight: 600; letter-spacing: .2px; }
+    .nav { margin-top: 18px; display: grid; gap: 4px; }
+    .nav h4 { margin: 18px 8px 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .nav a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: var(--text); border: 1px solid transparent; }
+    .nav a .icon { width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; }
+    .nav a:hover { background: var(--accent-weak); border-color: var(--border); }
+    .nav a.active { background: var(--card); border-color: var(--border); box-shadow: var(--shadow); }
+    .nav .divider { height: 1px; background: var(--border); margin: 10px 0; border-radius: 2px; }
+    .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 40; }
+
+    .header { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; background: linear-gradient(180deg, var(--bg-elevated), rgba(255,255,255,0)); border-bottom: 1px solid var(--border); }
+    .header .left { display: flex; align-items: center; gap: 12px; }
+    .header h1 { font-size: 18px; margin: 0; }
+    .search { display: flex; align-items: center; gap: 10px; flex: 1; max-width: 520px; padding: 10px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .search input { flex: 1; border: 0; outline: none; background: transparent; color: var(--text); font-size: 14px; }
+    .header .actions { display: flex; align-items: center; gap: 10px; }
+    .btn { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); box-shadow: var(--shadow); cursor: pointer; font-weight: 600; font-size: 14px; }
+    .btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+    .btn.ghost { background: transparent; border-color: var(--border); }
+    .btn.inline { padding: 8px 10px; font-size: 13px; }
+    .avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--border); display: grid; place-items: center; font-weight: 700; }
+
+    .content { padding: 20px; display: grid; gap: 16px; }
+
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .panel .panel-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .panel .panel-body { padding: 16px; }
+    .muted { color: var(--muted); }
+
+    .grid { display: grid; gap: 16px; }
+    .grid.cols-12 { grid-template-columns: repeat(12, 1fr); }
+
+    .field { display: grid; gap: 6px; }
+    .field label { font-size: 12px; color: var(--muted); }
+    .input, input[type='text'], input[type='email'], input[type='tel'], input[type='url'], input[type='color'], select, textarea {
+      padding: 10px 12px; border: 1px solid var(--border); background: var(--bg-elevated); border-radius: 12px; font-size: 14px;
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    .switch { position: relative; width: 40px; height: 24px; background: var(--border); border-radius: 999px; cursor: pointer; display:inline-flex; align-items:center; }
+    .switch input { display: none; }
+    .switch .dot { width: 18px; height: 18px; border-radius: 999px; background: #fff; margin-left: 3px; transition: transform .2s ease; box-shadow: var(--shadow); }
+    .switch input:checked + .dot { transform: translateX(16px); background: var(--accent); }
+
+    .preview-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; }
+    .banner { height: 120px; background: linear-gradient(135deg, rgba(14,165,233,.25), rgba(14,165,233,0)); }
+    .preview-body { padding: 16px; display: grid; gap: 10px; place-items: center; text-align: center; }
+    .avatar-preview { width: 100px; height: 100px; border-radius: 999px; background: #cbd5e1; border: 4px solid var(--bg); margin-top: -50px; object-fit: cover; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content:center; }
+    .chip { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-elevated); font-weight: 600; }
+
+    .dropzone { border: 2px dashed var(--border); border-radius: 16px; padding: 24px; text-align: center; background: var(--bg-elevated); }
+    .dropzone.highlight { border-color: var(--accent); background: var(--accent-weak); }
+
+    .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); padding: 0 16px; }
+    .tabs .tab { padding: 10px 12px; border-radius: 10px 10px 0 0; border: 1px solid transparent; font-weight: 600; }
+    .tabs .tab.active { background: var(--card); border-color: var(--border); border-bottom-color: var(--card); }
+
+    .stepper { display: flex; gap: 10px; align-items: center; }
+    .step { display: inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius: 999px; border:1px solid var(--border); background: var(--bg-elevated); }
+    .step.active { background: var(--accent-weak); }
+
+    /* Mobile */
+    .mobilebar { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); display: none; gap: 10px; padding: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 999px; box-shadow: var(--shadow); z-index: 40; }
+    .mobilebar a { padding: 10px 14px; border-radius: 999px; }
+    .mobilebar a.active { background: var(--accent-weak); }
+    .sidebar-toggle { display: none; }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: fixed; inset: 0 40% 0 0; transform: translateX(-100%); transition: transform .25s ease; z-index: 50; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-backdrop.show { display: block; }
+      .sidebar-toggle { display: inline-flex; }
+      .mobilebar { display: flex; }
+      .grid.cols-12 { grid-template-columns: 1fr; }
+    }
+  </style>
+
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Hauptnavigation">
+      <div class="brand">
+        <div class="brand-logo">PPS</div>
+        <div>
+          <div class="brand-name">PPS Business Cards</div>
+          <div class="muted" style="font-size:12px">Acme GmbH</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <h4>Übersicht</h4>
+        <a href="dashboard.html" class=""><span class="icon">🏠</span><span>Dashboard</span></a>
+        <div class="divider"></div>
+        <h4>Visitenkarten</h4>
+        <a href="cards.html" class=""><span class="icon">🗂️</span><span>Alle Karten</span></a>
+        <a href="new.html" class=""><span class="icon">➕</span><span>Erstellen</span></a>
+        <a href="import.html" class="active"><span class="icon">⬆️</span><span>CSV-Import</span></a>
+        <h4>Design</h4>
+        <a href="template.html" class=""><span class="icon">🎨</span><span>Template</span></a>
+        <h4>System</h4>
+        <a href="settings.html" class=""><span class="icon">⚙️</span><span>Einstellungen</span></a>
+        <a href="docs.html" class=""><span class="icon">📘</span><span>API-Dokumentation</span></a>
+      </nav>
+      <div style="margin-top:auto; padding: 10px 8px;">
+        <button class="btn" id="themeToggle">🌓 Theme</button>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+
+    <div class="main">
+      
+<header class="header">
+  <div class="left">
+    <button class="btn sidebar-toggle" id="openSidebar">☰</button>
+    <h1>CSV-Import</h1>
+  </div>
+  <div class="actions">
+    <a class="btn" href="cards.html">Zurück zur Liste</a>
+  </div>
+</header>
+
+<main class="content">
+  <section class="panel">
+    <div class="panel-header">
+      <div class="stepper">
+        <div class="step active" id="s1">1 · Upload</div>
+        <div class="step" id="s2">2 · Mapping</div>
+        <div class="step" id="s3">3 · Validierung</div>
+        <div class="step" id="s4">4 · Bestätigen</div>
+        <div class="step" id="s5">5 · Ergebnis</div>
+      </div>
+      <div>
+        <button class="btn inline" id="prevBtn" disabled>← Zurück</button>
+        <button class="btn inline primary" id="nextBtn">Weiter →</button>
+      </div>
+    </div>
+    <div class="panel-body" id="wizardBody">
+      <!-- Step 1 -->
+      <div id="step1">
+        <div class="dropzone" id="dropzone">CSV hierher ziehen oder klicken, um eine Datei zu wählen.
+          <br/><small class="muted">UTF‑8, mit Kopfzeile. Beispiel: first_name,last_name,title,email,phone,website,linkedin,photo_url</small>
+          <input id="fileInput" type="file" accept=".csv,text/csv" style="display:none"/>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div id="step2" style="display:none">
+        <div class="grid" style="grid-template-columns: repeat(2,1fr); gap: 12px;">
+          <div class="field"><label>Vorname</label><select class="input map" data-field="first_name"></select></div>
+          <div class="field"><label>Nachname</label><select class="input map" data-field="last_name"></select></div>
+          <div class="field"><label>Titel</label><select class="input map" data-field="title"></select></div>
+          <div class="field"><label>Abteilung</label><select class="input map" data-field="department"></select></div>
+          <div class="field"><label>E-Mail</label><select class="input map" data-field="email"></select></div>
+          <div class="field"><label>Telefon</label><select class="input map" data-field="phone"></select></div>
+          <div class="field"><label>Standort</label><select class="input map" data-field="location"></select></div>
+          <div class="field"><label>Website</label><select class="input map" data-field="website"></select></div>
+          <div class="field"><label>LinkedIn</label><select class="input map" data-field="linkedin"></select></div>
+          <div class="field"><label>Foto URL</label><select class="input map" data-field="photo_url"></select></div>
+          <div class="field"><label>Slug (optional)</label><select class="input map" data-field="slug"></select></div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div id="step3" style="display:none">
+        <div class="muted">Vorschau der ersten Zeilen & Validierung:</div>
+        <div class="panel" style="margin-top:10px;">
+          <div class="panel-body" id="previewTable">Bitte Datei laden…</div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div id="step4" style="display:none">
+        <p>Bereit zum Import. Zusammenfassung:</p>
+        <ul>
+          <li><strong id="countRows">0</strong> Zeilen erkannt</li>
+          <li>Idempotent: gleicher Upload wird nicht doppelt importiert</li>
+        </ul>
+        <div style="display:flex; gap:8px;">
+          <button class="btn">Nur gültige importieren</button>
+          <button class="btn primary" id="startImport">Alles importieren</button>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div id="step5" style="display:none">
+        <p><strong>Import abgeschlossen.</strong></p>
+        <ul>
+          <li><span id="importOk">0</span> Zeilen erfolgreich</li>
+          <li><span id="importErr">0</span> Zeilen mit Fehlern – <a class="link" href="#">Fehlerzeilen.csv</a></li>
+        </ul>
+        <a class="btn" href="cards.html">Zur Kartenliste</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  let step = 1, headers = [], rows = [];
+  const dz = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+
+  dz.addEventListener('click', () => fileInput.click());
+  ;['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('highlight'); }));
+  ;['dragleave','dragend','drop'].forEach(ev => dz.addEventListener(ev, e => { dz.classList.remove('highlight'); }));
+  dz.addEventListener('drop', (e) => { e.preventDefault(); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', (e) => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+  function handleFile(file){
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const text = ev.target.result.trim();
+      const lines = text.split(/\\r?\\n/);
+      headers = lines[0].split(',').map(h => h.trim());
+      rows = lines.slice(1).map(line => line.split(',').map(c => c.trim()));
+      goTo(2);
+      fillMapping();
+      buildPreview();
+      document.getElementById('countRows').textContent = rows.length;
+    };
+    reader.readAsText(file);
+  }
+
+  function goTo(n){
+    step = n;
+    for(let i=1;i<=5;i++){ document.getElementById('step'+i).style.display = (i===n)?'block':'none'; document.getElementById('s'+i).classList.toggle('active', i===n); }
+    document.getElementById('prevBtn').disabled = (n===1);
+    document.getElementById('nextBtn').textContent = (n>=4)?'Fertig':'Weiter →';
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', () => goTo(Math.max(1, step-1)));
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    if(step===1){ alert('Bitte CSV auswählen.'); return; }
+    if(step<4) goTo(step+1); else goTo(5);
+  });
+  document.getElementById('startImport').addEventListener('click', () => goTo(5));
+
+  function fillMapping(){
+    document.querySelectorAll('select.map').forEach(sel => {
+      sel.innerHTML = '<option value="">– Spalte wählen –</option>' + headers.map(h => `<option>${h}</option>`).join('');
+    });
+  }
+
+  function buildPreview(){
+    const container = document.getElementById('previewTable');
+    if(rows.length===0){ container.textContent = 'Keine Daten'; return; }
+    const table = document.createElement('table'); table.style.width='100%'; table.style.borderCollapse='collapse';
+    const thead = document.createElement('thead'); const trh = document.createElement('tr');
+    headers.forEach(h => { const th=document.createElement('th'); th.textContent=h; th.style.textAlign='left'; th.style.padding='8px 10px'; th.style.borderBottom='1px solid var(--border)'; trh.appendChild(th); });
+    thead.appendChild(trh); table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    rows.slice(0,5).forEach(r => {
+      const tr = document.createElement('tr');
+      r.forEach(c => { const td=document.createElement('td'); td.textContent=c; td.style.padding='8px 10px'; td.style.borderBottom='1px solid var(--border)'; tr.appendChild(td); });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    container.innerHTML = ''; container.appendChild(table);
+  }
+
+  // Keyboard nav
+  window.addEventListener('keydown', (e) => {
+    if(e.key==='ArrowRight') document.getElementById('nextBtn').click();
+    if(e.key==='ArrowLeft') document.getElementById('prevBtn').click();
+  });
+</script>
+
+    </div>
+  </div>
+
+  <nav class="mobilebar">
+    <a href="dashboard.html" class="">🏠</a>
+    <a href="cards.html" class="">🗂️</a>
+    <a href="new.html" class="">➕</a>
+    <a href="template.html" class="">🎨</a>
+    <a href="settings.html" class="">⚙️</a>
+  </nav>
+
+  <script>
+    (function initTheme(){
+      const saved = localStorage.getItem('pps-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const root = document.documentElement;
+      if (saved === 'dark' || (!saved && prefersDark)) root.classList.add('dark');
+    })();
+    document.getElementById('themeToggle').addEventListener('click', function(){
+      const root = document.documentElement;
+      root.classList.toggle('dark');
+      localStorage.setItem('pps-theme', root.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    const openBtn = document.getElementById('openSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    function toggleSidebar(open){
+      sidebar?.classList.toggle('open', open);
+      backdrop?.classList.toggle('show', open);
+      openBtn?.setAttribute('aria-expanded', String(open));
+    }
+    openBtn?.addEventListener('click', () => toggleSidebar(true));
+    backdrop?.addEventListener('click', () => toggleSidebar(false));
+  </script>
+</body>
+</html>

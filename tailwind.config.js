@@ -18,7 +18,7 @@ export default {
             colors: {
                 grey900: "#1f1f1f",
                 black: "#000000",
-                primary: "#84AF83",
+                primary: "#87B88C",
                 slate600: "#475569",
                 body: "#263238",
             },

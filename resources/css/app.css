@@ -68,3 +68,15 @@ body {
         -5px -5px 250px rgba(255, 255, 255, 0.02);
     backdrop-filter: blur(42px);
 }
+
+.active-nav-link::before{
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 4px;
+    border-radius: 0 2px 2px 0;
+    background-color: #698F6D;
+    left: 0;
+    height: calc(100% - 20px);
+    transform: translateY(-50%);
+}

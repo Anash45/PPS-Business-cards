@@ -4,8 +4,7 @@ import Button from "@/Components/Button";
 import TextInput from "@/Components/TextInput";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, useForm } from "@inertiajs/react";
-import { useState } from "react";
-import toast from "react-hot-toast"; // ✅ Import toast
+import toast from "react-hot-toast";
 
 export default function ResetPassword({ token, email }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -15,7 +14,6 @@ export default function ResetPassword({ token, email }) {
         password_confirmation: "",
     });
 
-    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
     const submit = (e) => {
         e.preventDefault();
@@ -23,7 +21,6 @@ export default function ResetPassword({ token, email }) {
         post(route("password.store"), {
             onSuccess: () => {
                 reset("password", "password_confirmation");
-                setIsNotificationModalOpen(true);
                 toast.success("Password has been reset successfully!");
             },
             onError: (errors) => {

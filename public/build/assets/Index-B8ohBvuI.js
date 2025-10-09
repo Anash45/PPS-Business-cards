@@ -1,0 +1,6 @@
+import{a as c,r,z as t,b as l,j as e,H as n,L as f}from"./app-CuDq6AIR.js";import{A as d}from"./AuthenticatedLayout-Q7dGxVZ2.js";import m from"./UserTitle-DIpmyzEQ.js";import u from"./UserTable-DHNyEEUC.js";import{c as p}from"./createLucideIcon-CrJqq0G0.js";import"./ApplicationLogo-CysT-Jzb.js";import"./trash-2-rru_fbUb.js";/**
+ * @license lucide-react v0.545.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const x=[["path",{d:"M5 12h14",key:"1ays0h"}],["path",{d:"M12 5v14",key:"s699le"}]],h=p("plus",x);function v(){const{users:a,flash:s}=c().props;r.useEffect(()=>{s?.success?t.success(s.success):s?.error?t.error(s.error):s?.info&&t(s.info)},[s]);const{setHeaderTitle:o,setHeaderText:i}=l();return r.useEffect(()=>{o("Users Management"),i("")},[]),e.jsxs(d,{children:[e.jsx(n,{title:"Users"}),e.jsxs("div",{className:"py-4 md:px-6 px-4 flex flex-col gap-6",children:[e.jsxs("div",{className:"flex items-center justify-between",children:[e.jsx(m,{title:"Users Management"}),e.jsxs(f,{href:route("users.create"),className:"px-4 py-2 text-white text-sm rounded-md shadow bg-primary hover:bg-[#60ae68] flex items-center gap-1 justify-center transition",children:[e.jsx(h,{className:"h-4 w-4",strokeWidth:2})," Add User"]})]}),e.jsx(u,{users:a})]})]})}export{v as default};

@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes; // ✅ import SoftDeletes
+
+class Card extends Model
+{
+    use HasFactory, SoftDeletes; // ✅ add SoftDeletes
+
+    protected $fillable = ['code', 'company_id', 'cards_group_id', 'status'];
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function cardsGroup()
+    {
+        return $this->belongsTo(CardsGroup::class);
+    }
+
+    /**
+     * Generate a unique 8-character code
+     */
+    public static function generateCode()
+    {
+        $allowedChars = 'ABCDEFGHJKMNPQRSTUVWX2346789';
+        $code = '';
+        for ($i = 0; $i < 8; $i++) {
+            $code .= $allowedChars[random_int(0, strlen($allowedChars) - 1)];
+        }
+
+        // Ensure uniqueness
+        if (self::where('code', $code)->exists()) {
+            return self::generateCode();
+        }
+
+        return $code;
+    }
+}

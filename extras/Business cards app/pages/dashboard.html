@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard – PPS Business Cards</title>
+  <meta name="description" content="Dashboard für digitale Visitenkarten" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%23000'/%3E%3Cpath d='M9 16a7 7 0 1114 0 7 7 0 01-14 0zm7-5a5 5 0 100 10 5 5 0 000-10z' fill='%23fff'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg: #f7f7f8;
+      --bg-elevated: #ffffff;
+      --card: #ffffff;
+      --text: #0b0b0c;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #0ea5e9;
+      --accent-weak: #e0f2fe;
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.04);
+      --radius: 16px;
+      --gold: #f59e0b;
+      --silver: #9ca3af;
+      --bronze: #b45309;
+    }
+    :root.dark {
+      --bg: #0b0c0f;
+      --bg-elevated: #0f1115;
+      --card: #12141a;
+      --text: #f5f7fa;
+      --muted: #98a2b3;
+      --border: #252a33;
+      --accent: #38bdf8;
+      --accent-weak: #0b2a3a;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.35);
+      --gold: #fbbf24;
+      --silver: #cbd5e1;
+      --bronze: #d97706;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; background: var(--bg); color: var(--text); line-height: 1.45; }
+    a { color: inherit; text-decoration: none; }
+
+    .app { display: grid; grid-template-columns: 280px 1fr; min-height: 100dvh; }
+    .sidebar { position: sticky; top: 0; height: 100dvh; border-right: 1px solid var(--border); background: linear-gradient(180deg, var(--bg-elevated), var(--bg)); padding: 20px 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 12px; }
+    .brand-logo { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; background: #111; color: #fff; font-weight: 600; font-size: 14px; }
+    .brand-name { font-weight: 600; letter-spacing: .2px; }
+    .nav { margin-top: 18px; display: grid; gap: 4px; }
+    .nav h4 { margin: 18px 8px 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .nav a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: var(--text); border: 1px solid transparent; }
+    .nav a:hover { background: var(--accent-weak); border-color: var(--border); }
+    .nav a.active { background: var(--card); border-color: var(--border); box-shadow: var(--shadow); }
+    .nav .divider { height: 1px; background: var(--border); margin: 10px 0; border-radius: 2px; }
+    .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 40; }
+
+    .header { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; background: linear-gradient(180deg, var(--bg-elevated), rgba(255,255,255,0)); border-bottom: 1px solid var(--border); }
+    .header .left { display: flex; align-items: center; gap: 12px; }
+    .header h1 { font-size: 18px; margin: 0; }
+    .btn { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); box-shadow: var(--shadow); cursor: pointer; font-weight: 600; font-size: 14px; }
+    .avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--border); display: grid; place-items: center; font-weight: 700; }
+
+    .content { padding: 20px; display: grid; gap: 20px; }
+    .grid-top { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; }
+    @media (max-width: 1100px) { .grid-top { grid-template-columns: 1fr; } }
+    .grid12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .card, .panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card { padding: 16px; }
+    .card h3 { margin: 0 0 6px; font-size: 14px; color: var(--muted); }
+    .card .value { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+    .panel .panel-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .panel .panel-body { padding: 16px; }
+
+    /* Chart */
+    .chart-wrap { height: 260px; }
+    .chart-wrap svg { width: 100%; height: 260px; display: block; }
+    .axis text { font-size: 12px; fill: var(--muted); }
+    .line { fill: none; stroke: var(--accent); stroke-width: 2; }
+    .area { fill: url(#areaGrad); }
+    .dot { r: 3; fill: var(--accent); }
+    .gridlines line { stroke: var(--border); stroke-width: 1; }
+    .ticks line { stroke: var(--border); stroke-width: 1; }
+
+    /* Top list */
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .medal { width: 22px; height: 22px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #111; margin-right: 8px; }
+    .gold { background: linear-gradient(145deg, var(--gold), #fcd34d); }
+    .silver { background: linear-gradient(145deg, var(--silver), #e5e7eb); }
+    .bronze { background: linear-gradient(145deg, var(--bronze), #f59e0b); }
+    .muted { color: var(--muted); }
+
+    /* Mobile */
+    .mobilebar { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); display: none; gap: 10px; padding: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 999px; box-shadow: var(--shadow); z-index: 40; }
+    .mobilebar a { padding: 10px 14px; border-radius: 999px; }
+    .mobilebar a.active { background: var(--accent-weak); }
+    .sidebar-toggle { display: none; }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: fixed; inset: 0 40% 0 0; transform: translateX(-100%); transition: transform .25s ease; z-index: 50; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-backdrop.show { display: block; }
+      .sidebar-toggle { display: inline-flex; }
+      .mobilebar { display: flex; }
+      .grid12 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Hauptnavigation">
+      <div class="brand">
+        <div class="brand-logo">PPS</div>
+        <div>
+          <div class="brand-name">PPS Business Cards</div>
+          <div class="muted" style="font-size:12px">Acme GmbH</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <h4>Übersicht</h4>
+        <a href="dashboard.html" class="active"><span class="icon">🏠</span><span>Dashboard</span></a>
+        <div class="divider"></div>
+        <h4>Visitenkarten</h4>
+        <a href="cards.html"><span class="icon">🗂️</span><span>Alle Karten</span></a>
+        <a href="new.html"><span class="icon">➕</span><span>Erstellen</span></a>
+        <a href="import.html"><span class="icon">⬆️</span><span>CSV-Import</span></a>
+        <h4>Design</h4>
+        <a href="template.html"><span class="icon">🎨</span><span>Template</span></a>
+        <h4>System</h4>
+        <a href="settings.html"><span class="icon">⚙️</span><span>Einstellungen</span></a>
+        <a href="docs.html"><span class="icon">📘</span><span>API-Dokumentation</span></a>
+      </nav>
+      <div style="margin-top:auto; padding: 10px 8px;">
+        <button class="btn" id="themeToggle">🌓 Theme</button>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+
+    <div class="main">
+      <header class="header">
+        <div class="left">
+          <button class="btn sidebar-toggle" id="openSidebar">☰</button>
+          <h1>Dashboard</h1>
+        </div>
+        <div class="actions">
+          <div class="avatar">A</div>
+        </div>
+      </header>
+
+      <main class="content">
+        
+        
+        <section class="grid-top">
+          <div class="panel">
+            <div class="panel-header">
+              <strong>Page Views</strong><span class="muted">Letzte 30 Tage</span>
+            </div>
+            <div class="panel-body chart-wrap">
+              <!-- SVG CHART WILL BE LEFT AS IS BELOW (we replace separately) -->
+              
+              <svg id="viewsChart" viewBox="0 0 600 260" preserveAspectRatio="none" aria-label="Page Views Chart">
+                <defs>
+                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.02"/>
+                  </linearGradient>
+                </defs>
+                <g id="grid" class="gridlines">
+                <line x1='40' x2='590' y1='16.0' y2='16.0' />
+                <line x1='40' x2='590' y1='71.0' y2='71.0' />
+                <line x1='40' x2='590' y1='126.0' y2='126.0' />
+                <line x1='40' x2='590' y1='181.0' y2='181.0' />
+                <line x1='40' x2='590' y1='236.0' y2='236.0' />
+                </g>
+                <path id="area" class="area" d="M 40.0 125.33 L 58.97 138.77 L 77.93 111.89 L 96.9 101.61 L 115.86 66.83 L 134.83 62.88 L 153.79 50.23 L 172.76 88.96 L 191.72 77.9 L 210.69 104.77 L 229.66 107.15 L 248.62 107.15 L 267.59 145.09 L 286.55 153.0 L 305.52 146.67 L 324.48 165.64 L 343.45 192.52 L 362.41 183.83 L 381.38 179.08 L 400.34 218.61 L 419.31 177.5 L 438.28 176.71 L 457.24 183.83 L 476.21 179.87 L 495.17 127.7 L 514.14 141.14 L 533.1 137.19 L 552.07 122.17 L 571.03 73.94 L 590.0 74.74 L 590.0 236 L 40.0 236 Z"></path>
+                <path id="line" class="line" d="M 40.0 125.33 L 58.97 138.77 L 77.93 111.89 L 96.9 101.61 L 115.86 66.83 L 134.83 62.88 L 153.79 50.23 L 172.76 88.96 L 191.72 77.9 L 210.69 104.77 L 229.66 107.15 L 248.62 107.15 L 267.59 145.09 L 286.55 153.0 L 305.52 146.67 L 324.48 165.64 L 343.45 192.52 L 362.41 183.83 L 381.38 179.08 L 400.34 218.61 L 419.31 177.5 L 438.28 176.71 L 457.24 183.83 L 476.21 179.87 L 495.17 127.7 L 514.14 141.14 L 533.1 137.19 L 552.07 122.17 L 571.03 73.94 L 590.0 74.74"></path>
+                <g id="xaxis" class="ticks">
+                <line x1='150.00' x2='150.00' y1='236' y2='230' />
+                <line x1='260.00' x2='260.00' y1='236' y2='230' />
+                <line x1='370.00' x2='370.00' y1='236' y2='230' />
+                <line x1='480.00' x2='480.00' y1='236' y2='230' />
+                </g>
+                <g id="yaxis" class="axis">
+                <text x='6' y='240.0' class='axis'>198</text>
+                <text x='6' y='185.0' class='axis'>268</text>
+                <text x='6' y='130.0' class='axis'>337</text>
+                <text x='6' y='75.0' class='axis'>407</text>
+                <text x='6' y='20.0' class='axis'>476</text>
+                </g>
+              </svg>
+
+            </div>
+          </div>
+          <div style="display:grid; gap: 16px;">
+            <article class="card"><h3>vCard-Downloads</h3><div class="value">2,183</div><div class="muted">+3.2% vs. Vormonat</div></article>
+            <article class="card"><h3>Button-Klicks</h3><div class="value">5,904</div><div class="muted">Top: LinkedIn</div></article>
+          </div>
+        </section>
+
+        <!-- Top employees/cards -->
+    
+        <section class="panel" aria-label="Top Visitenkarten">
+          <div class="panel-header">
+            <strong>Top Visitenkarten · Meiste Aufrufe</strong>
+            
+          </div>
+          <div class="panel-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rang</th>
+                  <th>Person</th>
+                  <th>Titel</th>
+                  <th>Abteilung</th>
+                  <th class="nowrap">Aufrufe (30d)</th>
+                  <th>vCard</th>
+                </tr>
+              </thead>
+              <tbody id="topTable">
+                <tr><td><span class="medal gold">1</span></td><td>Max Mustermann</td><td>Sales Manager</td><td>Sales</td><td>1.240</td><td>230</td></tr>
+                <tr><td><span class="medal silver">2</span></td><td>Erika Musterfrau</td><td>HR Lead</td><td>People</td><td>1.104</td><td>188</td></tr>
+                <tr><td><span class="medal bronze">3</span></td><td>John Doe</td><td>Engineer</td><td>Tech</td><td>980</td><td>120</td></tr>
+                <tr><td><span class="muted">#4</span></td><td>Jane Smith</td><td>Marketing</td><td>Marketing</td><td>860</td><td>140</td></tr>
+                <tr><td><span class="muted">#5</span></td><td>Tom Becker</td><td>Support</td><td>Customer</td><td>760</td><td>95</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <nav class="mobilebar">
+    <a href="dashboard.html" class="active">🏠</a>
+    <a href="cards.html">🗂️</a>
+    <a href="new.html">➕</a>
+    <a href="template.html">🎨</a>
+    <a href="settings.html">⚙️</a>
+  </nav>
+
+  <script>
+    // Theme
+    (function initTheme(){
+      const saved = localStorage.getItem('pps-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const root = document.documentElement;
+      if (saved === 'dark' || (!saved && prefersDark)) root.classList.add('dark');
+    })();
+    document.getElementById('themeToggle').addEventListener('click', function(){
+      const root = document.documentElement;
+      root.classList.toggle('dark');
+      localStorage.setItem('pps-theme', root.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // Sidebar mobile toggle
+    const openBtn = document.getElementById('openSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    function toggleSidebar(open){
+      sidebar.classList.toggle('open', open);
+      backdrop.classList.toggle('show', open);
+      openBtn?.setAttribute('aria-expanded', String(open));
+    }
+    openBtn?.addEventListener('click', () => toggleSidebar(true));
+    backdrop?.addEventListener('click', () => toggleSidebar(false));
+  </script>
+</body>
+</html>

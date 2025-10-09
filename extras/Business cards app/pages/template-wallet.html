@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Template (Wallet) – PPS Business Cards</title>
+<meta name="description" content="Wallet-Karte konfigurieren" />
+<style>
+  :root{
+    --bg:#f7f7f8; --bg-elevated:#fff; --card:#fff; --text:#0b0b0c;
+    --muted:#6b7280; --border:#e5e7eb; --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.04);
+    --radius:16px;
+
+    /* Wallet-Variablen (via UI) */
+    --pass-bg:#C9E5F3;
+    --pass-text:#0b0b0c;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:"SF Pro Text",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    background:var(--bg); color:var(--text);
+  }
+  /* Links/Tabs ohne Unterstreichung */
+  a, a:hover, a:focus, a:active{ text-decoration:none; color:inherit }
+
+  .app{display:grid;grid-template-columns:280px 1fr;min-height:100dvh}
+  .sidebar{position:sticky;top:0;height:100dvh;border-right:1px solid var(--border);
+    background:linear-gradient(180deg,var(--bg-elevated),var(--bg));padding:20px 16px}
+  .brand{display:flex;gap:12px;align-items:center;padding:6px 8px}
+  .brand-logo{width:32px;height:32px;border-radius:999px;background:#111;color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+  .brand-name{font-weight:700}
+  .nav{margin-top:18px;display:grid;gap:4px}
+  .nav h4{margin:18px 8px 6px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;border:1px solid transparent}
+  .nav a:hover{background:#e0f2fe;border-color:var(--border)}
+  .nav a.active{background:var(--card);border-color:var(--border);box-shadow:var(--shadow)}
+  .header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:linear-gradient(180deg,var(--bg-elevated),rgba(255,255,255,0));border-bottom:1px solid var(--border)}
+  .header h1{margin:0;font-size:18px}
+  .avatar{width:32px;height:32px;border-radius:999px;background:var(--border);display:grid;place-items:center;font-weight:700}
+
+  .content{padding:20px;display:grid;gap:18px}
+  .grid12{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .panel-body{padding:16px}
+
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field input[type="text"], .field input[type="color"], .field input[type="file"]{
+    width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--bg-elevated);outline:none
+  }
+  label{font-weight:600;font-size:13px}
+  .subhead{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+
+  .btn{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--card);box-shadow:var(--shadow);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+  .btn.primary{background:#0ea5e9;color:#fff;border-color:transparent}
+
+  /* Tabs */
+  .tabs{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+  .segment{display:inline-flex;gap:6px;padding:4px;border:1px solid var(--border);border-radius:12px;background:var(--bg-elevated);box-shadow:var(--shadow)}
+  .segment a{padding:8px 12px;border-radius:8px;color:var(--text);font-weight:600;border:1px solid transparent}
+  @media (max-width:980px){.app{grid-template-columns:1fr}.grid12{grid-template-columns:1fr}.tabs{justify-content:center}}
+
+  /* Preview Root */
+  #previewRoot{width:390px;max-width:100%;margin:0 auto;display:block}
+
+  /* Wallet Card – 1080:1503 → 390×543 fix */
+  .wallet{
+    background:var(--pass-bg); color:var(--pass-text);
+    border-radius:28px; border:1px solid var(--border); box-shadow:0 10px 30px rgba(0,0,0,.08);
+    padding:24px; width:100%; height:543px;
+    display:flex; flex-direction:column; row-gap:4px;
+  }
+
+  .logo-strip{height:40px;display:flex;align-items:center}
+  .logo-strip img{height:40px;width:auto;max-width:60%;object-fit:contain}
+
+  .name-row{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 104px; /* Foto-Spalte fix */
+    gap:16px; align-items:center; margin-top:6px;
+  }
+  .headshot{justify-self:end;width:82px;height:82px;border-radius:10px;overflow:hidden;background:#fff;border:1px solid var(--border);margin-top:6px}
+  .headshot img{width:100%;height:100%;object-fit:cover}
+
+  .h{
+    font-size:12px;letter-spacing:.12em;
+    color:color-mix(in oklab, var(--pass-text) 55%, #9aa1aa);
+    text-transform:uppercase;margin:8px 0 2px;
+  }
+  .name{
+    font-weight:400;font-size:26px;line-height:1.05;white-space:nowrap;overflow:hidden;
+  }
+  .company{font-size:18px;margin-top:0}
+  .title{font-size:16px;margin-top:0}
+
+  .spacer{flex:1 1 auto} /* schiebt QR nach unten */
+
+  #qrCard{
+    background:#fff;border:1px solid var(--border);border-radius:10px;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+    padding:2px 2px 0;           /* engerer Rand */
+    align-self:center;margin-bottom:8px;
+  }
+  #qrImg{width:146px !important;height:146px !important;object-fit:contain;image-rendering:pixelated}
+  #qrCaption{margin-top:6px;font-size:14px;letter-spacing:.02em;color:#000 !important;text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">PPS</div>
+      <div>
+        <div class="brand-name">PPS Business Cards</div>
+        <div style="color:var(--muted);font-size:12px">Acme GmbH</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <h4>Übersicht</h4>
+      <a href="dashboard.html">🏠 Dashboard</a>
+      <div style="height:1px;background:var(--border);margin:10px 0;border-radius:2px"></div>
+      <h4>Visitenkarten</h4>
+      <a href="cards.html">🗂️ Alle Karten</a>
+      <a href="new.html">➕ Erstellen</a>
+      <a href="import.html">⬆️ CSV-Import</a>
+      <h4>Design</h4>
+      <a href="template.html">🎨 Template</a>
+      <h4>System</h4>
+      <a href="settings.html">⚙️ Einstellungen</a>
+      <a href="docs.html">📘 API-Dokumentation</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <header class="header">
+      <h1>Template · Wallet</h1>
+      <div class="avatar">A</div>
+    </header>
+
+    <main class="content">
+      <section class="grid12">
+        <!-- Tabs -->
+        <div class="tabs" style="grid-column: span 12;">
+          <nav class="segment" role="tablist" aria-label="Konfigurator">
+            <a role="tab" aria-selected="false" href="template.html">Landingpage</a>
+            <a class="active" role="tab" aria-selected="true" href="template-wallet.html">Wallet</a>
+          </nav>
+        </div>
+
+        <!-- FORM -->
+        <form class="grid12" onsubmit="return false;" style="grid-column: span 7;" id="walletForm">
+          <div class="subhead" style="grid-column: span 12;">Wallet</div>
+
+          <div class="field" style="grid-column: span 6;">
+            <label>Walletkarte · Hintergrundfarbe</label>
+            <input id="bgColor" type="color" value="#C9E5F3" />
+          </div>
+
+          <div class="field" style="grid-column: span 6;">
+            <label>Walletkarte · Textfarbe</label>
+            <input id="textColor" type="color" value="#0b0b0c" />
+          </div>
+
+          <div class="field" style="grid-column: span 12;">
+            <label>Logo hochladen (oben links, PNG/SVG/WebP)</label>
+            <input id="logoInput" type="file" accept="image/*" />
+            <div style="color:var(--muted);font-size:12px;margin-top:6px">
+              Logo startet oben links, Höhe 40 px, skaliert bis max. 60 % der Kartenbreite (Transparenz zeigt Kartenfarbe).
+            </div>
+          </div>
+
+          <div class="subhead" style="grid-column: span 12;">Überschriften Texte (immer GROSSBUCHSTABEN)</div>
+          <div class="field" style="grid-column: span 4;">
+            <label>Überschrift: Name</label>
+            <input id="hName" type="text" value="NAME" data-bind="#hNameOut" data-upper="true" />
+          </div>
+          <div class="field" style="grid-column: span 4;">
+            <label>Überschrift: Firmenname</label>
+            <input id="hCompany" type="text" value="FIRMENNAME" data-bind="#hCompanyOut" data-upper="true" />
+          </div>
+          <div class="field" style="grid-column: span 4;">
+            <label>Überschrift: Titel</label>
+            <input id="hTitle" type="text" value="TITEL" data-bind="#hTitleOut" data-upper="true" />
+          </div>
+
+          <div class="subhead" style="grid-column: span 12;">Demo-Inhalte (nur Vorschau)</div>
+          <div class="field" style="grid-column: span 6;">
+            <label>Demo · Name</label>
+            <input id="demoName" type="text" value="Max Mustermann" data-bind="#nameOut" data-fit="true" />
+          </div>
+          <div class="field" style="grid-column: span 6;">
+            <label>Demo · Firmenname</label>
+            <input id="demoCompany" type="text" value="Muster GmbH" data-bind="#companyOut" />
+          </div>
+          <!-- FIX: span 6 (ohne %) -->
+          <div class="field" style="grid-column: span 6;">
+            <label>Demo · Titel</label>
+            <input id="demoTitle" type="text" value="Sales Manager" data-bind="#titleOut" />
+          </div>
+          <!-- FIX: span 6 (ohne %) -->
+          <div class="field" style="grid-column: span 6;">
+            <label>QR-Caption (max. 18 Zeichen)</label>
+            <input id="qrCapInput" type="text" maxlength="18" value="QR-Code scannen" data-bind="#qrCaption" data-max="18" />
+          </div>
+
+          <div style="grid-column: span 12; display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+            <button class="btn" type="button">Entwurf speichern</button>
+            <button class="btn primary" type="button">Template speichern</button>
+          </div>
+        </form>
+
+        <!-- PREVIEW -->
+        <aside class="panel" style="grid-column: span 5;">
+          <div class="panel-header">
+            <strong>Live-Preview</strong><span class="muted">Wallet Card (mobile)</span>
+          </div>
+          <div class="panel-body">
+            <div id="previewRoot">
+              <div class="wallet" id="wallet">
+                <div class="logo-strip"><img id="logoImg" alt="Logo" /></div>
+
+                <div class="name-row">
+                  <div>
+                    <div class="h" id="hNameOut">NAME</div>
+                    <div class="name" id="nameOut">Max Mustermann</div>
+                  </div>
+                  <div class="headshot" title="Profilfoto">
+                    <img src="../assets/foto.webp" alt="Profil" onerror="this.src='data:image/svg+xml;utf8,<?xml version=&quot;1.0&quot;?><svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2296%22 height=%2296%22 viewBox=%220 0 96 96%22><rect width=%2296%22 height=%2296%22 rx=%2210%22 fill=%22%23f3f4f6%22/><circle cx=%2248%22 cy=%2238%22 r=%2216%22 fill=%22%23d1d5db%22/><rect x=%2224%22 y=%2258%22 width=%2248%22 height=%2216%22 rx=%228%22 fill=%22%23d1d5db%22/></svg>'" />
+                  </div>
+                </div>
+
+                <div class="h" id="hCompanyOut">FIRMENNAME</div>
+                <div class="company" id="companyOut">Muster GmbH</div>
+
+                <div class="h" id="hTitleOut">TITEL</div>
+                <div class="title" id="titleOut">Sales Manager</div>
+
+                <div class="spacer"></div>
+
+                <div id="qrCard">
+                  <img id="qrImg" src="../assets/qr.png" alt="QR-Code" />
+                  <div id="qrCaption">QR-Code scannen</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+  const $ = (s)=>document.querySelector(s);
+
+  function applyColors(){
+    document.documentElement.style.setProperty('--pass-bg', $('#bgColor').value);
+    document.documentElement.style.setProperty('--pass-text', $('#textColor').value);
+  }
+  ['input','change'].forEach(ev=>{
+    $('#bgColor').addEventListener(ev, applyColors);
+    $('#textColor').addEventListener(ev, applyColors);
+  });
+  applyColors();
+
+  const logoInput = $('#logoInput');
+  const logoImg   = $('#logoImg');
+  function logoFallback(){
+    const svg = encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='600' height='200' viewBox='0 0 600 200'>
+      <rect width='600' height='200' fill='none'/>
+      <text x='0' y='140' font-family='SF Pro Text, -apple-system, Arial' font-weight='800' font-size='140' fill='${getComputedStyle(document.documentElement).getPropertyValue('--pass-text').trim() || '#0b0b0c'}'>Logo</text>
+    </svg>`);
+    logoImg.src = 'data:image/svg+xml;utf8,'+svg;
+  }
+  logoFallback();
+  logoInput.addEventListener('change',(e)=>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const r = new FileReader(); r.onload = ()=>{ logoImg.src = r.result; }; r.readAsDataURL(f);
+  });
+
+  const nameOut  = $('#nameOut');
+  const nameWrap = document.querySelector('.name-row > div:first-child');
+  function fitName(){
+    if(!nameOut || !nameWrap) return;
+    let size = 26, min = 16;
+    nameOut.style.fontSize = size + 'px';
+    nameOut.style.whiteSpace = 'nowrap';
+    nameOut.style.overflow = 'hidden';
+    while (nameOut.scrollWidth > nameWrap.clientWidth && size > min){
+      size -= 1;
+      nameOut.style.fontSize = size + 'px';
+    }
+  }
+  window.addEventListener('resize', fitName);
+
+  const form = document.getElementById('walletForm');
+  function bindApply(el){
+    const sel = el.dataset.bind; if(!sel) return;
+    const out = document.querySelector(sel); if(!out) return;
+
+    let v = el.value ?? '';
+    if(el.dataset.upper === 'true') v = (v || '').toUpperCase();
+    if(el.dataset.max) v = (v || '').slice(0, parseInt(el.dataset.max,10));
+    out.textContent = v;
+
+    if(el.dataset.fit === 'true') fitName();
+  }
+  form.addEventListener('input', (e)=> bindApply(e.target));
+  form.addEventListener('change',(e)=> bindApply(e.target));
+  document.querySelectorAll('[data-bind]').forEach(bindApply);
+
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitName); }
+  requestAnimationFrame(fitName);
+</script>
+</body>
+</html>

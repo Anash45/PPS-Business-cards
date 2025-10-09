@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Visitenkarten – PPS Business Cards</title>
+  <meta name="description" content="Übersicht aller digitalen Visitenkarten" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%23000'/%3E%3Cpath d='M9 16a7 7 0 1114 0 7 7 0 01-14 0zm7-5a5 5 0 100 10 5 5 0 000-10z' fill='%23fff'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg: #f7f7f8;
+      --bg-elevated: #ffffff;
+      --card: #ffffff;
+      --text: #0b0b0c;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #0ea5e9;
+      --accent-weak: #e0f2fe;
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.04);
+      --radius: 16px;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+    :root.dark {
+      --bg: #0b0c0f;
+      --bg-elevated: #0f1115;
+      --card: #12141a;
+      --text: #f5f7fa;
+      --muted: #98a2b3;
+      --border: #252a33;
+      --accent: #38bdf8;
+      --accent-weak: #0b2a3a;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.35);
+      --danger: #f87171;
+      --success: #34d399;
+      --warning: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: inherit; text-decoration: none; }
+    .app { display: grid; grid-template-columns: 280px 1fr; min-height: 100dvh; }
+    .sidebar { position: sticky; top: 0; height: 100dvh; border-right: 1px solid var(--border); background: linear-gradient(180deg, var(--bg-elevated), var(--bg)); padding: 20px 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 12px; }
+    .brand-logo { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; background: #111; color: #fff; font-weight: 600; font-size: 14px; }
+    .brand-name { font-weight: 600; letter-spacing: .2px; }
+    .nav { margin-top: 18px; display: grid; gap: 4px; }
+    .nav h4 { margin: 18px 8px 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .nav a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: var(--text); border: 1px solid transparent; }
+    .nav a .icon { width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; }
+    .nav a:hover { background: var(--accent-weak); border-color: var(--border); }
+    .nav a.active { background: var(--card); border-color: var(--border); box-shadow: var(--shadow); }
+    .nav .divider { height: 1px; background: var(--border); margin: 10px 0; border-radius: 2px; }
+
+    /* Backdrop hidden by default */
+    .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 40; }
+
+    .header { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; background: linear-gradient(180deg, var(--bg-elevated), rgba(255,255,255,0)); border-bottom: 1px solid var(--border); }
+    .header .left { display: flex; align-items: center; gap: 12px; }
+    .header h1 { font-size: 18px; margin: 0; }
+    .search { display: flex; align-items: center; gap: 10px; flex: 1; max-width: 520px; padding: 10px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .search input { flex: 1; border: 0; outline: none; background: transparent; color: var(--text); font-size: 14px; }
+    .header .actions { display: flex; align-items: center; gap: 10px; }
+    .btn { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); box-shadow: var(--shadow); cursor: pointer; font-weight: 600; font-size: 14px; }
+    .btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+    .btn.ghost { background: transparent; border-color: var(--border); }
+    .avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--border); display: grid; place-items: center; font-weight: 700; }
+
+    .content { padding: 20px; display: grid; gap: 16px; }
+
+    /* Controls row */
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .field { display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); background: var(--card); border-radius: 12px; box-shadow: var(--shadow); }
+    .select, select { border: 0; background: transparent; outline: none; font-size: 14px; color: var(--text); }
+    .field input[type="search"] { border: 0; outline: none; background: transparent; font-size: 14px; width: 240px; }
+
+    /* Table */
+    .table-wrap { margin-top: 6px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; /* keeps rounded corners */ }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { position: sticky; top: 0; /* below header */ background: var(--bg-elevated); border-bottom: 1px solid var(--border); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 10px 12px; }
+    tbody td { border-bottom: 1px solid var(--border); padding: 10px 12px; font-size: 14px; }
+    tbody tr:hover { background: rgba(14,165,233,0.06); }
+    .col-checkbox { width: 36px; }
+    .col-actions { width: 120px; text-align: right; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); background: var(--bg-elevated); }
+    .pill.success { background: rgba(16,185,129,0.12); }
+    .pill.warning { background: rgba(245,158,11,0.12); }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 12px; border-radius: 999px; background: var(--accent-weak); border: 1px solid var(--border); }
+    .thumb { width: 32px; height: 32px; border-radius: 999px; background: #cbd5e1; display: inline-block; margin-right: 8px; vertical-align: middle; }
+    .nowrap { white-space: nowrap; }
+    .nowrap a.link { color: var(--accent); font-weight: 600; }
+
+    /* Bulk bar */
+    .bulkbar { position: sticky; bottom: 12px; display: none; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+    .bulkbar.show { display: flex; }
+
+    /* Mobile */
+    .mobilebar { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); display: none; gap: 10px; padding: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 999px; box-shadow: var(--shadow); z-index: 40; }
+    .mobilebar a { padding: 10px 14px; border-radius: 999px; }
+    .mobilebar a.active { background: var(--accent-weak); }
+    .sidebar-toggle { display: none; }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: fixed; inset: 0 40% 0 0; transform: translateX(-100%); transition: transform .25s ease; z-index: 50; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-backdrop.show { display: block; }
+      .sidebar-toggle { display: inline-flex; }
+      .mobilebar { display: flex; }
+      thead th { top: 60px; }
+      .controls { position: sticky; top: 56px; z-index: 10; background: linear-gradient(180deg, var(--bg-elevated), rgba(255,255,255,0)); padding-top: 6px; }
+      .table-wrap { margin-top: 6px; overflow-x: auto; }
+    }
+    .muted { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Hauptnavigation">
+      <div class="brand">
+        <div class="brand-logo">PPS</div>
+        <div>
+          <div class="brand-name">PPS Business Cards</div>
+          <div class="muted" style="font-size:12px">Acme GmbH</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <h4>Übersicht</h4>
+        <a href="dashboard.html"><span class="icon">🏠</span><span>Dashboard</span></a>
+        <div class="divider"></div>
+        <h4>Visitenkarten</h4>
+        <a href="cards.html" class="active"><span class="icon">🗂️</span><span>Alle Karten</span></a>
+        <a href="new.html"><span class="icon">➕</span><span>Erstellen</span></a>
+        <a href="import.html"><span class="icon">⬆️</span><span>CSV-Import</span></a>
+        <h4>Design</h4>
+        <a href="template.html"><span class="icon">🎨</span><span>Template</span></a>
+        <h4>System</h4>
+        <a href="settings.html"><span class="icon">⚙️</span><span>Einstellungen</span></a>
+        <a href="docs.html"><span class="icon">📘</span><span>API-Dokumentation</span></a>
+      </nav>
+      <div style="margin-top:auto; padding: 10px 8px;">
+        <button class="btn" id="themeToggle">🌓 Theme</button>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+
+    <div class="main">
+      <header class="header">
+        <div class="left">
+          <button class="btn sidebar-toggle" id="openSidebar">☰</button>
+          <h1>Visitenkarten</h1>
+        </div>
+        <div class="actions">
+          <a class="btn" href="new.html">Neue Karte</a>
+          <a class="btn" href="import.html">CSV importieren</a>
+          <div class="avatar">A</div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="controls" aria-label="Filter">
+          <div class="field">
+            <span>🔎</span>
+            <input type="search" placeholder="Suchen …" id="searchInput" />
+          </div>
+          <div class="field">
+            <span>🏢</span>
+            <select aria-label="Abteilung">
+              <option>Alle Abteilungen</option>
+              <option>Sales</option>
+              <option>People</option>
+              <option>Tech</option>
+              <option>Marketing</option>
+            </select>
+          </div>
+          <div class="field">
+            <span>📍</span>
+            <select aria-label="Standort">
+              <option>Alle Standorte</option>
+              <option>Berlin</option>
+              <option>Hamburg</option>
+              <option>München</option>
+            </select>
+          </div>
+          <div class="field">
+            <span>⚑</span>
+            <select aria-label="Status">
+              <option>Alle</option>
+              <option>Aktiv</option>
+              <option>Inaktiv</option>
+            </select>
+          </div>
+          <div style="margin-left:auto; display:flex; gap:8px;">
+            <button class="btn ghost">Export CSV</button>
+            <button class="btn ghost">QR Codes</button>
+          </div>
+        </section>
+
+        <section class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-checkbox"><input type="checkbox" id="selectAll" aria-label="Alle auswählen"/></th>
+                <th>Person</th>
+                <th>Titel</th>
+                <th>Abteilung</th>
+                <th>Standort</th>
+                <th>Status</th>
+                <th>URL</th>
+                <th>Geändert</th>
+                <th class="col-actions">Aktionen</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr>
+                <td><input type="checkbox" class="row-check"/></td>
+                <td><span class="thumb"></span> Max Mustermann</td>
+                <td>Sales Manager</td>
+                <td>Sales</td>
+                <td>Berlin</td>
+                <td><span class="pill success">Aktiv</span></td>
+                <td class="nowrap"><span class="badge">/acme/sjk8a2972x78</span></td>
+                <td>vor 2 Tagen</td>
+                <td class="col-actions">
+                  <a class="btn" href="edit.html?id=1">Bearbeiten</a>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-check"/></td>
+                <td><span class="thumb"></span> Erika Musterfrau</td>
+                <td>HR Lead</td>
+                <td>People</td>
+                <td>Hamburg</td>
+                <td><span class="pill success">Aktiv</span></td>
+                <td class="nowrap"><span class="badge">/acme/08xy2af9k2</span></td>
+                <td>vor 4 Tagen</td>
+                <td class="col-actions">
+                  <a class="btn" href="edit.html?id=2">Bearbeiten</a>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-check"/></td>
+                <td><span class="thumb"></span> John Doe</td>
+                <td>Engineer</td>
+                <td>Tech</td>
+                <td>München</td>
+                <td><span class="pill warning">Inaktiv</span></td>
+                <td class="nowrap"><span class="badge">/acme/41dk9s2l0</span></td>
+                <td>vor 12 Tagen</td>
+                <td class="col-actions">
+                  <a class="btn" href="edit.html?id=3">Bearbeiten</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <div class="bulkbar" id="bulkbar" aria-live="polite">
+          <div><strong id="bulkCount">0</strong> ausgewählt</div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn">Aktivieren</button>
+            <button class="btn">Deaktivieren</button>
+            <button class="btn">Export CSV</button>
+            <button class="btn" style="border-color: var(--danger); color: var(--danger);">Löschen</button>
+          </div>
+        </div>
+
+        <div class="muted" style="text-align:right">Seite 1 · 50 von 132</div>
+      </main>
+    </div>
+  </div>
+
+  <nav class="mobilebar">
+    <a href="dashboard.html">🏠</a>
+    <a href="cards.html" class="active">🗂️</a>
+    <a href="new.html">➕</a>
+    <a href="template.html">🎨</a>
+    <a href="settings.html">⚙️</a>
+  </nav>
+
+  <script>
+    // Theme
+    (function initTheme(){
+      const saved = localStorage.getItem('pps-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const root = document.documentElement;
+      if (saved === 'dark' || (!saved && prefersDark)) root.classList.add('dark');
+    })();
+    document.getElementById('themeToggle').addEventListener('click', function(){
+      const root = document.documentElement;
+      root.classList.toggle('dark');
+      localStorage.setItem('pps-theme', root.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // Sidebar mobile toggle
+    const openBtn = document.getElementById('openSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    function toggleSidebar(open){
+      sidebar.classList.toggle('open', open);
+      backdrop.classList.toggle('show', open);
+      openBtn?.setAttribute('aria-expanded', String(open));
+    }
+    openBtn?.addEventListener('click', () => toggleSidebar(true));
+    backdrop?.addEventListener('click', () => toggleSidebar(false));
+
+    // Bulk selection
+    const selectAll = document.getElementById('selectAll');
+    const checks = Array.from(document.querySelectorAll('.row-check'));
+    const bulkbar = document.getElementById('bulkbar');
+    const bulkCount = document.getElementById('bulkCount');
+    function updateBulk(){
+      const selected = checks.filter(c => c.checked).length;
+      bulkCount.textContent = selected;
+      bulkbar.classList.toggle('show', selected > 0);
+      selectAll.checked = selected === checks.length;
+      selectAll.indeterminate = selected > 0 && selected < checks.length;
+    }
+    checks.forEach(c => c.addEventListener('change', updateBulk));
+    selectAll.addEventListener('change', (e) => {
+      checks.forEach(c => c.checked = e.target.checked);
+      updateBulk();
+    });
+    updateBulk();
+  </script>
+</body>
+</html>

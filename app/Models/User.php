@@ -15,28 +15,26 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
-        'company_name',
-        'created_by',
-        'company_id',
+        'role',        // admin | company | team
+        'created_by',  // user who created this account (usually admin)
+        'company_id',  // only set for team users
+        'is_impersonated',
+        'impersonated_by',
         'status',
     ];
 
-    // 🔹 Relationships
-    public function createdUsers()
+    /** 🔹 If the user is a company owner, this links to their company */
+    public function companyProfile()
     {
-        return $this->hasMany(User::class, 'created_by');
+        return $this->hasOne(Company::class, 'user_id');
     }
 
+    /** 🔹 If the user is a team member, this links to the company they belong to */
     public function company()
     {
-        return $this->belongsTo(User::class, 'company_id');
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
-    public function teamMembers()
-    {
-        return $this->hasMany(User::class, 'company_id');
-    }
 
     // 🔹 Role Helpers
     public function isAdmin(): bool
