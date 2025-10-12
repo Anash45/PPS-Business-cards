@@ -9,6 +9,7 @@ import {
     UploadCloud,
     Users2,
     LayoutDashboard,
+    Crown,
 } from "lucide-react";
 import React from "react";
 
@@ -49,6 +50,7 @@ const adminMenuGroups = [
         items: [
             { name: "Overview", icon: LayoutDashboard, route: "dashboard" },
             { name: "Users", icon: Users2, route: "users.index" },
+            { name: "Plans", icon: Crown, route: "plans.index" },
             { name: "Cards", icon: IdCardIcon, route: "cards.index" },
         ],
     },

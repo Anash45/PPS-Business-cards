@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CardsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\SubscriptionsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -22,6 +24,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('cards', CardsController::class);
     Route::delete('/cards/groups/{group}', [CardsController::class, 'destroyGroup'])
         ->name('cards.groups.destroy');
+
+        
+    Route::resource('plans', PlanController::class);
+    
+    Route::post('/subscriptions/update-or-create/{user}', [SubscriptionsController::class, 'createOrUpdate'])
+    ->name('subscriptions.updateOrCreate');
 });
 
 
@@ -30,7 +38,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/', function () {
-    return redirect()->route('dashboard'); // ✅ redirect to dashboard
+    return redirect()->route('dashboard');
 })->middleware(['auth', 'verified'])->name('home');
 
 Route::middleware('auth')->group(function () {

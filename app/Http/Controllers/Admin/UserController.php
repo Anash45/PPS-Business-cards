@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Hotel;
+use App\Models\Plan;
 use App\Models\User;
 use Auth;
 use DB;
@@ -15,7 +16,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with('company'); // eager load company profile
+        $query = User::with(['company', 'subscription']); // eager load company profile
 
         // Apply search filter if query parameter exists
         if ($search = $request->input('search')) {
@@ -27,12 +28,14 @@ class UserController extends Controller
         }
 
         $users = $query->latest()->paginate(10)->withQueryString();
+        $plans = Plan::get();
 
         return inertia('Users/Index', [
             'users' => $users,
             'filters' => [
                 'search' => $search,
             ],
+            'plans' => $plans
         ]);
     }
 

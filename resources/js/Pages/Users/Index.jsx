@@ -9,7 +9,7 @@ import { useEffect } from "react";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 
 export default function Users() {
-    const { users, flash } = usePage().props;
+    const { users, plans, flash } = usePage().props;
     // Show flash message if present
     useEffect(() => {
         if (flash?.success) {
@@ -44,7 +44,7 @@ export default function Users() {
                     </Link>
                 </div>
 
-                <UserTable users={users} />
+                <UserTable users={users} plans={plans} />
             </div>
         </AuthenticatedLayout>
     );

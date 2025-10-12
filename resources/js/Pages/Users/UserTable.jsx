@@ -1,10 +1,13 @@
+import { Dropdown, DropdownItem } from "@/Components/DropdownUi";
+import { useModal } from "@/context/ModalProvider";
 import { Link, router } from "@inertiajs/react";
-import { Edit, Trash2, Search, VenetianMask } from "lucide-react";
+import { Edit, Trash2, Search, VenetianMask, CreditCard } from "lucide-react";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
-export default function UserTable({ users }) {
+export default function UserTable({ users, plans }) {
     const [search, setSearch] = useState("");
+    const { openModal } = useModal();
 
     // 🔍 Debounced search
     useEffect(() => {
@@ -138,7 +141,7 @@ export default function UserTable({ users }) {
                                             user.role.slice(1)}
                                     </span>
                                     {user.role == "company" && (
-                                        <p className="block text-sm">
+                                        <p className="block mt-1 text-xs">
                                             {user.company.name
                                                 .charAt(0)
                                                 .toUpperCase() +
@@ -148,29 +151,54 @@ export default function UserTable({ users }) {
                                 </div>
                             </div>
 
-                            <div className="mt-3 sm:mt-0 flex gap-3 justify-end sm:w-60">
-                                <Link
-                                    href={route("users.edit", user.id)}
-                                    className="px-2 py-1.5 text-sm rounded-md border border-indigo-500 text-white bg-indigo-600 hover:bg-indigo-700 transition"
-                                >
-                                    <Edit className="h-4 w-4" strokeWidth={2} />
-                                </Link>
-                                <button
-                                    onClick={() => handleDelete(user.id)}
-                                    className="px-2 py-1.5 text-sm rounded-md border border-red-500 text-white bg-red-600 hover:bg-red-700 transition"
-                                >
-                                    <Trash2
-                                        className="h-4 w-4"
-                                        strokeWidth={2}
-                                    />
-                                </button>
-
-                                <button
-                                    onClick={() => handleImpersonate(user.id)}
-                                    className="px-2 py-1.5 flex items-center text-sm rounded-md border border-green-500 text-white bg-green-600 hover:bg-green-700 transition"
-                                >
-                                    <VenetianMask className="h-5 mr-2" /> Impersonate
-                                </button>
+                            <div className="mt-3 sm:mt-0 flex gap-3 justify-end sm:w-60 flex-wrap">
+                                <Dropdown>
+                                    <DropdownItem onClick={()=> window.location = `/users/${user.id}/edit`}>
+                                        <div className="flex items-center gap-2">
+                                            <Edit
+                                                className="h-4 w-4"
+                                                strokeWidth={2}
+                                            />
+                                            <span>Edit</span>
+                                        </div>
+                                    </DropdownItem>
+                                    {user.role == "company" ? (
+                                        <DropdownItem
+                                            onClick={() =>
+                                                openModal("ManageSubscriptionModal", {
+                                                    user: user,
+                                                    plans: plans,
+                                                })
+                                            }
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <CreditCard className="h-4 w-4" />{" "}
+                                                <span>Subscription</span>
+                                            </div>
+                                        </DropdownItem>
+                                    ) : null}
+                                    <DropdownItem
+                                        onClick={() =>
+                                            handleImpersonate(user.id)
+                                        }
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <VenetianMask className="h-4 w-4" />{" "}
+                                            <span>Impersonate</span>
+                                        </div>
+                                    </DropdownItem>
+                                    <DropdownItem
+                                        onClick={() => handleDelete(user.id)}
+                                    >
+                                        <div className="flex items-center gap-2 text-red-500">
+                                            <Trash2
+                                                className="h-4 w-4"
+                                                strokeWidth={2}
+                                            />
+                                            <span>Delete</span>
+                                        </div>
+                                    </DropdownItem>
+                                </Dropdown>
                             </div>
                         </div>
                     ))

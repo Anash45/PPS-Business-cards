@@ -80,3 +80,11 @@ body {
     height: calc(100% - 20px);
     transform: translateY(-50%);
 }
+
+.sd-top select.dt-input{
+    min-width: 70px;
+}
+
+.react-datepicker-wrapper{
+    width: 100%;
+}

@@ -7,7 +7,7 @@ const GlobalContext = createContext();
 export const GlobalProvider = ({ children }) => {
     const [headerTitle, setHeaderTitle] = useState("Welcome! 👋");
     const [headerText, setHeaderText] = useState(
-        "See the latest stats of your awesome business."
+        ""
     );
 
     return (
