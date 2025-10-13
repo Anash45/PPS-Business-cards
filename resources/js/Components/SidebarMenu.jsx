@@ -21,7 +21,7 @@ const userMenuGroups = [
     },
     {
         groupName: "Design",
-        items: [{ name: "Template", icon: Palette, route: "profile.edit" }],
+        items: [{ name: "Template", icon: Palette, route: "design.index" }],
     },
     {
         groupName: "Business Cards",

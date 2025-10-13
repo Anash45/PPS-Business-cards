@@ -11,7 +11,7 @@ const Sidebar = () => {
     return (
         <aside className="lg:w-[260px] w-full bg-white border-r border-r-[#EAECF0]">
             {/* Mobile Header */}
-            <div className="py-4 pe-4 flex items-center gap-3 justify-between lg:hidden">
+            <div className="py-4 lg:pe-4 px-4 flex items-center gap-3 justify-between lg:hidden">
                 <Link href={route("dashboard")}>
                     <ApplicationLogo className="md:h-[30.77px] h-6 w-auto" />
                 </Link>

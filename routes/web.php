@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CardsController;
+use App\Http\Controllers\DesignController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\SubscriptionsController;
 use Illuminate\Foundation\Application;
@@ -13,6 +14,13 @@ use Inertia\Inertia;
 Route::middleware(['auth'])->group(function () {
     Route::post('/users/stop-impersonate', [UserController::class, 'stopImpersonate'])->name('users.stopImpersonate');
 
+
+});
+
+
+Route::middleware(['auth', 'company'])->group(function () {
+    Route::get('/design', [DesignController::class, 'index'])
+        ->name('design.index');
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {
@@ -25,11 +33,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::delete('/cards/groups/{group}', [CardsController::class, 'destroyGroup'])
         ->name('cards.groups.destroy');
 
-        
+
     Route::resource('plans', PlanController::class);
-    
+
     Route::post('/subscriptions/update-or-create/{user}', [SubscriptionsController::class, 'createOrUpdate'])
-    ->name('subscriptions.updateOrCreate');
+        ->name('subscriptions.updateOrCreate');
 });
 
 

@@ -12,6 +12,7 @@ export default function ManageSubscriptionModal({
     onClose,
     user,
     plans,
+    onSuccess,
     title = "Manage Subscription",
 }) {
     const [show, setShow] = useState(false);
@@ -42,6 +43,7 @@ export default function ManageSubscriptionModal({
             toast.success(
                 response.data.message || "Subscription updated successfully!"
             );
+            onSuccess();
             handleClose();
         } catch (error) {
             if (error.response) {

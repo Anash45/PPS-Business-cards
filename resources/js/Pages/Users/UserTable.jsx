@@ -81,12 +81,12 @@ export default function UserTable({ users, plans }) {
 
             <div className="space-y-3">
                 {/* 🧾 Header (hidden on mobile) */}
-                <div className="hidden sm:flex border-b border-gray-200 pb-2 px-4 text-sm font-semibold text-[#263238]">
-                    <div className="pr-2 w-16">ID</div>
-                    <div className="px-2 flex-1">Name</div>
-                    <div className="px-2 flex-1">Email</div>
-                    <div className="px-2 w-24">Role</div>
-                    <div className="pl-2 w-60 text-right">Actions</div>
+                <div className="hidden xl:flex border-b border-gray-200 pb-2 px-4 text-sm font-semibold text-[#263238]">
+                    <div className="xl:pr-2 px-2 w-[5%]">ID</div>
+                    <div className="px-2 w-[30%]">Name</div>
+                    <div className="px-2 w-[30%]">Email</div>
+                    <div className="px-2 w-[30%]">Role</div>
+                    <div className="pl-2 w-[5%] text-right">Actions</div>
                 </div>
 
                 {/* 👥 Rows */}
@@ -94,39 +94,38 @@ export default function UserTable({ users, plans }) {
                     users.data.map((user) => (
                         <div
                             key={user.id}
-                            className="border border-gray-300 rounded-lg py-3 px-4 flex flex-col sm:flex-row sm:items-center sm:justify-between hover:bg-gray-50 transition"
+                            className="border border-gray-300 rounded-lg py-3 px-4 flex flex-col xl:flex-row xl:items-center xl:justify-between hover:bg-gray-50 transition"
                         >
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:flex-1">
-                                <div className="pr-2 sm:w-16">
-                                    <span className="sm:hidden text-xs text-gray-500">
-                                        ID:{" "}
-                                    </span>
-                                    <span className="text-sm text-gray-800">
-                                        {user.id}
-                                    </span>
-                                </div>
-                                <div className="px-2 sm:flex-1">
-                                    <span className="sm:hidden text-xs text-gray-500">
-                                        Name:{" "}
-                                    </span>
-                                    <span className="text-sm text-gray-800">
-                                        {user.name}
-                                    </span>
-                                </div>
-                                <div className="px-2 sm:flex-1">
-                                    <span className="sm:hidden text-xs text-gray-500">
-                                        Email:{" "}
-                                    </span>
-                                    <span className="text-sm text-gray-800">
-                                        {user.email}
-                                    </span>
-                                </div>
-                                <div className="pl-2 sm:w-24">
-                                    <span className="sm:hidden text-xs text-gray-500">
-                                        Role:{" "}
-                                    </span>
-                                    <span
-                                        className={`text-xs font-medium px-2 py-1 rounded-full 
+                            <div className="xl:pr-2 px-2 xl:w-[5%]">
+                                <span className="xl:hidden text-xs text-gray-500">
+                                    ID:{" "}
+                                </span>
+                                <span className="text-sm text-gray-800">
+                                    {user.id}
+                                </span>
+                            </div>
+                            <div className="px-2 xl:w-[30%]">
+                                <span className="xl:hidden text-xs text-gray-500">
+                                    Name:{" "}
+                                </span>
+                                <span className="text-sm text-gray-800">
+                                    {user.name}
+                                </span>
+                            </div>
+                            <div className="px-2 xl:w-[30%]">
+                                <span className="xl:hidden text-xs text-gray-500">
+                                    Email:{" "}
+                                </span>
+                                <span className="text-sm text-gray-800">
+                                    {user.email}
+                                </span>
+                            </div>
+                            <div className="pl-2 xl:w-[30%]">
+                                <span className="xl:hidden text-xs text-gray-500">
+                                    Role:{" "}
+                                </span>
+                                <span
+                                    className={`text-xs font-medium px-2 py-1 rounded-full 
                                     ${
                                         user.role === "admin"
                                             ? "bg-green-100 text-green-700"
@@ -136,24 +135,50 @@ export default function UserTable({ users, plans }) {
                                             ? "bg-yellow-100 text-yellow-700"
                                             : "bg-gray-100 text-gray-700"
                                     }`}
-                                    >
-                                        {user.role.charAt(0).toUpperCase() +
-                                            user.role.slice(1)}
-                                    </span>
-                                    {user.role == "company" && (
-                                        <p className="block mt-1 text-xs">
+                                >
+                                    {user.role.charAt(0).toUpperCase() +
+                                        user.role.slice(1)}
+                                </span>
+                                {user.role == "company" && (
+                                    <div className="flex gap-1 items-center flex-wrap">
+                                        <p className="text-sm">
                                             {user.company.name
                                                 .charAt(0)
                                                 .toUpperCase() +
                                                 user.company.name.slice(1)}
                                         </p>
-                                    )}
-                                </div>
+
+                                        <span
+                                            className={`text-xs font-semibold px-2 py-1 rounded-full 
+                                    ${
+                                        user?.subscription?.is_active == true
+                                            ? "text-green-700"
+                                            : user?.subscription?.is_active ==
+                                              false
+                                            ? "text-orange-500"
+                                            : "text-red-700"
+                                    }`}
+                                        >
+                                            {user?.subscription?.is_active
+                                                ? "Active"
+                                                : user?.subscription
+                                                      ?.is_active === false
+                                                ? "Expired"
+                                                : "No Subscribed"}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="mt-3 sm:mt-0 flex gap-3 justify-end sm:w-60 flex-wrap">
+                            <div className="mt-3 sm:mt-0 flex gap-3 justify-end sm:w-[5%] flex-wrap">
                                 <Dropdown>
-                                    <DropdownItem onClick={()=> window.location = `/users/${user.id}/edit`}>
+                                    <DropdownItem
+                                        onClick={() =>
+                                            openModal("ManageUserModal", {
+                                                user: user,
+                                            })
+                                        }
+                                    >
                                         <div className="flex items-center gap-2">
                                             <Edit
                                                 className="h-4 w-4"
@@ -165,10 +190,13 @@ export default function UserTable({ users, plans }) {
                                     {user.role == "company" ? (
                                         <DropdownItem
                                             onClick={() =>
-                                                openModal("ManageSubscriptionModal", {
-                                                    user: user,
-                                                    plans: plans,
-                                                })
+                                                openModal(
+                                                    "ManageSubscriptionModal",
+                                                    {
+                                                        user: user,
+                                                        plans: plans,
+                                                    }
+                                                )
                                             }
                                         >
                                             <div className="flex items-center gap-2">

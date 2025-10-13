@@ -7,9 +7,12 @@ import FlashMessage from "@/Components/FlashMessage";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
+import { useModal } from "@/context/ModalProvider";
+import Button from "@/Components/Button";
 
 export default function Users() {
     const { users, plans, flash } = usePage().props;
+    const { openModal } = useModal();
     // Show flash message if present
     useEffect(() => {
         if (flash?.success) {
@@ -24,7 +27,7 @@ export default function Users() {
     const { setHeaderTitle, setHeaderText } = useGlobal(GlobalProvider);
 
     useEffect(() => {
-        setHeaderTitle("Users Management");
+        setHeaderTitle("Users");
         setHeaderText("");
     }, []);
 
@@ -36,12 +39,12 @@ export default function Users() {
                 <div className="flex items-center justify-between">
                     <UserTitle title={"Users Management"} />
 
-                    <Link
-                        href={route("users.create")}
-                        className="px-4 py-2 text-white text-sm rounded-md shadow bg-primary hover:bg-[#60ae68] flex items-center gap-1 justify-center transition"
+                    <Button
+                        variant="primary"
+                        onClick={() => openModal("ManageUserModal")}
                     >
                         <Plus className="h-4 w-4" strokeWidth={2} /> Add User
-                    </Link>
+                    </Button>
                 </div>
 
                 <UserTable users={users} plans={plans} />

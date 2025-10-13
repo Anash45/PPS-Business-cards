@@ -15,9 +15,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',        // admin | company | team
-        'created_by',  // user who created this account (usually admin)
-        'company_id',  // only set for team users
+        'role',
+        'created_by',
+        'company_id',
         'is_impersonated',
         'impersonated_by',
         'status',
@@ -67,4 +67,13 @@ class User extends Authenticatable
     {
         return $this->hasOne(Subscription::class);
     }
+
+    public function hasActiveSubscription()
+    {
+        $subscription = $this->subscription;
+
+        return $subscription &&
+            $subscription->is_active;
+    }
+
 }

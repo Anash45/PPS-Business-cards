@@ -26,7 +26,7 @@ export default function Header() {
 
             setTimeout(() => {
                 // Refresh the page to reload auth and props
-                window.location.reload();
+                window.location = route("users.index");
             }, 1000);
         } catch (err) {
             toast.error("Failed to stop impersonation.");

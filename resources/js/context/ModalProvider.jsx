@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from "react";
 import CreatePlanModal from "@/Components/CreatePlanModal";
 import { router } from "@inertiajs/react";
 import ManageSubscriptionModal from "@/Components/ManageSubscriptionModal";
+import ManageUserModal from "@/Components/ManageUserModal";
 
 const ModalContext = createContext();
 
@@ -39,6 +40,15 @@ export function ModalProvider({ children }) {
                     )}
                     {modal?.name === "ManageSubscriptionModal" && (
                         <ManageSubscriptionModal
+                            {...modal.props}
+                            onSuccess={() => {
+                                router.reload({ only: ["users"] });
+                            }}
+                            onClose={closeModal}
+                        />
+                    )}
+                    {modal?.name === "ManageUserModal" && (
+                        <ManageUserModal
                             {...modal.props}
                             onSuccess={() => {
                                 router.reload({ only: ["users"] });

@@ -40,4 +40,21 @@ class Card extends Model
 
         return $code;
     }
+
+    /**
+     * Check if this card's company's user has an active subscription
+     */
+    public function hasActiveSubscription()
+    {
+        $user = $this->company?->user;
+
+        if (!$user || !$user->isCompany()) {
+            return false;
+        }
+
+        return $user->company?->subscription()
+            ->active()
+            ->exists();
+    }
+
 }
