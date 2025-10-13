@@ -8,9 +8,13 @@ import { FileText, IdCard } from "lucide-react";
 import LandingTab from "@/Components/LandingTab";
 
 export default function Plans() {
-    const { templateData, isSubscriptionActive } = usePage().props;
-    const { setHeaderTitle, setHeaderText } = useGlobal(GlobalProvider);
+    const { company, isSubscriptionActive, pageType } = usePage().props;
+    const { setHeaderTitle, setHeaderText, setIsTemplate } = useGlobal(GlobalProvider);
     const { openModal } = useModal();
+
+    useEffect(() => {
+        setIsTemplate(pageType === 'template');
+    }, [pageType]);
 
     useEffect(() => {
         setHeaderTitle("Design Template");
@@ -24,7 +28,7 @@ export default function Plans() {
 
     const [activeTab, setActiveTab] = useState(tabs[0].name);
 
-    console.log("Template Data:", templateData, isSubscriptionActive);
+    console.log("Template Data:", company, isSubscriptionActive);
 
     return (
         <AuthenticatedLayout>

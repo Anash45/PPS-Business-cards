@@ -92,3 +92,7 @@ body {
 .shadow-box{
     box-shadow: 0 0 15px rgba(24, 24, 27, 0.04);
 }
+
+.remove-overflow ~ div{
+    overflow: visible !important;
+}

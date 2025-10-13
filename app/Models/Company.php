@@ -49,4 +49,20 @@ class Company extends Model
     {
         return $this->hasOne(CompanyCardTemplate::class);
     }
+    public function cardSocialLinks()
+    {
+        return $this->hasMany(CardSocialLink::class, 'company_id');
+    }
+    public function cardPhoneNumbers()
+    {
+        return $this->hasMany(CardPhoneNumber::class);
+    }
+    public function cardEmails()
+    {
+        return $this->hasMany(CardEmail::class);
+    }
+    public function cardAddresses()
+    {
+        return $this->hasMany(CardAddress::class);
+    }
 }

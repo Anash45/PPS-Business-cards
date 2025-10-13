@@ -6,9 +6,52 @@ const GlobalContext = createContext();
 // 2️⃣ Provider component
 export const GlobalProvider = ({ children }) => {
     const [headerTitle, setHeaderTitle] = useState("Welcome! 👋");
-    const [headerText, setHeaderText] = useState(
-        ""
-    );
+    const [headerText, setHeaderText] = useState("");
+    const [isTemplate, setIsTemplate] = useState(null);
+
+    const [cardFormData, setCardFormData] = useState({
+        salutation: "",
+        title: "",
+        first_name: "",
+        last_name: "",
+        name_text_color: "#000000",
+        company_name: "",
+        position: "",
+        department: "",
+        company_text_color: "#000000",
+        profile_image: null,
+        banner_image: null,
+    });
+    const [loadingButton, setLoadingButton] = useState(null);
+
+    const handleCardChange = (e) => {
+        const { name, value } = e.target;
+
+        setCardFormData((prev) => {
+            // Default: just update the field
+            let updates = { [name]: value };
+
+            // Special case: profile_image
+            if (name === "profile_image") {
+                updates.profile_image_url = value
+                    ? typeof value === "string"
+                        ? `/storage/${value}`
+                        : URL.createObjectURL(value)
+                    : null;
+            }
+
+            // Special case: banner_image
+            if (name === "banner_image") {
+                updates.banner_image_url = value
+                    ? typeof value === "string"
+                        ? `/storage/${value}`
+                        : URL.createObjectURL(value)
+                    : null;
+            }
+
+            return { ...prev, ...updates };
+        });
+    };
 
     return (
         <GlobalContext.Provider
@@ -17,6 +60,11 @@ export const GlobalProvider = ({ children }) => {
                 headerText,
                 setHeaderTitle,
                 setHeaderText,
+                cardFormData,
+                handleCardChange,
+                setCardFormData,
+                isTemplate,
+                setIsTemplate,
             }}
         >
             {children}

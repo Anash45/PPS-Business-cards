@@ -11,13 +11,24 @@ export default function Button({
     const variants = {
         primary:
             "bg-primary border-transparent text-white hover:bg-[#6CAC6A] focus:bg-[#6CAC6A] focus:ring-[#6CAC6A] active:bg-[#6CAC6A]",
+        "primary-outline":
+            "bg-transparent border border-[#6CAC6A] text-[#6CAC6A] hover:bg-[#6CAC6A] hover:text-white focus:ring-[#6CAC6A] active:bg-[#6CAC6A]",
+
         secondary:
             "bg-gray-200 border-transparent text-gray-800 hover:bg-gray-300 focus:ring-gray-300 active:bg-gray-400",
+        "secondary-outline":
+            "bg-transparent border border-gray-400 text-gray-700 hover:bg-gray-100 focus:ring-gray-300 active:bg-gray-200",
+
         danger: "bg-red-600 border-transparent text-white hover:bg-red-700 focus:ring-red-500 active:bg-red-800",
+        "danger-outline":
+            "bg-transparent border border-red-600 text-red-600 hover:bg-red-600 hover:text-white focus:ring-red-500 active:bg-red-700",
+
+        light: "bg-[#F1F5F9] border border-[#DBE0E5] text-gray-700 hover:bg-[#DBE0E5] focus:ring-gray-200 active:bg-gray-100",
+        "light-outline":
+            "bg-transparent border border-[#DBE0E5] text-gray-700 hover:bg-[#DBE0E5] focus:ring-gray-200 active:bg-[#E5E7EB]",
+
         outline:
             "bg-transparent border-gray-400 text-gray-800 hover:bg-gray-100 focus:ring-gray-300",
-        // ✅ new variant
-        light: "bg-[#F1F5F9] border border-[#DBE0E5] text-gray-700 hover:bg-[#DBE0E5] focus:ring-gray-200 active:bg-gray-100",
     };
 
     const disabledStyles = disabled ? "opacity-50 cursor-not-allowed" : "";

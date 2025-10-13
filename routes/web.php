@@ -21,6 +21,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'company'])->group(function () {
     Route::get('/design', [DesignController::class, 'index'])
         ->name('design.index');
+    Route::post('/design/createOrUpdate', [DesignController::class, 'createOrUpdate'])
+        ->name('design.createOrUpdate');
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {
