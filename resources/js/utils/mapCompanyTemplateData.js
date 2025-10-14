@@ -17,7 +17,7 @@ export function mapCompanyTemplateData(
         name_text_color: template?.name_text_color ?? "#000000",
         company_name: template?.company_name ?? selectedCompany?.name ?? "",
         company_text_color: template?.company_text_color ?? "#000000",
-        card_bg_color: template?.card_bg_color ?? "#000000",
+        card_bg_color: template?.card_bg_color ?? "#ffffff",
         btn_bg_color: template?.btn_bg_color ?? "#87B88C",
         btn_text_color: template?.btn_text_color ?? "#ffffff",
         banner_image: null,
