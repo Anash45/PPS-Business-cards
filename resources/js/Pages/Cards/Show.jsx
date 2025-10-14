@@ -13,7 +13,8 @@ export default function Company() {
         isSubscriptionActive,
         pageType = "card",
     } = usePage().props;
-    const { setHeaderTitle, setHeaderText, setCardFormData, setIsCardReal } = useGlobal(GlobalProvider);
+    const { setHeaderTitle, setHeaderText, setCardFormData, setIsCardReal } =
+        useGlobal(GlobalProvider);
 
     useEffect(() => {
         setHeaderTitle("Business Card");
@@ -29,10 +30,10 @@ export default function Company() {
             }));
         }
     }, [company, selectedCard]);
-    
+
     useEffect(() => {
         setIsCardReal(true);
-    },);
+    });
 
     return (
         <CardLayout>
@@ -42,10 +43,14 @@ export default function Company() {
                 {!isSubscriptionActive ? (
                     <div className="p-4 bg-red-100 text-red-700 rounded-md">
                         You can only access this page with a valid subscription.
-                        Contact Admin for more information.
+                        Contact administrator for more information.
                     </div>
-                ) : (
+                ) : selectedCard?.status === "active" ? (
                     <CardPreview isReal={true} />
+                ) : (
+                    <div className="p-4 bg-orange-100 text-orange-700 rounded-md">
+                        This card is currently inactive. Please contact the administrator for more information.
+                    </div>
                 )}
             </div>
         </CardLayout>
