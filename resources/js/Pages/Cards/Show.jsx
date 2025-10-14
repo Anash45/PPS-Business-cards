@@ -41,14 +41,14 @@ export default function Company() {
 
             <div className="py-4 md:px-6 px-4 flex flex-col gap-6">
                 {!isSubscriptionActive ? (
-                    <div className="p-4 bg-red-100 text-red-700 rounded-md">
+                    <div className="p-4 text-center bg-red-100 text-red-700 rounded-md">
                         You can only access this page with a valid subscription.
                         Contact administrator for more information.
                     </div>
                 ) : selectedCard?.status === "active" ? (
                     <CardPreview isReal={true} />
                 ) : (
-                    <div className="p-4 bg-orange-100 text-orange-700 rounded-md">
+                    <div className="p-4 text-center bg-orange-100 text-orange-700 rounded-md">
                         This card is currently inactive. Please contact the administrator for more information.
                     </div>
                 )}
