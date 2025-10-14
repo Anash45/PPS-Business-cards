@@ -74,7 +74,7 @@ export default function CardFormSocialLinks() {
         const link = cardFormData.card_social_links[index];
 
         // If it’s a company-owned link and we’re not in template mode, prevent delete
-        if (!isTemplate && link.company_id && !link.user_id) {
+        if (!isTemplate && link.company_id && !link.card_id) {
             toast.error("You cannot delete company default links.");
             return;
         }
@@ -134,53 +134,56 @@ export default function CardFormSocialLinks() {
 
             <AccordionBody className="overflow-visible p-0">
                 <div className="p-5 space-y-4">
-                    {(cardFormData.card_social_links || []).map((link, index) => (
-                        <div
-                            key={index}
-                            className="p-3 rounded-lg flex md:flex-row flex-col gap-3 border border-[#EAECF0]"
-                        >
-                            <div className="md:w-[150px] w-full">
-                                <SelectInput
-                                    className="w-full"
-                                    options={socialOptions}
-                                    value={link.icon || ""}
-                                    onChange={(e) =>
-                                        updateSocialLink(
-                                            index,
-                                            "icon",
-                                            e.target.value
-                                        )
-                                    }
-                                />
-                            </div>
-                            <div className="grow">
-                                <TextInput
-                                    className="w-full"
-                                    placeholder="https://www.yourlink.com/yourprofile"
-                                    value={link.url || ""}
-                                    onChange={(e) =>
-                                        updateSocialLink(
-                                            index,
-                                            "url",
-                                            e.target.value
-                                        )
-                                    }
-                                />
-                            </div>
+                    {(cardFormData.card_social_links || []).map(
+                        (link, index) => (
+                            <div
+                                key={index}
+                                className="p-3 rounded-lg flex md:flex-row flex-col gap-3 border border-[#EAECF0]"
+                            >
+                                <div className="md:w-[150px] w-full">
+                                    <SelectInput
+                                        className="w-full"
+                                        options={socialOptions}
+                                        value={link.icon || ""}
+                                        onChange={(e) =>
+                                            updateSocialLink(
+                                                index,
+                                                "icon",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                </div>
+                                <div className="grow">
+                                    <TextInput
+                                        className="w-full"
+                                        placeholder="https://www.yourlink.com/yourprofile"
+                                        value={link.url || ""}
+                                        onChange={(e) =>
+                                            updateSocialLink(
+                                                index,
+                                                "url",
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                </div>
 
-                            {/* Only show delete if allowed */}
-                            {(!link.company_id ||
-                                (link.company_id && isTemplate) ||
-                                link.user_id) && (
-                                <Button
-                                    variant="danger-outline" className="w-fit ms-auto"
-                                    onClick={() => removeSocialLink(index)}
-                                >
-                                    <Trash2 className="h-5 w-5" />
-                                </Button>
-                            )}
-                        </div>
-                    ))}
+                                {/* Only show delete if allowed */}
+                                {(!link.company_id ||
+                                    (link.company_id && isTemplate) ||
+                                    link.card_id) && (
+                                    <Button
+                                        variant="danger-outline"
+                                        className="w-fit ms-auto"
+                                        onClick={() => removeSocialLink(index)}
+                                    >
+                                        <Trash2 className="h-5 w-5" />
+                                    </Button>
+                                )}
+                            </div>
+                        )
+                    )}
 
                     <Button variant="primary-outline" onClick={addSocialLink}>
                         Add New Link

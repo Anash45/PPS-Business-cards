@@ -2,6 +2,7 @@ export default function InputLabel({
     value,
     className = '',
     children,
+    isDemo = false,
     ...props
 }) {
     return (
@@ -13,6 +14,7 @@ export default function InputLabel({
             }
         >
             {value ? value : children}
+            {isDemo ? <span className="text-xs text-gray-400 italic"> (Demo Field)</span> : null}
         </label>
     );
 }

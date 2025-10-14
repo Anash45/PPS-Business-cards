@@ -10,7 +10,19 @@ class Card extends Model
 {
     use HasFactory, SoftDeletes; // ✅ add SoftDeletes
 
-    protected $fillable = ['code', 'company_id', 'cards_group_id', 'status'];
+    protected $fillable = [
+        'salutation',
+        'title',
+        'first_name',
+        'last_name',
+        'profile_image',
+        'position',
+        'department',
+        'code',
+        'company_id',
+        'cards_group_id',
+        'status'
+    ];
 
     public function company()
     {
@@ -75,5 +87,10 @@ class Card extends Model
     public function cardAddresses()
     {
         return $this->hasMany(CardAddress::class);
+    }
+
+    public function cardButtons()
+    {
+        return $this->hasMany(CardButton::class);
     }
 }

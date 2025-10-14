@@ -9,21 +9,23 @@ import { mapCompanyTemplateData } from "@/utils/mapCompanyTemplateData";
 import CardFormSocialLinks from "./CardFormSocialLinks";
 import CardPreview from "./CardPreview";
 import CardFormProfile from "./CardFormProfile";
+import CardFormButtons from "./CardFormButtons";
 
 export default function LandingTab() {
-    const { company } = usePage().props;
-    const { cardFormData, setCardFormData } = useGlobal(GlobalProvider);
+    const { company, selectedCard = null } = usePage().props;
+    const { cardFormData, setCardFormData, isTemplate } =
+        useGlobal(GlobalProvider);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (company) {
-            const mappedData = mapCompanyTemplateData(company);
+            const mappedData = mapCompanyTemplateData(company, selectedCard);
             setCardFormData((prev) => ({
                 ...prev,
                 ...mappedData,
             }));
         }
-    }, [company]);
+    }, [company, selectedCard]);
 
     console.log("Current cardFormData:", cardFormData);
 
@@ -36,21 +38,45 @@ export default function LandingTab() {
 
         // Append all relevant data to the FormData object
         // Note: Only append fields that the backend expects for template update (from validation rules)
-        formData.append("company_name", cardFormData.company_name);
-        formData.append("name_text_color", cardFormData.name_text_color);
-        formData.append("company_text_color", cardFormData.company_text_color);
+        if (isTemplate) {
+            formData.append("company_name", cardFormData.company_name);
+            formData.append("name_text_color", cardFormData.name_text_color);
+            formData.append(
+                "company_text_color",
+                cardFormData.company_text_color
+            );
 
-        // Assuming you have these fields in your form/state to match backend validation
-        formData.append("card_bg_color", cardFormData.card_bg_color);
-        formData.append("btn_bg_color", cardFormData.btn_bg_color);
-        formData.append("btn_text_color", cardFormData.btn_text_color);
+            // Assuming you have these fields in your form/state to match backend validation
+            formData.append("card_bg_color", cardFormData.card_bg_color);
+            formData.append("btn_bg_color", cardFormData.btn_bg_color);
+            formData.append("btn_text_color", cardFormData.btn_text_color);
 
-        // Append the file if it exists
-        if (cardFormData.banner_image) {
-            formData.append("banner_image", cardFormData.banner_image);
+            // Append the file if it exists
+            if (cardFormData.banner_image) {
+                formData.append("banner_image", cardFormData.banner_image);
+            }
+            if (cardFormData.banner_image_url == null) {
+                formData.append("banner_removed", true);
+            }
         }
-        if (cardFormData.banner_image_url == null) {
-            formData.append("banner_removed", true);
+
+        console.log("Checking:", !isTemplate && selectedCard);
+
+        if (!isTemplate && selectedCard) {
+            formData.append("salutation", cardFormData.salutation);
+            formData.append("title", cardFormData.title);
+            formData.append("first_name", cardFormData.first_name);
+            formData.append("last_name", cardFormData.last_name);
+            formData.append("position", cardFormData.position);
+            formData.append("department", cardFormData.department);
+
+            // Append the file if it exists
+            if (cardFormData.profile_image) {
+                formData.append("profile_image", cardFormData.profile_image);
+            }
+            if (cardFormData.profile_image_url == null) {
+                formData.append("profile_removed", true);
+            }
         }
 
         if (Array.isArray(cardFormData.card_social_links)) {
@@ -72,8 +98,8 @@ export default function LandingTab() {
                     link.company_id || ""
                 );
                 formData.append(
-                    `card_social_links[${index}][user_id]`,
-                    link.user_id || ""
+                    `card_social_links[${index}][card_id]`,
+                    link.card_id || ""
                 );
             });
         }
@@ -113,10 +139,7 @@ export default function LandingTab() {
 
         if (Array.isArray(cardFormData.card_emails)) {
             cardFormData.card_emails.forEach((email, index) => {
-                formData.append(
-                    `card_emails[${index}][id]`,
-                    email.id || ""
-                );
+                formData.append(`card_emails[${index}][id]`, email.id || "");
                 formData.append(
                     `card_emails[${index}][email]`,
                     email.email || ""
@@ -146,10 +169,7 @@ export default function LandingTab() {
 
         if (Array.isArray(cardFormData.card_addresses)) {
             cardFormData.card_addresses.forEach((addr, index) => {
-                formData.append(
-                    `card_addresses[${index}][id]`,
-                    addr.id || ""
-                );
+                formData.append(`card_addresses[${index}][id]`, addr.id || "");
                 formData.append(
                     `card_addresses[${index}][address]`,
                     addr.address || ""
@@ -177,30 +197,87 @@ export default function LandingTab() {
             });
         }
 
+        if (Array.isArray(cardFormData.card_buttons)) {
+            cardFormData.card_buttons.forEach((btn, index) => {
+                formData.append(`card_buttons[${index}][id]`, btn.id || "");
+                formData.append(
+                    `card_buttons[${index}][button_text]`,
+                    btn.button_text || ""
+                );
+                formData.append(
+                    `card_buttons[${index}][button_link]`,
+                    btn.button_link || ""
+                );
+                formData.append(`card_buttons[${index}][icon]`, btn.icon || "");
+                formData.append(
+                    `card_buttons[${index}][text_color]`,
+                    btn.text_color || ""
+                );
+                formData.append(
+                    `card_buttons[${index}][bg_color]`,
+                    btn.bg_color || ""
+                );
+                formData.append(
+                    `card_buttons[${index}][company_id]`,
+                    btn.company_id || ""
+                );
+                formData.append(
+                    `card_buttons[${index}][card_id]`,
+                    btn.card_id || ""
+                );
+            });
+        }
+
         try {
             // 2. Send data using Axios
-            const response = await axios.post(
-                "/design/createOrUpdate",
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data", // Important for file uploads
-                        // Include your authentication headers if necessary (e.g., 'Authorization': 'Bearer ...')
-                    },
-                }
-            );
+            console.log("Submitting form data:");
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+
+            let response;
+
+            if (isTemplate && !selectedCard) {
+                response = await axios.post(
+                    "/design/createOrUpdate",
+                    formData,
+                    {
+                        headers: {
+                            "Content-Type": "multipart/form-data", // Important for file uploads
+                        },
+                    }
+                );
+            } else if (!isTemplate && selectedCard) {
+                response = await axios.post(
+                    `/company/cards/${selectedCard.id}/update`,
+                    formData,
+                    {
+                        headers: {
+                            "Content-Type": "multipart/form-data", // Important for file uploads
+                        },
+                    }
+                );
+            } else {
+                throw new Error(
+                    "Invalid state: isTemplate and selectedCard mismatch."
+                );
+            }
 
             // 3. Handle Success
-            if (response.data.success) {
+            if (response?.data?.success) {
                 toast.success(
                     response.data.message || "Template saved successfully!"
                 );
                 // You can update state here with the new template data if needed:
                 // ✅ Get the updated company from backend
                 const companyDetails = response.data.company;
+                const cardDetails = response.data.selectedCard;
 
                 // ✅ Map it and set form data
-                const mappedData1 = mapCompanyTemplateData(companyDetails);
+                const mappedData1 = mapCompanyTemplateData(
+                    companyDetails,
+                    cardDetails
+                );
                 setCardFormData((prev) => ({
                     ...prev,
                     ...mappedData1,
@@ -246,12 +323,13 @@ export default function LandingTab() {
     };
 
     return (
-        <div className="grid lg:grid-cols-11 grid-cols-1 gap-5 items-start">
+        <div className="grid lg:grid-cols-11 grid-cols-1 gap-5 relative">
             <div className="lg:col-span-7 col-span-1 bg-white lg:p-6 p-5 rounded-[20px] shadow-box space-y-4 lg:order-1 order-2">
-                <CardFormBanner />
+                {isTemplate && <CardFormBanner />}
                 <CardFormProfile />
                 <CardFormGeneralInformation />
                 <CardFormSocialLinks />
+                <CardFormButtons />
                 <div className="flex flex-wrap gap-5 justify-end">
                     <Button
                         className="px-8"
@@ -264,12 +342,16 @@ export default function LandingTab() {
                 </div>
             </div>
 
-            <div className="lg:col-span-4 col-span-1 bg-white rounded-2xl shadow-box border border-[#EAECF0] lg:order-2 order-1">
-                <div className="p-5 border-b border-b-[#EAECF0]">
-                    <h4 className="text-xl leading-tight font-semibold">Live Preview</h4>
-                </div>
-                <div className="px-5 pb-5 pt-4">
-                    <CardPreview />
+            <div className="lg:col-span-4 col-span-1  lg:order-2 order-1">
+                <div className="bg-white rounded-2xl shadow-box border border-[#EAECF0] sticky top-3">
+                    <div className="p-5 border-b border-b-[#EAECF0]">
+                        <h4 className="text-xl leading-tight font-semibold">
+                            Live Preview
+                        </h4>
+                    </div>
+                    <div className="px-5 pb-5 pt-4">
+                        <CardPreview />
+                    </div>
                 </div>
             </div>
         </div>

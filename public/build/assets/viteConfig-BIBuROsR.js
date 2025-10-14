@@ -1,0 +1,1 @@
+let n=null;async function o(){if(n)return n;try{return n=await fetch("/vite.config.json").then(t=>t.json()),n}catch(t){return console.warn("Could not load config.json, using defaults",t),n={LINK_URL:"https://app.ppsbusinesscards.de"},n}}async function s(){return(await o()).LINK_URL}export{s as g};

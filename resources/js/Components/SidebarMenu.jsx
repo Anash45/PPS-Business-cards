@@ -26,7 +26,7 @@ const userMenuGroups = [
     {
         groupName: "Business Cards",
         items: [
-            { name: "Cards", icon: IdCardIcon, route: "profile.edit" },
+            { name: "Cards", icon: IdCardIcon, route: "company.cards" },
             {
                 name: "Bulk Import",
                 icon: UploadCloud,

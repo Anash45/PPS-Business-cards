@@ -1,1 +1,0 @@
-import{j as o}from"./app-CuDq6AIR.js";function a({value:t,className:e="",children:n,...s}){return o.jsx("label",{...s,className:"block text-[#475569] text-sm leading-none"+e,children:t||n})}export{a as I};

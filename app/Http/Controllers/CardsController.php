@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Card;
 use App\Models\CardsGroup;
 use App\Models\Company;
+use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Str;
 
 class CardsController extends Controller
@@ -169,6 +171,52 @@ class CardsController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function companyCards()
+    {
+        $user = Auth::user();
+
+        // Ensure user has a company
+        if (!$user->company) {
+            abort(403, 'You do not belong to any company.');
+        }
+
+        // Get all cards for this company
+        $cards = Card::where('company_id', $user->company->id)->get();
+
+        // Pass to Inertia
+        return Inertia::render('Cards/Company', [
+            'cards' => $cards,
+            'isSubscriptionActive' => $user->hasActiveSubscription(),
+        ]);
+    }
+
+    public function toggleStatus(Request $request, Card $card)
+    {
+        $user =Auth::user();
+
+        // Ensure the card belongs to the logged-in user's company
+        if ($card->company_id !== $user->company_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        // Validate incoming status
+        $request->validate([
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        $card->status = $request->status;
+        $card->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Card status updated successfully.',
+            'card' => $card,
+        ]);
     }
 
 }

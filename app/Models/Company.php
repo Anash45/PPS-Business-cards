@@ -65,4 +65,8 @@ class Company extends Model
     {
         return $this->hasMany(CardAddress::class);
     }
+    public function cardButtons()
+    {
+        return $this->hasMany(CardButton::class);
+    }
 }

@@ -29,6 +29,7 @@
         "datatables.net-react": "^1.0.1",
         "date-fns": "^4.1.0",
         "dayjs": "^1.11.18",
+        "emoji-picker-react": "^4.14.0",
         "lucide-react": "^0.545.0",
         "react-color": "^2.19.3",
         "react-datepicker": "^8.7.0",

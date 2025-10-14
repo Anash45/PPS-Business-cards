@@ -30,7 +30,7 @@ export default function CardFormProfile() {
 
     const handleOpen = (value) => setOpen(open === value ? 0 : value);
 
-    const { cardFormData, handleCardChange, setCardFormData } =
+    const { cardFormData, handleCardChange, isTemplate } =
         useGlobal(GlobalProvider);
 
     return (
@@ -58,7 +58,7 @@ export default function CardFormProfile() {
                         Profile Image
                     </h5>
                     <p className="text-sm text-[#71717A] font-normal">
-                        User profile image...
+                        {isTemplate ? "Demo for user profile image..." : "Upload a profile image for your card."}
                     </p>
                 </div>
             </AccordionHeader>

@@ -96,3 +96,11 @@ body {
 .remove-overflow ~ div{
     overflow: visible !important;
 }
+
+.preview-btn:hover{
+    filter: brightness(0.95);
+}
+
+.preview-btn{
+    word-break: break-all;
+}

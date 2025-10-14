@@ -35,7 +35,7 @@ export default function CardFormGeneralInformation() {
 
     const handleOpen = (value) => setOpen(open === value ? 0 : value);
 
-    const { cardFormData, handleCardChange, setCardFormData } =
+    const { cardFormData, handleCardChange, isTemplate } =
         useGlobal(GlobalProvider);
 
     return (
@@ -74,6 +74,7 @@ export default function CardFormGeneralInformation() {
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 value={"Salutation"}
+                                isDemo={isTemplate}
                             />
                             <SelectInput
                                 id="salutation"
@@ -102,6 +103,7 @@ export default function CardFormGeneralInformation() {
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 value={"Title"}
+                                isDemo={isTemplate}
                             />
                             <TextInput
                                 id="title"
@@ -111,23 +113,26 @@ export default function CardFormGeneralInformation() {
                                 className="w-full"
                             />
                         </div>
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Name Color"}
-                            />
-                            <ColorInput
-                                id="name_text_color"
-                                value={cardFormData.name_text_color}
-                                onChange={(e) => handleCardChange(e)}
-                                name="name_text_color"
-                                className="w-full"
-                            />
-                        </div>
+                        {isTemplate && (
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Name Color"}
+                                />
+                                <ColorInput
+                                    id="name_text_color"
+                                    value={cardFormData.name_text_color}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="name_text_color"
+                                    className="w-full"
+                                />
+                            </div>
+                        )}
                         <div className="space-y-1">
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 value={"First name"}
+                                isDemo={isTemplate}
                             />
                             <TextInput
                                 id="first_name"
@@ -141,6 +146,7 @@ export default function CardFormGeneralInformation() {
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 value={"Last name"}
+                                isDemo={isTemplate}
                             />
                             <TextInput
                                 id="last_name"
@@ -151,47 +157,49 @@ export default function CardFormGeneralInformation() {
                             />
                         </div>
                     </div>
-                    <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Page BG Color"}
-                            />
-                            <ColorInput
-                                id="card_bg_color"
-                                value={cardFormData.card_bg_color}
-                                onChange={(e) => handleCardChange(e)}
-                                name="card_bg_color"
-                                className="w-full"
-                            />
+                    {isTemplate && (
+                        <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Page BG Color"}
+                                />
+                                <ColorInput
+                                    id="card_bg_color"
+                                    value={cardFormData.card_bg_color}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="card_bg_color"
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Buttons BG Color"}
+                                />
+                                <ColorInput
+                                    id="btn_bg_color"
+                                    value={cardFormData.btn_bg_color}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="btn_bg_color"
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Button text Color"}
+                                />
+                                <ColorInput
+                                    id="btn_text_color"
+                                    value={cardFormData.btn_text_color}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="btn_text_color"
+                                    className="w-full"
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Buttons BG Color"}
-                            />
-                            <ColorInput
-                                id="btn_bg_color"
-                                value={cardFormData.btn_bg_color}
-                                onChange={(e) => handleCardChange(e)}
-                                name="btn_bg_color"
-                                className="w-full"
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Button text Color"}
-                            />
-                            <ColorInput
-                                id="btn_text_color"
-                                value={cardFormData.btn_text_color}
-                                onChange={(e) => handleCardChange(e)}
-                                name="btn_text_color"
-                                className="w-full"
-                            />
-                        </div>
-                    </div>
+                    )}
                     <div className="p-3 rounded-lg grid sm:grid-cols-2 gap-4 border border-[#EAECF0]">
                         <div className="space-y-1">
                             <InputLabel
@@ -210,6 +218,7 @@ export default function CardFormGeneralInformation() {
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 value={"Department"}
+                                isDemo={isTemplate}
                             />
                             <TextInput
                                 id="department"
@@ -223,6 +232,7 @@ export default function CardFormGeneralInformation() {
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 value={"Position"}
+                                isDemo={isTemplate}
                             />
                             <TextInput
                                 id="position"
@@ -232,19 +242,21 @@ export default function CardFormGeneralInformation() {
                                 className="w-full"
                             />
                         </div>
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Company Color"}
-                            />
-                            <ColorInput
-                                id="company_text_color"
-                                value={cardFormData.company_text_color}
-                                onChange={(e) => handleCardChange(e)}
-                                name="company_text_color"
-                                className="w-full"
-                            />
-                        </div>
+                        {isTemplate && (
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Company Color"}
+                                />
+                                <ColorInput
+                                    id="company_text_color"
+                                    value={cardFormData.company_text_color}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="company_text_color"
+                                    className="w-full"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <CardFormPhoneNumbers />

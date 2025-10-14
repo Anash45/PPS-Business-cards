@@ -7,13 +7,17 @@ import Alert from "@/Components/Alert";
 import { FileText, IdCard } from "lucide-react";
 import LandingTab from "@/Components/LandingTab";
 
-export default function Plans() {
-    const { company, isSubscriptionActive, pageType } = usePage().props;
-    const { setHeaderTitle, setHeaderText, setIsTemplate } = useGlobal(GlobalProvider);
+export default function Design() {
+    const { company, isSubscriptionActive, selectedCard = null, pageType } = usePage().props;
+    const { setHeaderTitle, setHeaderText, isTemplate, setIsTemplate } = useGlobal(GlobalProvider);
     const { openModal } = useModal();
 
     useEffect(() => {
-        setIsTemplate(pageType === 'template');
+        if (pageType === "template") {
+            setIsTemplate(true);
+        }else{
+            setIsTemplate(false);
+        }
     }, [pageType]);
 
     useEffect(() => {
@@ -28,11 +32,11 @@ export default function Plans() {
 
     const [activeTab, setActiveTab] = useState(tabs[0].name);
 
-    console.log("Template Data:", company, isSubscriptionActive);
+    console.log("Page Data:", company, selectedCard, pageType, isTemplate);
 
     return (
         <AuthenticatedLayout>
-            <Head title="Plans" />
+            <Head title="Card Template" />
 
             <div className="py-4 md:px-6 px-4 flex flex-col gap-6">
                 {!isSubscriptionActive ? (

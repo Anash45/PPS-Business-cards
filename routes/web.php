@@ -23,7 +23,19 @@ Route::middleware(['auth', 'company'])->group(function () {
         ->name('design.index');
     Route::post('/design/createOrUpdate', [DesignController::class, 'createOrUpdate'])
         ->name('design.createOrUpdate');
+    Route::get('/company/cards', [CardsController::class, 'companyCards'])
+        ->name('company.cards');
+    Route::put('/cards/{card}/toggle-status', [CardsController::class, 'toggleStatus']);
+
+    Route::get('/company/cards/{card}/edit', [DesignController::class, 'cardEdit'])
+        ->name('card.edit');
+
+    Route::post('/company/cards/{card}/update', [DesignController::class, 'cardUpdate'])
+        ->name('card.update');
+
 });
+Route::get('/card/{code}', [DesignController::class, 'cardShow'])
+    ->name('card.show');
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::resource('users', UserController::class);

@@ -8,6 +8,7 @@ export const GlobalProvider = ({ children }) => {
     const [headerTitle, setHeaderTitle] = useState("Welcome! 👋");
     const [headerText, setHeaderText] = useState("");
     const [isTemplate, setIsTemplate] = useState(null);
+    const [isCardReal, setIsCardReal] = useState(false);
 
     const [cardFormData, setCardFormData] = useState({
         salutation: "",
@@ -16,8 +17,8 @@ export const GlobalProvider = ({ children }) => {
         last_name: "",
         name_text_color: "#000000",
         company_name: "",
-        position: "",
-        department: "",
+        position: "Sales Rep",
+        department: "Sales",
         company_text_color: "#000000",
         profile_image: null,
         banner_image: null,
@@ -65,6 +66,8 @@ export const GlobalProvider = ({ children }) => {
                 setCardFormData,
                 isTemplate,
                 setIsTemplate,
+                isCardReal,
+                setIsCardReal,
             }}
         >
             {children}

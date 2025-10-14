@@ -1,8 +1,12 @@
-export function mapCompanyTemplateData(selectedCompany, options = {}) {
+export function mapCompanyTemplateData(
+    selectedCompany,
+    selectedCard,
+    options = {}
+) {
     console.log(
         "Mapping company template data for:",
         selectedCompany,
-        selectedCompany?.card_template?.name_text_color
+        selectedCard
     );
 
     if (!selectedCompany) return {};
@@ -20,6 +24,22 @@ export function mapCompanyTemplateData(selectedCompany, options = {}) {
         banner_image_url: template?.banner_image
             ? `/storage/${template.banner_image}`
             : null,
+
+        // Conditionally add selectedCard fields only if it exists
+        ...(selectedCard
+            ? {
+                  salutation: selectedCard.salutation ?? "",
+                  title: selectedCard.title ?? "",
+                  first_name: selectedCard.first_name ?? "",
+                  last_name: selectedCard.last_name ?? "",
+                  position: selectedCard.position ?? "",
+                  department: selectedCard.department ?? "",
+                  profile_image_url: selectedCard?.profile_image
+                      ? `/storage/${selectedCard.profile_image}`
+                      : "/assets/images/profile-placeholder.svg",
+                  profile_image: null,
+              }
+            : {}),
 
         // ✅ Include card_social_links with IDs for updates/deletes
         card_social_links: Array.isArray(selectedCompany?.card_social_links)
@@ -77,9 +97,19 @@ export function mapCompanyTemplateData(selectedCompany, options = {}) {
               }))
             : [],
 
-        profile_image: null,
-        profile_image_url: template?.profile_image
-            ? `/storage/${template.profile_image}`
-            : null,
+        // ✅ Include card_buttons
+        card_buttons: Array.isArray(selectedCompany?.card_buttons)
+            ? selectedCompany.card_buttons.map((btn) => ({
+                  id: btn.id || null,
+                  button_text: btn.button_text || "",
+                  button_link: btn.button_link || "",
+                  icon: btn.icon || "",
+                  text_color:
+                      btn.text_color || template?.btn_text_color || "#000000",
+                  bg_color: btn.bg_color || template?.btn_bg_color || "#FFFFFF",
+                  company_id: btn.company_id || null,
+                  card_id: btn.card_id || null,
+              }))
+            : [],
     };
 }
