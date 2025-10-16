@@ -13,7 +13,7 @@ export default function AuthenticatedLayout({ children }) {
         <div className="h-screen max-w-[2500px] mx-auto flex lg:flex-row flex-col bg-[#FCFCFD]">
             <Sidebar />
             <main className="grow rounded-lg flex flex-col">
-                <div className="overflow-y-auto grow">
+                <div className="overflow-y-auto grow flex-col flex">
                     <Header />
                     {children}
                 </div>

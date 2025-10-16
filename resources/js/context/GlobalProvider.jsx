@@ -1,15 +1,23 @@
-import { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 
-// 1️⃣ Create context
-const GlobalContext = createContext();
+const GlobalContext = createContext(undefined);
 
-// 2️⃣ Provider component
 export const GlobalProvider = ({ children }) => {
-    const [headerTitle, setHeaderTitle] = useState("Welcome! 👋");
+    const [headerTitle, setHeaderTitle] = useState("Welcome!");
     const [headerText, setHeaderText] = useState("");
     const [isTemplate, setIsTemplate] = useState(null);
     const [isCardReal, setIsCardReal] = useState(false);
+    const [csvImportProgress, setCsvImportProgress] = useState(1);
+    const [csvFile, setCsvFile] = useState(null);
+    const [csvData, setCsvData] = useState([]);
+    const [csvImages, setCsvImages] = useState([]);
+    const [loadingButton, setLoadingButton] = useState(null);
+    const [loadingImport, setLoadingImport] = useState(null);
+    const [mapping, setMapping] = useState({});
+    const [warnings, setWarnings] = useState([]);
+    const [errors, setErrors] = useState([]);
 
+    // 🔹 Card form state
     const [cardFormData, setCardFormData] = useState({
         salutation: "",
         title: "",
@@ -23,16 +31,14 @@ export const GlobalProvider = ({ children }) => {
         profile_image: null,
         banner_image: null,
     });
-    const [loadingButton, setLoadingButton] = useState(null);
 
+    // 🔹 Handle changes
     const handleCardChange = (e) => {
         const { name, value } = e.target;
 
         setCardFormData((prev) => {
-            // Default: just update the field
-            let updates = { [name]: value };
+            const updates = { [name]: value };
 
-            // Special case: profile_image
             if (name === "profile_image") {
                 updates.profile_image_url = value
                     ? typeof value === "string"
@@ -41,7 +47,6 @@ export const GlobalProvider = ({ children }) => {
                     : null;
             }
 
-            // Special case: banner_image
             if (name === "banner_image") {
                 updates.banner_image_url = value
                     ? typeof value === "string"
@@ -53,6 +58,14 @@ export const GlobalProvider = ({ children }) => {
             return { ...prev, ...updates };
         });
     };
+
+    // 🔹 Steps
+    const progressSteps = [
+        { number: 1, label: "Upload" },
+        { number: 2, label: "Mapping" },
+        { number: 3, label: "Validation" },
+        { number: 4, label: "Confirm" },
+    ];
 
     return (
         <GlobalContext.Provider
@@ -68,6 +81,25 @@ export const GlobalProvider = ({ children }) => {
                 setIsTemplate,
                 isCardReal,
                 setIsCardReal,
+                csvImportProgress,
+                setCsvImportProgress,
+                progressSteps,
+                csvFile,
+                setCsvFile,
+                csvData,
+                setCsvData,
+                csvImages,
+                setCsvImages,
+                loadingButton,
+                setLoadingButton,
+                mapping,
+                setMapping,
+                loadingImport,
+                setLoadingImport,
+                warnings,
+                setWarnings,
+                errors,
+                setErrors,
             }}
         >
             {children}
@@ -75,5 +107,39 @@ export const GlobalProvider = ({ children }) => {
     );
 };
 
-// 3️⃣ Custom hook for easier usage
-export const useGlobal = () => useContext(GlobalContext);
+// ✅ Custom hook (safe fallback)
+export const useGlobal = () => {
+    const context = useContext(GlobalContext);
+    if (!context) {
+        console.warn(
+            "⚠️ useGlobal() called outside of <GlobalProvider>. Returning empty defaults to prevent crash."
+        );
+        return {
+            headerTitle: "",
+            headerText: "",
+            setHeaderTitle: () => {},
+            setHeaderText: () => {},
+            cardFormData: {},
+            handleCardChange: () => {},
+            setCardFormData: () => {},
+            isTemplate: null,
+            setIsTemplate: () => {},
+            isCardReal: false,
+            setIsCardReal: () => {},
+            csvImportProgress: 1,
+            setCsvImportProgress: () => {},
+            progressSteps: [],
+            csvFile: null,
+            setCsvFile: () => {},
+            csvData: [],
+            setCsvData: () => {},
+            csvImages: [],
+            setCsvImages: () => {},
+            loadingButton: null,
+            setLoadingButton: () => {},
+            mapping: {},
+            setMapping: () => {},
+        };
+    }
+    return context;
+};

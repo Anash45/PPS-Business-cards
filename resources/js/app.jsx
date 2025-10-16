@@ -20,13 +20,13 @@ createInertiaApp({
     setup({ el, App, props }) {
         const root = createRoot(el);
 
-        root.render( 
-            <ModalProvider>
-                <GlobalProvider>
+        root.render(
+            <GlobalProvider>
+                <ModalProvider>
                     <App {...props} />
                     <Toaster position="top-center" reverseOrder={false} />
-                </GlobalProvider>
-            </ModalProvider>
+                </ModalProvider>
+            </GlobalProvider>
         );
     },
     progress: {

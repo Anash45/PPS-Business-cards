@@ -87,18 +87,20 @@ export default function CardPreview({ isReal = false }) {
                 <CardPreviewSocials
                     cardSocialsLinks={cardFormData?.card_social_links ?? []}
                 />
-                <CardPreviewPhones
-                    cardPhones={cardFormData?.card_phone_numbers ?? []}
-                />
-                <CardPreviewEmails
-                    cardEmails={cardFormData?.card_emails ?? []}
-                />
-                <CardPreviewAdresses
-                    cardAddresses={cardFormData?.card_addresses ?? []}
-                />
-                <CardPreviewButtons
-                    cardButtons={cardFormData?.card_buttons ?? []}
-                />
+                <div className="space-y-2">
+                    <CardPreviewPhones
+                        cardPhones={cardFormData?.card_phone_numbers ?? []}
+                    />
+                    <CardPreviewEmails
+                        cardEmails={cardFormData?.card_emails ?? []}
+                    />
+                    <CardPreviewAdresses
+                        cardAddresses={cardFormData?.card_addresses ?? []}
+                    />
+                    <CardPreviewButtons
+                        cardButtons={cardFormData?.card_buttons ?? []}
+                    />
+                </div>
             </div>
         </div>
     );

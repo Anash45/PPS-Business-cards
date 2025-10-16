@@ -9,7 +9,7 @@ const Sidebar = () => {
     const [isMobileMenuOpened, setIsMobileMenuOpened] = useState(false);
 
     return (
-        <aside className="lg:w-[260px] w-full bg-white border-r border-r-[#EAECF0]">
+        <aside className="lg:w-[260px] w-full bg-white border-r border-r-[#EAECF0] shrink-0">
             {/* Mobile Header */}
             <div className="py-4 lg:pe-4 px-4 flex items-center gap-3 justify-between lg:hidden">
                 <Link href={route("dashboard")}>

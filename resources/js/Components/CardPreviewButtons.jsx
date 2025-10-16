@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { MapPin, Smile } from "lucide-react";
 
 export default function CardPreviewButtons({ cardButtons }) {
     return cardButtons?.length > 0 ? (
@@ -16,7 +16,7 @@ export default function CardPreviewButtons({ cardButtons }) {
                     }}
                     className="flex border text-sm leading-tight items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn"
                 >
-                    <span className="shrink-0 text-xl">{button?.icon ?? ""}</span>
+                    <span className="shrink-0 text-xl">{button.icon ? button.icon : <Smile className="h-7 w-7" />}</span>
                     <span>{button.button_text}</span>
                 </a>
                 )

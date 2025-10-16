@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CardsController;
+use App\Http\Controllers\CsvController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\SubscriptionsController;
@@ -32,6 +33,13 @@ Route::middleware(['auth', 'company'])->group(function () {
 
     Route::post('/company/cards/{card}/update', [DesignController::class, 'cardUpdate'])
         ->name('card.update');
+
+        
+
+    Route::get('/csv-import', [CsvController::class, 'index'])
+        ->name('csv.index');
+    Route::post('/cards/bulk-update', [DesignController::class, 'bulkCardUpdate'])
+        ->name('csv.import');
 
 });
 Route::get('/card/{code}', [DesignController::class, 'cardShow'])

@@ -44,6 +44,12 @@ class Company extends Model
     {
         return $this->hasMany(User::class, 'company_id');
     }
+    
+    /** 🔹 Company cards */
+    public function cards()
+    {
+        return $this->hasMany(Card::class, 'company_id');
+    }
 
     public function cardTemplate()
     {

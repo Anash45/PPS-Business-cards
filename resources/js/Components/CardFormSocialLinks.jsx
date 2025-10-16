@@ -14,6 +14,8 @@ import {
     FaPinterest,
     FaTiktok,
     FaYoutube,
+    FaTwitter,
+    FaBehance,
 } from "react-icons/fa";
 import TextInput from "./TextInput";
 import Button from "./Button";
@@ -45,6 +47,8 @@ export default function CardFormSocialLinks() {
         { value: "FaTiktok", icon: FaTiktok, label: "Tiktok" },
         { value: "FaLinkedin", icon: FaLinkedin, label: "Linkedin" },
         { value: "FaYoutube", icon: FaYoutube, label: "Youtube" },
+        { value: "FaTwitter", icon: FaTwitter, label: "Twitter" },
+        { value: "FaBehance", icon: FaBehance, label: "Behance" },
     ];
 
     // Add a new link

@@ -30,7 +30,7 @@ const userMenuGroups = [
             {
                 name: "Bulk Import",
                 icon: UploadCloud,
-                route: "profile.edit",
+                route: "csv.index",
             },
         ],
     },

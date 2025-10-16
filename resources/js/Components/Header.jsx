@@ -32,10 +32,10 @@ export default function Header() {
             toast.error("Failed to stop impersonation.");
         }
     };
-    console.log(props?.auth, isImpersonating);
+    // console.log(props?.auth, isImpersonating);
 
     return (
-        <div className="flex h-[70px] border-b border-b-[#EAECF0] justify-between items-center px-6">
+        <div className="flex h-[70px] border-b border-b-[#EAECF0] justify-between items-center px-6 shrink-0">
             <div className="space-y-0.5">
                 {headerTitle && (
                     <h2 className="text-xl font-bold font-public-sans text-[#1C274C]">

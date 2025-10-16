@@ -444,6 +444,147 @@ class DesignController extends Controller
         ]);
     }
 
+public function bulkCardUpdate(Request $request)
+{
+    $user = Auth::user();
+
+    if (!$user->isCompany() || !$user->company) {
+        return response()->json([
+            'success' => false,
+            'message' => 'You must be a company to update cards.',
+        ], 403);
+    }
+
+    $company = $user->company;
+    $rows = $request->input('cards'); // array of CSV-transformed rows
+    if (!is_array($rows) || empty($rows)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No card data provided.',
+        ], 400);
+    }
+
+    $missingCodes = [];
+    $updatedCards = [];
+
+    foreach ($rows as $index => $row) {
+        $cardCode = $row['card_code'] ?? null;
+        if (!$cardCode) continue;
+
+        // Check if card exists for this company
+        $card = $company->cards()->where('code', $cardCode)->first();
+        if (!$card) {
+            $missingCodes[] = $cardCode;
+            continue;
+        }
+
+        // Normalize data
+        $dataToUpdate = [];
+        $fillableFields = ['salutation', 'title', 'first_name', 'last_name', 'position', 'department'];
+        foreach ($fillableFields as $field) {
+            if (!empty($row[$field])) {
+                $dataToUpdate[$field] = $row[$field];
+            }
+        }
+
+        // ✅ Handle profile image base64 upload
+        if (!empty($row['profile_image_base64'])) {
+            try {
+                $base64 = $row['profile_image_base64'];
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                    $data = substr($base64, strpos($base64, ',') + 1);
+                    $type = strtolower($type[1]); // jpg, png, etc.
+
+                    $data = base64_decode($data);
+                    if ($data === false) {
+                        Log::warning("⚠️ Failed to decode base64 for card {$cardCode}");
+                    } else {
+                        // Delete old image if exists
+                        if ($card->profile_image && Storage::exists($card->profile_image)) {
+                            Storage::delete($card->profile_image);
+                        }
+
+                        $filename = "card_profiles/{$cardCode}_" . time() . ".{$type}";
+                        Storage::disk('public')->put($filename, $data);
+                        $dataToUpdate['profile_image'] = $filename;
+
+                        Log::info("✅ Saved profile image for card {$cardCode} at {$filename}");
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error("❌ Error saving profile image for card {$cardCode}: {$e->getMessage()}");
+            }
+        }
+
+        $card->fill($dataToUpdate);
+        $card->save();
+
+        // Normalize emails
+        $emails = [];
+        for ($i = 1; $i <= 4; $i++) {
+            if (!empty($row["card_email_$i"])) {
+                $emails[] = ['email' => $row["card_email_$i"]];
+            }
+        }
+        if (!empty($emails)) $this->handleCardEmails($company, $emails, $card->id);
+
+        // Normalize phones
+        $phones = [];
+        for ($i = 1; $i <= 4; $i++) {
+            if (!empty($row["card_phone_$i"])) {
+                $phones[] = ['phone_number' => $row["card_phone_$i"]];
+            }
+        }
+        if (!empty($phones)) $this->handleCardPhoneNumbers($company, $phones, $card->id);
+
+        // Normalize addresses
+        $addresses = [];
+        for ($i = 1; $i <= 4; $i++) {
+            if (!empty($row["card_address_$i"])) {
+                $addresses[] = ['address' => $row["card_address_$i"]];
+            }
+        }
+        if (!empty($addresses)) $this->handleCardAddresses($company, $addresses, $card->id);
+
+        // Normalize buttons
+        $buttons = [];
+        for ($i = 1; $i <= 4; $i++) {
+            if (!empty($row["card_button_text_$i"]) && !empty($row["card_button_link_$i"])) {
+                $buttons[] = [
+                    'button_text' => $row["card_button_text_$i"],
+                    'button_link' => $row["card_button_link_$i"]
+                ];
+            }
+        }
+        if (!empty($buttons)) $this->handleCardButtons($company, $buttons, $card->id);
+
+        // Normalize social links
+        $socials = [];
+        for ($i = 1; $i <= 5; $i++) {
+            if (!empty($row["social_link_$i"])) {
+                $socials[] = ['url' => $row["social_link_$i"]];
+            }
+        }
+        if (!empty($socials)) $this->handleCardSocialLinks($company, $socials, $card->id);
+
+        $updatedCards[] = $cardCode;
+    }
+
+    $message = "Updated " . count($updatedCards) . " card(s) successfully.";
+    if (!empty($missingCodes)) {
+        $message .= " The following codes were not found or do not belong to your company: " . implode(", ", $missingCodes);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => $message,
+        'updated_codes' => $updatedCards,
+        'missing_codes' => $missingCodes,
+    ]);
+}
+
+
+
     /**
      * Handle create, update, and delete logic for company-level card social links.
      */
