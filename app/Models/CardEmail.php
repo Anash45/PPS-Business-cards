@@ -14,8 +14,6 @@ class CardEmail extends Model
         'card_id',
         'type',
         'email',
-        'text_color',
-        'bg_color',
         'is_hidden',
     ];
 

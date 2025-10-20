@@ -16,16 +16,35 @@ class CardsController extends Controller
 {
     public function index()
     {
-        $companies = Company::get();
+        // Load companies with their owner → subscription → plan relationships
+        $companies = Company::with(['owner.subscription.plan', 'cards'])->get();
+
+        // Append total and remaining cards for each company
+        $companies = $companies->map(function ($company) {
+            $plan = $company->owner?->subscription?->plan;
+            $totalCards = $plan?->cards_included ?? 0;
+            $usedCards = $company->cards->count();
+            $remainingCards = max(0, $totalCards - $usedCards);
+
+            $company->total_cards_allowed = $totalCards;
+            $company->used_cards = $usedCards;
+            $company->remaining_cards = $remainingCards;
+
+            return $company;
+        });
+
+        // Load card groups with counts
         $cardsGroups = CardsGroup::with(['company', 'cards'])
-            ->withCount('cards') // ✅ adds cards_count attribute
+            ->withCount('cards')
             ->orderByDesc('created_at')
             ->get();
+
         return inertia('Cards/Index', [
             'companies' => $companies,
             'cardsGroups' => $cardsGroups,
         ]);
     }
+
 
     /**
      * Create cards for a company in a new group
@@ -40,10 +59,48 @@ class CardsController extends Controller
         DB::beginTransaction();
 
         try {
-            // Fetch company details
+            // Fetch company
             $company = Company::findOrFail($request->company_id);
 
-            // Create a new group
+            // ✅ Check subscription limits
+            $owner = $company->owner; // assuming hasOne relation like company->owner()
+            $subscription = $owner?->subscription; // assuming hasOne relation user->subscription
+            $plan = $subscription?->plan;
+
+            if (!$plan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active subscription plan found for this company owner.'
+                ], 403);
+            }
+
+            // Total allowed cards by plan
+            $maxCards = $plan->cards_included ?? 0;
+
+            // Count existing company cards
+            $usedCards = $company->cards()->count();
+
+            // Remaining allowed cards
+            $remainingCards = max(0, $maxCards - $usedCards);
+
+            // ✅ Validate remaining capacity
+            if ($remainingCards <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You have reached your card limit. Upgrade your plan to create more cards.',
+                    'remaining' => 0,
+                ], 403);
+            }
+
+            if ($request->quantity > $remainingCards) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "You can only create {$remainingCards} more card(s) under your current plan.",
+                    'remaining' => $remainingCards,
+                ], 403);
+            }
+
+            // ✅ Create a new group
             $group = CardsGroup::create([
                 'company_id' => $company->id,
                 'uuid' => Str::uuid(),
@@ -51,22 +108,22 @@ class CardsController extends Controller
 
             $cards = [];
             $createdCards = [];
-
             $now = now();
 
             for ($i = 0; $i < $request->quantity; $i++) {
                 $code = Card::generateCode();
+
                 $cardData = [
                     'company_id' => $company->id,
                     'cards_group_id' => $group->id,
                     'code' => $code,
-                    'status' => 'inactive', // default status
+                    'status' => 'inactive',
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];
+
                 $cards[] = $cardData;
 
-                // Add full card info to return array
                 $createdCards[] = [
                     'code' => $code,
                     'status' => 'inactive',
@@ -89,7 +146,8 @@ class CardsController extends Controller
                 'success' => true,
                 'group_id' => $group->id,
                 'cards_created' => $request->quantity,
-                'createdCards' => $createdCards, // full objects for preview
+                'remaining_after_creation' => $remainingCards - $request->quantity,
+                'createdCards' => $createdCards,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -99,6 +157,7 @@ class CardsController extends Controller
             ], 500);
         }
     }
+
 
 
     /**
@@ -194,7 +253,7 @@ class CardsController extends Controller
 
     public function toggleStatus(Request $request, Card $card)
     {
-        $user =Auth::user();
+        $user = Auth::user();
 
         // Ensure the card belongs to the logged-in user's company
         if ($card->company_id !== $user->company_id) {

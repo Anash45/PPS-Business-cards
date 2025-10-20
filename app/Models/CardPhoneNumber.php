@@ -14,8 +14,6 @@ class CardPhoneNumber extends Model
         'card_id',
         'type',
         'phone_number',
-        'text_color',
-        'bg_color',
         'is_hidden',
     ];
 

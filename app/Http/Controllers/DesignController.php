@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Card;
+use App\Models\CardView;
 use App\Models\CompanyCardTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -105,7 +106,7 @@ class DesignController extends Controller
         ]);
     }
 
-    public function cardShow($code)
+    public function cardShow($code, Request $request)
     {
         $card = Card::where('code', $code)->firstOrFail();
 
@@ -136,6 +137,23 @@ class DesignController extends Controller
         if (!$company) {
             return response()->json(['message' => 'No company associated with this user'], 404);
         }
+
+        $ip = $request->ip();
+        $userAgent = $request->header('User-Agent');
+
+        // Check if already viewed by this IP (for unique view)
+        $existingView = CardView::where('card_id', $card->id)
+            ->where('ip_address', $ip)
+            ->first();
+
+        // Log total view
+        CardView::create([
+            'card_id' => $card->id,
+            'ip_address' => $ip,
+            'user_agent' => $userAgent,
+            'user_id' => auth()->id(),
+        ]);
+
 
         return inertia('Cards/Show', [
             'pageType' => 'card',
@@ -177,6 +195,12 @@ class DesignController extends Controller
             'contact_btn_text' => 'nullable|string|max:50',
             'btn_bg_color' => 'nullable|string|max:100',
             'btn_text_color' => 'nullable|string|max:100',
+            'phone_bg_color' => 'nullable|string|max:100',
+            'phone_text_color' => 'nullable|string|max:100',
+            'email_bg_color' => 'nullable|string|max:100',
+            'email_text_color' => 'nullable|string|max:100',
+            'address_bg_color' => 'nullable|string|max:100',
+            'address_text_color' => 'nullable|string|max:100',
 
             // Social Media Links
             'card_social_links' => 'nullable|array',
@@ -190,8 +214,6 @@ class DesignController extends Controller
             'card_phone_numbers.*.phone_number' => 'required_with:card_phone_numbers|string|max:20',
             'card_phone_numbers.*.is_hidden' => 'nullable|boolean',
             'card_phone_numbers.*.type' => 'nullable|string|max:10',
-            'card_phone_numbers.*.text_color' => 'nullable|string|max:100',
-            'card_phone_numbers.*.bg_color' => 'nullable|string|max:100',
 
             // Emails
             'card_emails' => 'nullable|array',
@@ -199,17 +221,17 @@ class DesignController extends Controller
             'card_emails.*.email' => 'required_with:card_emails|email|max:255',
             'card_emails.*.is_hidden' => 'nullable|boolean',
             'card_emails.*.type' => 'nullable|string|max:10',
-            'card_emails.*.text_color' => 'nullable|string|max:100',
-            'card_emails.*.bg_color' => 'nullable|string|max:100',
 
             // Addresses
             'card_addresses' => 'nullable|array',
             'card_addresses.*.id' => 'nullable|integer',
-            'card_addresses.*.address' => 'required_with:card_addresses|string|max:500',
+            'card_addresses.*.street' => 'required_with:card_addresses|string|max:255',
+            'card_addresses.*.house_number' => 'nullable|string|max:50',
+            'card_addresses.*.zip' => 'nullable|string|max:20',
+            'card_addresses.*.city' => 'nullable|string|max:100',
+            'card_addresses.*.country' => 'nullable|string|max:100',
             'card_addresses.*.is_hidden' => 'nullable|boolean',
             'card_addresses.*.type' => 'nullable|string|max:10',
-            'card_addresses.*.text_color' => 'nullable|string|max:100',
-            'card_addresses.*.bg_color' => 'nullable|string|max:100',
 
             // Buttons
             'card_buttons' => 'nullable|array',
@@ -217,8 +239,6 @@ class DesignController extends Controller
             'card_buttons.*.button_text' => 'required_with:card_buttons|string|max:255',
             'card_buttons.*.button_link' => 'required_with:card_buttons|url|max:1000',
             'card_buttons.*.icon' => 'nullable|string|max:50',
-            'card_buttons.*.text_color' => 'nullable|string|max:100',
-            'card_buttons.*.bg_color' => 'nullable|string|max:100',
         ]);
 
         // ✅ Get or create template
@@ -319,8 +339,6 @@ class DesignController extends Controller
             'card_phone_numbers.*.phone_number' => 'required_with:card_phone_numbers|string|max:20',
             'card_phone_numbers.*.is_hidden' => 'nullable|boolean',
             'card_phone_numbers.*.type' => 'nullable|string|max:10',
-            'card_phone_numbers.*.text_color' => 'nullable|string|max:100',
-            'card_phone_numbers.*.bg_color' => 'nullable|string|max:100',
 
             // Emails
             'card_emails' => 'nullable|array',
@@ -328,17 +346,17 @@ class DesignController extends Controller
             'card_emails.*.email' => 'required_with:card_emails|email|max:255',
             'card_emails.*.is_hidden' => 'nullable|boolean',
             'card_emails.*.type' => 'nullable|string|max:10',
-            'card_emails.*.text_color' => 'nullable|string|max:100',
-            'card_emails.*.bg_color' => 'nullable|string|max:100',
 
             // Addresses
             'card_addresses' => 'nullable|array',
             'card_addresses.*.id' => 'nullable|integer',
-            'card_addresses.*.address' => 'required_with:card_addresses|string|max:500',
+            'card_addresses.*.street' => 'required_with:card_addresses|string|max:255',
+            'card_addresses.*.house_number' => 'nullable|string|max:50',
+            'card_addresses.*.zip' => 'nullable|string|max:20',
+            'card_addresses.*.city' => 'nullable|string|max:100',
+            'card_addresses.*.country' => 'nullable|string|max:100',
             'card_addresses.*.is_hidden' => 'nullable|boolean',
             'card_addresses.*.type' => 'nullable|string|max:10',
-            'card_addresses.*.text_color' => 'nullable|string|max:100',
-            'card_addresses.*.bg_color' => 'nullable|string|max:100',
 
             // Buttons
             'card_buttons' => 'nullable|array',
@@ -346,8 +364,6 @@ class DesignController extends Controller
             'card_buttons.*.button_text' => 'required_with:card_buttons|string|max:255',
             'card_buttons.*.button_link' => 'required_with:card_buttons|url|max:1000',
             'card_buttons.*.icon' => 'nullable|string|max:50',
-            'card_buttons.*.text_color' => 'nullable|string|max:100',
-            'card_buttons.*.bg_color' => 'nullable|string|max:100',
         ]);
 
         $company = $card->company;
@@ -488,7 +504,7 @@ class DesignController extends Controller
 
             // Normalize data
             $dataToUpdate = [];
-            $fillableFields = ['salutation', 'title', 'first_name', 'last_name', 'position', 'department'];
+            $fillableFields = ['salutation', 'title', 'first_name', 'last_name', 'degree', 'position', 'department'];
             foreach ($fillableFields as $field) {
                 if (!empty($row[$field])) {
                     $dataToUpdate[$field] = $row[$field];
@@ -527,11 +543,21 @@ class DesignController extends Controller
             $card->fill($dataToUpdate);
             $card->save();
 
+            // DELETE previous related records
+            $card->cardEmails()->delete();
+            $card->cardPhoneNumbers()->delete();
+            $card->cardAddresses()->delete();
+            $card->cardButtons()->delete();
+            $card->cardSocialLinks()->delete();
+
             // Normalize emails
             $emails = [];
             for ($i = 1; $i <= 4; $i++) {
                 if (!empty($row["card_email_$i"])) {
-                    $emails[] = ['email' => $row["card_email_$i"]];
+                    $emails[] = [
+                        'email' => $row["card_email_$i"],
+                        'type' => $row["card_email_{$i}_type"] ?? null
+                    ];
                 }
             }
             if (!empty($emails))
@@ -541,7 +567,10 @@ class DesignController extends Controller
             $phones = [];
             for ($i = 1; $i <= 4; $i++) {
                 if (!empty($row["card_phone_$i"])) {
-                    $phones[] = ['phone_number' => $row["card_phone_$i"]];
+                    $phones[] = [
+                        'phone_number' => $row["card_phone_$i"],
+                        'type' => $row["card_phone_{$i}_type"] ?? null
+                    ];
                 }
             }
             if (!empty($phones))
@@ -550,8 +579,20 @@ class DesignController extends Controller
             // Normalize addresses
             $addresses = [];
             for ($i = 1; $i <= 4; $i++) {
-                if (!empty($row["card_address_$i"])) {
-                    $addresses[] = ['address' => $row["card_address_$i"]];
+                // Check if any of the address components exist for this address slot
+                if (
+                    !empty($row["address_{$i}_street"]) || !empty($row["address_{$i}_house_number"]) ||
+                    !empty($row["address_{$i}_zip"]) || !empty($row["address_{$i}_city"])
+                ) {
+
+                    $addresses[] = [
+                        'street' => $row["address_{$i}_street"] ?? null,
+                        'house_number' => $row["address_{$i}_house_number"] ?? null,
+                        'zip' => $row["address_{$i}_zip"] ?? null,
+                        'city' => $row["address_{$i}_city"] ?? null,
+                        'country' => $row["address_{$i}_country"] ?? null,
+                        'type' => $row["address_{$i}_type"] ?? null
+                    ];
                 }
             }
             if (!empty($addresses))
@@ -662,8 +703,6 @@ class DesignController extends Controller
                         'phone_number' => $numberData['phone_number'] ?? '',
                         'type' => $numberData['type'] ?? "Work",
                         'is_hidden' => $numberData['is_hidden'] ?? false,
-                        'text_color' => $numberData['text_color'] ?? null,
-                        'bg_color' => $numberData['bg_color'] ?? null,
                     ]);
                 }
             } else {
@@ -671,8 +710,6 @@ class DesignController extends Controller
                     'phone_number' => $numberData['phone_number'] ?? '',
                     'type' => $numberData['type'] ?? "Work",
                     'is_hidden' => $numberData['is_hidden'] ?? false,
-                    'text_color' => $numberData['text_color'] ?? null,
-                    'bg_color' => $numberData['bg_color'] ?? null,
                     'company_id' => $company->id,
                     'card_id' => $cardId,
                 ]);
@@ -705,8 +742,6 @@ class DesignController extends Controller
                         'email' => $emailData['email'] ?? '',
                         'type' => $emailData['type'] ?? "Work",
                         'is_hidden' => $emailData['is_hidden'] ?? false,
-                        'text_color' => $emailData['text_color'] ?? null,
-                        'bg_color' => $emailData['bg_color'] ?? null,
                     ]);
                 }
             } else {
@@ -714,8 +749,6 @@ class DesignController extends Controller
                     'email' => $emailData['email'] ?? '',
                     'type' => $emailData['type'] ?? "Work",
                     'is_hidden' => $emailData['is_hidden'] ?? false,
-                    'text_color' => $emailData['text_color'] ?? null,
-                    'bg_color' => $emailData['bg_color'] ?? null,
                     'company_id' => $company->id,
                     'card_id' => $cardId,
                 ]);
@@ -743,25 +776,30 @@ class DesignController extends Controller
                 $existingAddress = $existingAddresses->firstWhere('id', $addressData['id']);
                 if ($existingAddress) {
                     $existingAddress->update([
-                        'address' => $addressData['address'] ?? '',
-                        'type' => $addressData['type'] ?? "Work",
+                        'street' => $addressData['street'] ?? '',
+                        'house_number' => $addressData['house_number'] ?? '',
+                        'zip' => $addressData['zip'] ?? '',
+                        'city' => $addressData['city'] ?? '',
+                        'country' => $addressData['country'] ?? '',
+                        'type' => $addressData['type'] ?? 'Work',
                         'is_hidden' => $addressData['is_hidden'] ?? false,
-                        'text_color' => $addressData['text_color'] ?? null,
-                        'bg_color' => $addressData['bg_color'] ?? null,
                     ]);
                 }
             } else {
                 $company->cardAddresses()->create([
-                    'address' => $addressData['address'] ?? '',
-                    'type' => $addressData['type'] ?? "Work",
+                    'street' => $addressData['street'] ?? '',
+                    'house_number' => $addressData['house_number'] ?? '',
+                    'zip' => $addressData['zip'] ?? '',
+                    'city' => $addressData['city'] ?? '',
+                    'country' => $addressData['country'] ?? '',
+                    'type' => $addressData['type'] ?? 'Work',
                     'is_hidden' => $addressData['is_hidden'] ?? false,
-                    'text_color' => $addressData['text_color'] ?? null,
-                    'bg_color' => $addressData['bg_color'] ?? null,
                     'company_id' => $company->id,
                     'card_id' => $cardId,
                 ]);
             }
         }
+
 
         $incomingIds = $incomingAddresses->pluck('id')->filter()->toArray();
         $toDelete = $existingAddresses->filter(fn($address) => !in_array($address->id, $incomingIds));

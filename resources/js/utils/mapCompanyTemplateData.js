@@ -21,6 +21,12 @@ export function mapCompanyTemplateData(
         card_bg_color: template?.card_bg_color ?? "#ffffff",
         btn_bg_color: template?.btn_bg_color ?? "#87B88C",
         btn_text_color: template?.btn_text_color ?? "#ffffff",
+        phone_bg_color: template?.phone_bg_color ?? "#87B88C",
+        phone_text_color: template?.phone_text_color ?? "#ffffff",
+        email_bg_color: template?.email_bg_color ?? "#87B88C",
+        email_text_color: template?.email_text_color ?? "#ffffff",
+        address_bg_color: template?.address_bg_color ?? "#87B88C",
+        address_text_color: template?.address_text_color ?? "#ffffff",
         banner_image: null,
         banner_image_url: template?.banner_image
             ? `/storage/${template.banner_image}`
@@ -62,10 +68,6 @@ export function mapCompanyTemplateData(
                   phone_number: phone.phone_number || "",
                   is_hidden: phone.is_hidden ?? false,
                   type: phone.type ?? "Work",
-                  text_color:
-                      phone.text_color || template?.btn_text_color || "#ffffff",
-                  bg_color:
-                      phone.bg_color || template?.btn_bg_color || "#87B88C",
                   company_id: phone.company_id || null,
                   card_id: phone.card_id || null,
               }))
@@ -78,10 +80,6 @@ export function mapCompanyTemplateData(
                   email: email.email || "",
                   is_hidden: email.is_hidden ?? false,
                   type: email.type ?? "Work",
-                  text_color:
-                      email.text_color || template?.btn_text_color || "#ffffff",
-                  bg_color:
-                      email.bg_color || template?.btn_bg_color || "#87B88C",
                   company_id: email.company_id || null,
                   card_id: email.card_id || null,
               }))
@@ -91,13 +89,13 @@ export function mapCompanyTemplateData(
         card_addresses: Array.isArray(selectedCompany?.card_addresses)
             ? selectedCompany.card_addresses.map((addr) => ({
                   id: addr.id || null,
-                  address: addr.address || "",
+                  street: addr.street || "",
+                  house_number: addr.house_number || "",
+                  zip: addr.zip || "",
+                  city: addr.city || "",
+                  country: addr.country || "",
                   is_hidden: addr.is_hidden ?? false,
                   type: addr.type ?? "Work",
-                  text_color:
-                      addr.text_color || template?.btn_text_color || "#ffffff",
-                  bg_color:
-                      addr.bg_color || template?.btn_bg_color || "#87B88C",
                   company_id: addr.company_id || null,
                   card_id: addr.card_id || null,
               }))

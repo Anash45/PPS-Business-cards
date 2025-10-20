@@ -13,6 +13,7 @@ import { Dropdown, DropdownItem } from "@/Components/DropdownUi";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { getDomain } from "@/utils/viteConfig";
+import SampleCsvDownload from "@/Components/SampleCsvDownload";
 
 // Bind DataTables
 DataTable.use(DT);
@@ -165,6 +166,7 @@ export default function Company() {
             <Head title="Cards" />
 
             <div className="py-4 md:px-6 px-4 flex flex-col gap-6">
+                <SampleCsvDownload cards={cards} />
                 {!isSubscriptionActive ? (
                     <div className="p-4 bg-red-100 text-red-700 rounded-md">
                         You can only access this page with a valid subscription.

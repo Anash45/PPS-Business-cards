@@ -3,7 +3,7 @@ export default function CardPreviewSocials({ cardSocialsLinks }) {
         <div className="flex items-center gap-2 flex-wrap justify-center">
             {(cardSocialsLinks || []).map(
                 (link, index) =>
-                    link.url && link.icon !== "" && (
+                    link.url && (
                         <a
                             key={index}
                             href={link.url || "#"}

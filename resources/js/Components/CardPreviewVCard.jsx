@@ -59,12 +59,23 @@ URL;TYPE=WORK:${linkDomain}/card/${cardFormData?.code ?? "XXXXXXX"}
             }
         });
 
-        // ✅ Addresses (with type + pref)
+        // ✅ Addresses (German format)
         (cardFormData.card_addresses || []).forEach((a, index) => {
-            if (a.address) {
+            // Only include if at least street, house, city, or country is provided
+            if (a.street || a.house || a.city || a.country) {
                 const type = (a.type || "Work").toUpperCase();
                 const pref = index === 0 ? "PREF," : "";
-                vcard += `ADR;TYPE=${pref}${type}:;;${a.address};;;;\n`;
+
+                // vCard ADR structure:
+                // ADR;TYPE=WORK:;;Street House;City;;ZIP;Country
+                const streetPart = [a.street, a.house]
+                    .filter(Boolean)
+                    .join(" ");
+                const cityPart = a.city || "";
+                const zipPart = a.zip || "";
+                const countryPart = a.country || "";
+
+                vcard += `ADR;TYPE=${pref}${type}:;;${streetPart};${cityPart};;${zipPart};${countryPart}\n`;
             }
         });
 

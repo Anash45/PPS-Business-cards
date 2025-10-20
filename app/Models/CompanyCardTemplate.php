@@ -19,6 +19,12 @@ class CompanyCardTemplate extends Model
         'contact_btn_text',
         'btn_bg_color',
         'btn_text_color',
+        'phone_bg_color',
+        'phone_text_color',
+        'email_bg_color',
+        'email_text_color',
+        'address_bg_color',
+        'address_text_color',
     ];
 
     public function company()

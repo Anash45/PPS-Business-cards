@@ -14,7 +14,7 @@ import InputLabel from "./InputLabel";
 import SelectInput from "./SelectInput";
 
 export default function CardFormPhoneNumbers() {
-    const { cardFormData, setCardFormData, isTemplate } =
+    const { cardFormData, setCardFormData, handleCardChange, isTemplate } =
         useGlobal(GlobalProvider);
 
     // ✅ Add new phone number
@@ -72,7 +72,11 @@ export default function CardFormPhoneNumbers() {
             card_phone_numbers: updated,
         }));
     };
-    // console.log("Phone: ", cardFormData);
+    console.log(
+        "Colors: ",
+        cardFormData?.phone_text_color,
+        cardFormData?.btn_text_color
+    );
 
     return (
         <div className="p-3 rounded-lg border border-[#EAECF0] space-y-3">
@@ -97,7 +101,7 @@ export default function CardFormPhoneNumbers() {
                             <span className="shrink-0 text-xl w-9">📞</span>
 
                             {/* ✅ Type Selector */}
-                            <div className="w-[125px]">
+                            <div className="w-[100px] shrink-0">
                                 <SelectInput
                                     value={item.type || "Work"}
                                     onChange={(e) => {
@@ -164,42 +168,47 @@ export default function CardFormPhoneNumbers() {
                             </Button>
                         )}
                     </div>
-
-                    {/* Second Row: Color Pickers */}
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <ColorInput
-                            label="Text Color"
-                            value={
-                                item.text_color ||
-                                cardFormData.btn_text_color ||
-                                "#000000"
-                            }
-                            onChange={(e) =>
-                                updatePhoneField(
-                                    index,
-                                    "text_color",
-                                    e.target.value
-                                )
-                            }
+                </div>
+            ))}
+            {/* Second Row: Color Pickers */}
+            {isTemplate && cardFormData.card_phone_numbers.length > 0 ? (
+                <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                        <InputLabel
+                            className="text-black text-sm font-medium"
+                            value={"Text Color"}
+                            htmlFor="phone_text_color"
                         />
                         <ColorInput
+                            id="phone_text_color"
+                            name="phone_text_color"
+                            label="Text Color"
+                            value={
+                                cardFormData.phone_text_color ||
+                                cardFormData.btn_text_color
+                            }
+                            onChange={(e) => handleCardChange(e)}
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <InputLabel
+                            className="text-black text-sm font-medium"
+                            value={"Background Color"}
+                            htmlFor="phone_bg_color"
+                        />
+                        <ColorInput
+                            id="phone_bg_color"
+                            name="phone_bg_color"
                             label="Background Color"
                             value={
-                                item.bg_color ||
-                                cardFormData.btn_bg_color ||
-                                "#FFFFFF"
+                                cardFormData.phone_bg_color ||
+                                cardFormData.btn_bg_color
                             }
-                            onChange={(e) =>
-                                updatePhoneField(
-                                    index,
-                                    "bg_color",
-                                    e.target.value
-                                )
-                            }
+                            onChange={(e) => handleCardChange(e)}
                         />
                     </div>
                 </div>
-            ))}
+            ) : null}
         </div>
     );
 }

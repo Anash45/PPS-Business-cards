@@ -9,7 +9,7 @@ import InputLabel from "./InputLabel";
 import SelectInput from "./SelectInput";
 
 export default function CardFormEmails() {
-    const { cardFormData, setCardFormData, isTemplate } =
+    const { cardFormData, setCardFormData, handleCardChange, isTemplate } =
         useGlobal(GlobalProvider);
 
     // ✅ Add new email
@@ -66,6 +66,7 @@ export default function CardFormEmails() {
         }));
     };
 
+
     return (
         <div className="p-3 rounded-lg border border-[#EAECF0] space-y-3">
             <div className="flex flex-wrap gap-4 justify-between items-center">
@@ -90,7 +91,7 @@ export default function CardFormEmails() {
                             <span className="shrink-0 text-xl">✉️</span>
 
                             {/* ✅ Type Selector */}
-                            <div className="w-[125px]">
+                            <div className="w-[100px] shrink-0">
                                 <SelectInput
                                     value={item.type || "Work"}
                                     onChange={(e) => {
@@ -155,42 +156,48 @@ export default function CardFormEmails() {
                             </Button>
                         )}
                     </div>
+                </div>
+            ))}
 
-                    {/* Second Row: Color Pickers */}
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <ColorInput
-                            label="Text Color"
-                            value={
-                                item.text_color ||
-                                cardFormData.btn_text_color ||
-                                "#000000"
-                            }
-                            onChange={(e) =>
-                                updateEmailField(
-                                    index,
-                                    "text_color",
-                                    e.target.value
-                                )
-                            }
+            {/* Second Row: Color Pickers */}
+            {isTemplate && cardFormData.card_emails.length > 0 ? (
+                <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                        <InputLabel
+                            className="text-black text-sm font-medium"
+                            value={"Text Color"}
+                            htmlFor="email_text_color"
                         />
                         <ColorInput
+                            id="email_text_color"
+                            name="email_text_color"
+                            label="Text Color"
+                            value={
+                                cardFormData?.email_text_color ??
+                                cardFormData?.btn_text_color
+                            }
+                            onChange={(e) => handleCardChange(e)}
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <InputLabel
+                            className="text-black text-sm font-medium"
+                            value={"Background Color"}
+                            htmlFor="email_bg_color"
+                        />
+                        <ColorInput
+                            id="email_bg_color"
+                            name="email_bg_color"
                             label="Background Color"
                             value={
-                                item.bg_color ||
-                                cardFormData.btn_bg_color ||
-                                "#FFFFFF"
+                                cardFormData.email_bg_color ||
+                                cardFormData.btn_bg_color
                             }
-                            onChange={(e) =>
-                                updateEmailField(
-                                    index,
-                                    "bg_color",
-                                    e.target.value
-                                )
-                            }
+                            onChange={(e) => handleCardChange(e)}
                         />
                     </div>
                 </div>
-            ))}
+            ) : null}
         </div>
     );
 }

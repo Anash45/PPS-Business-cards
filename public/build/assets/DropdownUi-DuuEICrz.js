@@ -1,0 +1,6 @@
+import{g as a,r,j as e}from"./app-226nCS_N.js";/**
+ * @license lucide-react v0.545.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const u=[["circle",{cx:"12",cy:"12",r:"1",key:"41hilf"}],["circle",{cx:"12",cy:"5",r:"1",key:"gxeob9"}],["circle",{cx:"12",cy:"19",r:"1",key:"lyex9k"}]],d=a("ellipsis-vertical",u);function m({label:c="Actions",children:s}){const[l,i]=r.useState(!1),n=r.useRef(null);return r.useEffect(()=>{const t=o=>{n.current&&!n.current.contains(o.target)&&i(!1)};return document.addEventListener("mousedown",t),()=>document.removeEventListener("mousedown",t)},[]),e.jsxs("div",{className:"relative inline-block text-left",ref:n,children:[e.jsx("button",{onClick:()=>i(t=>!t),className:"inline-flex justify-center w-full rounded-md px-3 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50",children:e.jsx(d,{className:"h-5 w-5"})}),l&&e.jsx("div",{className:"absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10",children:e.jsx("div",{className:"py-1",children:s})})]})}function f({children:c,onClick:s}){return e.jsx("button",{onClick:s,className:"w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-primary/20",children:c})}export{m as D,f as a};

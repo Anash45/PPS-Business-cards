@@ -97,7 +97,7 @@ export default function CardsForm({previewCards, setPreviewCards}) {
                         className="w-full block"
                         options={companies.map((company) => ({
                             value: company.id,
-                            label: company.name,
+                            label: `${company.name} -- ${company.used_cards}/${company.total_cards_allowed}`,
                         }))}
                     />
                 </div>

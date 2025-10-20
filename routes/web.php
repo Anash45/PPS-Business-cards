@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CardsController;
 use App\Http\Controllers\CsvController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\SubscriptionsController;
@@ -72,12 +73,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 Route::middleware(['auth', 'admin_or_company'])->group(function () {
     Route::resource('users', UserController::class);
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/', function () {
     return redirect()->route('dashboard');

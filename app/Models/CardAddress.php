@@ -13,11 +13,14 @@ class CardAddress extends Model
         'company_id',
         'card_id',
         'type',
-        'address',
-        'text_color',
-        'bg_color',
+        'street',
+        'house_number',
+        'zip',
+        'city',
+        'country',
         'is_hidden',
     ];
+
 
     public function company()
     {

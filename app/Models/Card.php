@@ -72,7 +72,7 @@ class Card extends Model
 
     public function cardSocialLinks()
     {
-        return $this->hasMany(CardSocialLink::class, 'user_id');
+        return $this->hasMany(CardSocialLink::class);
     }
 
     public function cardPhoneNumbers()
@@ -93,5 +93,10 @@ class Card extends Model
     public function cardButtons()
     {
         return $this->hasMany(CardButton::class);
+    }
+
+    public function views()
+    {
+        return $this->hasMany(CardView::class);
     }
 }

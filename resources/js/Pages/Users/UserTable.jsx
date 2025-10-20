@@ -150,7 +150,7 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                                 user.company.name.slice(1)}
                                         </p>
 
-                                        {user.role === "admin" ? (
+                                        {authUser.role === "admin" && user.role == "company" ? (
                                             <span
                                                 className={`text-xs font-semibold px-2 py-1 rounded-full 
                                     ${

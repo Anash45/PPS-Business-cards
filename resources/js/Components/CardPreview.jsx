@@ -49,10 +49,10 @@ export default function CardPreview({ isReal = false }) {
                                     cardFormData?.name_text_color || "#000000",
                             }}
                         >
-                            {cardFormData.salutation ||
+                            {cardFormData.title ||
                             cardFormData.first_name ||
                             cardFormData.last_name
-                                ? `${cardFormData?.salutation} ${cardFormData?.title} ${cardFormData?.first_name} ${cardFormData?.last_name}`
+                                ? `${cardFormData?.title} ${cardFormData?.first_name} ${cardFormData?.last_name}`
                                 : "Mr. John Doe"}
                         </h2>
                         {cardFormData.degree ? (

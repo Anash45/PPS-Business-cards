@@ -51,6 +51,15 @@ export default function LandingTab() {
             formData.append("btn_bg_color", cardFormData.btn_bg_color);
             formData.append("btn_text_color", cardFormData.btn_text_color);
             formData.append("contact_btn_text", cardFormData.contact_btn_text);
+            formData.append("phone_bg_color", cardFormData.phone_bg_color);
+            formData.append("phone_text_color", cardFormData.phone_text_color);
+            formData.append("email_bg_color", cardFormData.email_bg_color);
+            formData.append("email_text_color", cardFormData.email_text_color);
+            formData.append("address_bg_color", cardFormData.address_bg_color);
+            formData.append(
+                "address_text_color",
+                cardFormData.address_text_color
+            );
 
             // Append the file if it exists
             if (cardFormData.banner_image) {
@@ -121,14 +130,6 @@ export default function LandingTab() {
                     phone.is_hidden ? "1" : "0"
                 );
                 formData.append(
-                    `card_phone_numbers[${index}][text_color]`,
-                    phone.text_color || ""
-                );
-                formData.append(
-                    `card_phone_numbers[${index}][bg_color]`,
-                    phone.bg_color || ""
-                );
-                formData.append(
                     `card_phone_numbers[${index}][company_id]`,
                     phone.company_id || ""
                 );
@@ -155,14 +156,6 @@ export default function LandingTab() {
                     email.is_hidden ? "1" : "0"
                 );
                 formData.append(
-                    `card_emails[${index}][text_color]`,
-                    email.text_color || ""
-                );
-                formData.append(
-                    `card_emails[${index}][bg_color]`,
-                    email.bg_color || ""
-                );
-                formData.append(
                     `card_emails[${index}][company_id]`,
                     email.company_id || ""
                 );
@@ -181,20 +174,28 @@ export default function LandingTab() {
             cardFormData.card_addresses.forEach((addr, index) => {
                 formData.append(`card_addresses[${index}][id]`, addr.id || "");
                 formData.append(
-                    `card_addresses[${index}][address]`,
-                    addr.address || ""
+                    `card_addresses[${index}][street]`,
+                    addr.street || ""
+                );
+                formData.append(
+                    `card_addresses[${index}][house_number]`,
+                    addr.house_number || ""
+                );
+                formData.append(
+                    `card_addresses[${index}][zip]`,
+                    addr.zip || ""
+                );
+                formData.append(
+                    `card_addresses[${index}][city]`,
+                    addr.city || ""
+                );
+                formData.append(
+                    `card_addresses[${index}][country]`,
+                    addr.country || ""
                 );
                 formData.append(
                     `card_addresses[${index}][is_hidden]`,
                     addr.is_hidden ? "1" : "0"
-                );
-                formData.append(
-                    `card_addresses[${index}][text_color]`,
-                    addr.text_color || ""
-                );
-                formData.append(
-                    `card_addresses[${index}][bg_color]`,
-                    addr.bg_color || ""
                 );
                 formData.append(
                     `card_addresses[${index}][company_id]`,
@@ -223,14 +224,6 @@ export default function LandingTab() {
                     btn.button_link || ""
                 );
                 formData.append(`card_buttons[${index}][icon]`, btn.icon || "");
-                formData.append(
-                    `card_buttons[${index}][text_color]`,
-                    btn.text_color || ""
-                );
-                formData.append(
-                    `card_buttons[${index}][bg_color]`,
-                    btn.bg_color || ""
-                );
                 formData.append(
                     `card_buttons[${index}][company_id]`,
                     btn.company_id || ""

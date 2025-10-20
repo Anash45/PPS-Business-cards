@@ -18,7 +18,7 @@ const companyMenuGroups = [
     {
         groupName: "Overview",
         items: [
-            { name: "Home", icon: HomeIcon, route: "dashboard" },
+            { name: "Overview", icon: LayoutDashboard, route: "dashboard" },
             { name: "Team", icon: Users2, route: "users.index" },
         ],
     },

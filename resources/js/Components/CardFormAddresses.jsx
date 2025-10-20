@@ -9,7 +9,7 @@ import InputLabel from "./InputLabel";
 import SelectInput from "./SelectInput";
 
 export default function CardFormAddresses() {
-    const { cardFormData, setCardFormData, isTemplate } =
+    const { cardFormData, setCardFormData, handleCardChange, isTemplate } =
         useGlobal(GlobalProvider);
 
     // ✅ Add new address
@@ -86,18 +86,19 @@ export default function CardFormAddresses() {
 
             {(cardFormData.card_addresses || []).map((item, index) => (
                 <div key={index} className="space-y-2">
-                    {/* First Row: Input + Checkbox + Trash */}
+                    {/* First Row: Type + Street + House Number */}
                     <div className="flex md:flex-row flex-col gap-3 md:items-center">
                         <div className="gap-4 grow flex items-center">
                             <span className="shrink-0 text-xl">📍</span>
+
                             {/* ✅ Type Selector */}
-                            <div className="w-[125px]">
+                            <div className="w-[100px] shrink-0">
                                 <SelectInput
                                     value={item.type || "Work"}
                                     onChange={(e) => {
                                         const newType = e.target
                                             ? e.target.value
-                                            : e; // handle both normal and custom selects
+                                            : e;
                                         updateAddressField(
                                             index,
                                             "type",
@@ -112,20 +113,37 @@ export default function CardFormAddresses() {
                                     ]}
                                 />
                             </div>
+
+                            {/* ✅ Street */}
                             <TextInput
                                 className="w-full"
-                                placeholder="Enter address"
-                                value={item.address || ""}
+                                placeholder="Street"
+                                value={item.street || ""}
                                 onChange={(e) =>
                                     updateAddressField(
                                         index,
-                                        "address",
+                                        "street",
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                            {/* ✅ House Number */}
+                            <TextInput
+                                className="w-[100px]"
+                                placeholder="No."
+                                value={item.house_number || ""}
+                                onChange={(e) =>
+                                    updateAddressField(
+                                        index,
+                                        "house_number",
                                         e.target.value
                                     )
                                 }
                             />
                         </div>
 
+                        {/* Hidden Checkbox */}
                         <label className="flex items-center gap-2">
                             <input
                                 type="checkbox"
@@ -157,34 +175,36 @@ export default function CardFormAddresses() {
                         )}
                     </div>
 
-                    {/* Second Row: Color Pickers */}
+                    {/* ✅ Second Row: ZIP + City + Country */}
                     <div className="flex flex-col sm:flex-row gap-3">
-                        <ColorInput
-                            label="Text Color"
-                            value={
-                                item.text_color ||
-                                cardFormData.btn_text_color ||
-                                "#000000"
+                        <TextInput
+                            className="w-full sm:w-[150px]"
+                            placeholder="ZIP"
+                            value={item.zip || ""}
+                            onChange={(e) =>
+                                updateAddressField(index, "zip", e.target.value)
                             }
+                        />
+                        <TextInput
+                            className="w-full sm:w-[250px]"
+                            placeholder="City"
+                            value={item.city || ""}
                             onChange={(e) =>
                                 updateAddressField(
                                     index,
-                                    "text_color",
+                                    "city",
                                     e.target.value
                                 )
                             }
                         />
-                        <ColorInput
-                            label="Background Color"
-                            value={
-                                item.bg_color ||
-                                cardFormData.btn_bg_color ||
-                                "#FFFFFF"
-                            }
+                        <TextInput
+                            className="w-full sm:w-[250px]"
+                            placeholder="Country"
+                            value={item.country || ""}
                             onChange={(e) =>
                                 updateAddressField(
                                     index,
-                                    "bg_color",
+                                    "country",
                                     e.target.value
                                 )
                             }
@@ -192,6 +212,46 @@ export default function CardFormAddresses() {
                     </div>
                 </div>
             ))}
+
+            {/* Second Row: Color Pickers */}
+            {isTemplate && cardFormData.card_addresses.length > 0 ? (
+                <div className="grid sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                        <InputLabel
+                            className="text-black text-sm font-medium"
+                            value={"Text Color"}
+                            htmlFor="address_text_color"
+                        />
+                        <ColorInput
+                            id="address_text_color"
+                            name="address_text_color"
+                            label="Text Color"
+                            value={
+                                cardFormData.address_text_color ||
+                                cardFormData.btn_text_color
+                            }
+                            onChange={(e) => handleCardChange(e)}
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <InputLabel
+                            className="text-black text-sm font-medium"
+                            value={"Background Color"}
+                            htmlFor="address_bg_color"
+                        />
+                        <ColorInput
+                            id="address_bg_color"
+                            name="address_bg_color"
+                            label="Background Color"
+                            value={
+                                cardFormData.address_bg_color ||
+                                cardFormData.btn_bg_color
+                            }
+                            onChange={(e) => handleCardChange(e)}
+                        />
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 }

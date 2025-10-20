@@ -4,6 +4,7 @@ import Button from "./Button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { router } from "@inertiajs/react";
 
 export default function CsvStepConfirm() {
     const {
@@ -95,6 +96,10 @@ export default function CsvStepConfirm() {
                 toast.success(
                     response.data.message || "Cards updated successfully!"
                 );
+                setCsvImportProgress(1);
+                setTimeout(() => {
+                    router.reload();
+                }, 1000);
             } else {
                 toast.error(response.data.message || "Something went wrong.");
             }
