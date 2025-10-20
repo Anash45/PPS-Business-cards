@@ -23,6 +23,7 @@ export const GlobalProvider = ({ children }) => {
         title: "",
         first_name: "",
         last_name: "",
+        degree: "",
         name_text_color: "#000000",
         company_name: "",
         position: "Sales Rep",

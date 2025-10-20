@@ -11,7 +11,7 @@ import { useModal } from "@/context/ModalProvider";
 import Button from "@/Components/Button";
 
 export default function Users() {
-    const { users, plans, flash } = usePage().props;
+    const { auth, users, plans, companies, flash } = usePage().props;
     const { openModal } = useModal();
     // Show flash message if present
     useEffect(() => {
@@ -41,13 +41,23 @@ export default function Users() {
 
                     <Button
                         variant="primary"
-                        onClick={() => openModal("ManageUserModal")}
+                        onClick={() =>
+                            openModal("ManageUserModal", {
+                                companies: companies,
+                                authUser: auth.user
+                            })
+                        }
                     >
                         <Plus className="h-4 w-4" strokeWidth={2} /> Add User
                     </Button>
                 </div>
 
-                <UserTable users={users} plans={plans} />
+                <UserTable
+                    authUser={auth.user}
+                    users={users}
+                    plans={plans}
+                    companies={companies}
+                />
             </div>
         </AuthenticatedLayout>
     );

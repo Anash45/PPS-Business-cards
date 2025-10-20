@@ -10,11 +10,7 @@ export default function CardPreviewPhones({ cardPhones }) {
     );
 
     return visiblePhones?.length > 0 ? (
-        <div
-            className={`grid gap-2 ${
-                visiblePhones.length === 1 ? "grid-cols-1" : "grid-cols-2"
-            }`}
-        >
+        <div className={`grid gap-2 grid-cols-1`}>
             {visiblePhones.map((phone, index) => (
                 <a
                     key={index}
@@ -27,8 +23,8 @@ export default function CardPreviewPhones({ cardPhones }) {
                     }}
                     className="flex relative border text-sm leading-tight items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn w-full"
                 >
-                    <Phone className="h-4 w-4 shrink-0" />
-                    <span>{phone.phone_number}</span>
+                    <span className="shrink-0 text-xl">📞</span>
+                    <span>{phone.type} Phone: {phone.phone_number}</span>
                     {phone.is_hidden && (
                         <span className="absolute -translate-y-1/2 translate-x-1 top-0 right-0 text-[10px] rounded bg-orange-500 py-0.5 px-2 italic text-white">
                             (Hidden)

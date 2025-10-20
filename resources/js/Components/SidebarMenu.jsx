@@ -14,10 +14,13 @@ import {
 import React from "react";
 
 // 🧩 Regular user menu
-const userMenuGroups = [
+const companyMenuGroups = [
     {
         groupName: "Overview",
-        items: [{ name: "Home", icon: HomeIcon, route: "dashboard" }],
+        items: [
+            { name: "Home", icon: HomeIcon, route: "dashboard" },
+            { name: "Team", icon: Users2, route: "users.index" },
+        ],
     },
     {
         groupName: "Design",
@@ -40,6 +43,14 @@ const userMenuGroups = [
             { name: "Setting", icon: SettingsIcon, route: "profile.edit" },
             { name: "API Documentation", icon: Book, route: "profile.edit" },
         ],
+    },
+];
+
+// 🧩 Regular user menu
+const editorMenuGroups = [
+    {
+        groupName: "Design",
+        items: [{ name: "Template", icon: Palette, route: "design.index" }],
     },
 ];
 
@@ -83,7 +94,7 @@ const SidebarMenu = () => {
 
     // 👇 Choose menu based on user role
     const menuGroups =
-        user?.role === "admin" ? adminMenuGroups : userMenuGroups;
+        user?.role === "admin" ? adminMenuGroups : user?.role == "company" ? companyMenuGroups : user?.role == "editor" ? editorMenuGroups : null;
 
     return (
         <ul className="flex flex-col gap-3.5 pb-4 overflow-y-auto">

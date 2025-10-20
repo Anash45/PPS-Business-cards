@@ -50,6 +50,7 @@ export default function LandingTab() {
             formData.append("card_bg_color", cardFormData.card_bg_color);
             formData.append("btn_bg_color", cardFormData.btn_bg_color);
             formData.append("btn_text_color", cardFormData.btn_text_color);
+            formData.append("contact_btn_text", cardFormData.contact_btn_text);
 
             // Append the file if it exists
             if (cardFormData.banner_image) {
@@ -68,6 +69,7 @@ export default function LandingTab() {
             formData.append("first_name", cardFormData.first_name);
             formData.append("last_name", cardFormData.last_name);
             formData.append("position", cardFormData.position);
+            formData.append("degree", cardFormData.degree);
             formData.append("department", cardFormData.department);
 
             // Append the file if it exists
@@ -134,6 +136,10 @@ export default function LandingTab() {
                     `card_phone_numbers[${index}][card_id]`,
                     phone.card_id || ""
                 );
+                formData.append(
+                    `card_phone_numbers[${index}][type]`,
+                    phone.type || "Work"
+                );
             });
         }
 
@@ -164,6 +170,10 @@ export default function LandingTab() {
                     `card_emails[${index}][card_id]`,
                     email.card_id || ""
                 );
+                formData.append(
+                    `card_emails[${index}][type]`,
+                    email.type || "Work"
+                );
             });
         }
 
@@ -193,6 +203,10 @@ export default function LandingTab() {
                 formData.append(
                     `card_addresses[${index}][card_id]`,
                     addr.card_id || ""
+                );
+                formData.append(
+                    `card_addresses[${index}][type]`,
+                    addr.type || "Work"
                 );
             });
         }

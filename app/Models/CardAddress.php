@@ -12,6 +12,7 @@ class CardAddress extends Model
     protected $fillable = [
         'company_id',
         'card_id',
+        'type',
         'address',
         'text_color',
         'bg_color',

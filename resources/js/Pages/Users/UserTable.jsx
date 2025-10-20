@@ -5,7 +5,7 @@ import { Edit, Trash2, Search, VenetianMask, CreditCard } from "lucide-react";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
-export default function UserTable({ users, plans }) {
+export default function UserTable({ users, plans, companies, authUser }) {
     const [search, setSearch] = useState("");
     const { openModal } = useModal();
 
@@ -61,7 +61,7 @@ export default function UserTable({ users, plans }) {
         }
     };
 
-    // console.log(users.data);
+    console.log(authUser);
 
     return (
         <div className="py-6 px-4 rounded-[14px] main-box bg-white flex flex-col gap-6 overflow-x-auto">
@@ -131,6 +131,8 @@ export default function UserTable({ users, plans }) {
                                             ? "bg-green-100 text-green-700"
                                             : user.role === "company"
                                             ? "bg-blue-100 text-blue-700"
+                                            : user.role === "editor"
+                                            ? "bg-purple-100 text-purple-700"
                                             : user.role === "team"
                                             ? "bg-yellow-100 text-yellow-700"
                                             : "bg-gray-100 text-gray-700"
@@ -139,8 +141,8 @@ export default function UserTable({ users, plans }) {
                                     {user.role.charAt(0).toUpperCase() +
                                         user.role.slice(1)}
                                 </span>
-                                {user.role == "company" && (
-                                    <div className="flex gap-1 items-center flex-wrap">
+                                {user.role !== "admin" && (
+                                    <div className="flex gap-1 items-center flex-wrap mt-1">
                                         <p className="text-sm">
                                             {user.company.name
                                                 .charAt(0)
@@ -148,8 +150,9 @@ export default function UserTable({ users, plans }) {
                                                 user.company.name.slice(1)}
                                         </p>
 
-                                        <span
-                                            className={`text-xs font-semibold px-2 py-1 rounded-full 
+                                        {user.role === "admin" ? (
+                                            <span
+                                                className={`text-xs font-semibold px-2 py-1 rounded-full 
                                     ${
                                         user?.subscription?.is_active == true
                                             ? "text-green-700"
@@ -158,14 +161,15 @@ export default function UserTable({ users, plans }) {
                                             ? "text-orange-500"
                                             : "text-red-700"
                                     }`}
-                                        >
-                                            {user?.subscription?.is_active
-                                                ? "Active"
-                                                : user?.subscription
-                                                      ?.is_active === false
-                                                ? "Expired"
-                                                : "No Subscribed"}
-                                        </span>
+                                            >
+                                                {user?.subscription?.is_active
+                                                    ? "Active"
+                                                    : user?.subscription
+                                                          ?.is_active === false
+                                                    ? "Expired"
+                                                    : "No Subscribed"}
+                                            </span>
+                                        ) : null}
                                     </div>
                                 )}
                             </div>
@@ -176,6 +180,8 @@ export default function UserTable({ users, plans }) {
                                         onClick={() =>
                                             openModal("ManageUserModal", {
                                                 user: user,
+                                                authUser: authUser,
+                                                companies: companies,
                                             })
                                         }
                                     >
@@ -205,16 +211,18 @@ export default function UserTable({ users, plans }) {
                                             </div>
                                         </DropdownItem>
                                     ) : null}
-                                    <DropdownItem
-                                        onClick={() =>
-                                            handleImpersonate(user.id)
-                                        }
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <VenetianMask className="h-4 w-4" />{" "}
-                                            <span>Impersonate</span>
-                                        </div>
-                                    </DropdownItem>
+                                    {authUser.role == "admin" ? (
+                                        <DropdownItem
+                                            onClick={() =>
+                                                handleImpersonate(user.id)
+                                            }
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <VenetianMask className="h-4 w-4" />{" "}
+                                                <span>Impersonate</span>
+                                            </div>
+                                        </DropdownItem>
+                                    ) : null}
                                     <DropdownItem
                                         onClick={() => handleDelete(user.id)}
                                     >

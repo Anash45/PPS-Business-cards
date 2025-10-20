@@ -16,6 +16,7 @@ class CompanyCardTemplate extends Model
         'card_bg_color',
         'name_text_color',
         'company_text_color',
+        'contact_btn_text',
         'btn_bg_color',
         'btn_text_color',
     ];

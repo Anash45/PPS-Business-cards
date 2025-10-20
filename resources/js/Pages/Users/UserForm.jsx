@@ -192,7 +192,8 @@ export default function UserForm({ user = null }) {
                             className="w-full block"
                             options={[
                                 { value: "admin", label: "Admin" },
-                                { value: "company", label: "Company" },
+                                { value: "company", label: "Company Owner" },
+                                { value: "editor", label: "Editor" },
                             ]}
                         />
                     )}

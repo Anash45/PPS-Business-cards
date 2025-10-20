@@ -16,9 +16,35 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with(['company', 'subscription']); // eager load company profile
+        $user = auth()->user();
 
-        // Apply search filter if query parameter exists
+        // Base query with eager loading
+        $query = User::with(['company', 'subscription']);
+
+        // 🔹 If logged in user is a company, only show its team members and editors (not himself)
+        if ($user->isCompany()) {
+            $company = $user->companyProfile;
+
+            if ($company) {
+                $teamMemberIds = $company->teamMembers()->pluck('id')->toArray();
+                $editorIds = $company->editors()->pluck('id')->toArray();
+
+                $visibleUserIds = array_merge($teamMemberIds, $editorIds);
+
+                // ✅ Exclude the company owner (himself) explicitly
+                $query->whereIn('id', $visibleUserIds)
+                    ->where('id', '!=', $user->id);
+            } else {
+                // No company profile means no members
+                $query->whereNull('id'); // return empty result
+            }
+        }
+        // 🔹 Admin can see everyone (no restrictions)
+        elseif (!$user->isAdmin()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // 🔹 Apply search filter
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -29,15 +55,19 @@ class UserController extends Controller
 
         $users = $query->latest()->paginate(10)->withQueryString();
         $plans = Plan::get();
+        $companies = Company::get();
 
         return inertia('Users/Index', [
             'users' => $users,
             'filters' => [
                 'search' => $search,
             ],
-            'plans' => $plans
+            'plans' => $plans,
+            'companies' => $companies,
         ]);
     }
+
+
 
     public function create()
     {
@@ -46,29 +76,54 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $authUser = auth()->user();
+
+        // 🔹 Base validation rules
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed',
-            'role' => 'required|in:admin,company,team',
+            'role' => 'required|in:admin,company,editor,team',
         ];
 
+        // 🔹 Company creation requires company_name
         if ($request->role === 'company') {
             $rules['company_name'] = 'required|string|max:255';
         }
 
-        if ($request->role === 'team') {
+        // 🔹 Team/editor require company_id — only for admins (companies will auto-assign)
+        if (in_array($request->role, ['team', 'editor']) && $authUser->isAdmin()) {
             $rules['company_id'] = 'required|exists:companies,id';
         }
 
         $validated = $request->validate($rules);
+
+        // 🔹 Restrict company users to only create team/editor
+        if ($authUser->isCompany()) {
+            if (!in_array($validated['role'], ['editor', 'team'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are only allowed to create editors or team members.',
+                ], 403);
+            }
+
+            // Automatically assign this new user to the current company
+            $validated['company_id'] = $authUser->company?->id;
+
+            if (!$validated['company_id']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your company profile is missing. Contact support.',
+                ], 400);
+            }
+        }
 
         DB::beginTransaction();
 
         try {
             $companyId = null;
 
-            // ✅ If company user — create company record first
+            // ✅ If creating a new company user (admin only)
             if ($validated['role'] === 'company') {
                 $company = Company::create([
                     'name' => $validated['company_name'],
@@ -83,19 +138,20 @@ class UserController extends Controller
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'role' => $validated['role'],
-                'company_id' => $validated['role'] === 'team' ? $validated['company_id'] : $companyId,
-                'created_by' => auth()->id(),
-                'status' => true, // boolean
+                'company_id' => in_array($validated['role'], ['team', 'editor'])
+                    ? $validated['company_id']
+                    : $companyId,
+                'created_by' => $authUser->id,
+                'status' => true,
             ]);
 
-            // ✅ Link company to its owner
+            // ✅ If new company, link the user as owner
             if ($validated['role'] === 'company' && isset($company)) {
                 $company->update(['user_id' => $user->id]);
             }
 
             DB::commit();
 
-            // ✅ Return JSON success (API style)
             return response()->json([
                 'success' => true,
                 'message' => 'User created successfully.',
@@ -127,16 +183,20 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        // Validation rules
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:8|confirmed', // optional on update
+            'password' => 'nullable|min:8|confirmed',
+            'role' => 'required|in:admin,company,editor,team',
         ];
 
-        // Only validate company_name if user is a company owner
-        if ($user->role === 'company') {
+        // Role-specific validations
+        if ($request->role === 'company') {
             $rules['company_name'] = 'required|string|max:255';
+        }
+
+        if (in_array($request->role, ['team', 'editor'])) {
+            $rules['company_id'] = 'required|exists:companies,id';
         }
 
         $validated = $request->validate($rules);
@@ -144,21 +204,46 @@ class UserController extends Controller
         DB::beginTransaction();
 
         try {
-            // Update user fields (skip role)
-            $user->name = $validated['name'];
-            $user->email = $validated['email'];
+            $companyId = $user->company_id;
 
-            if (!empty($validated['password'])) {
-                $user->password = Hash::make($validated['password']);
+            // ✅ If converting to a company user and company doesn’t exist yet
+            if ($validated['role'] === 'company') {
+                if ($user->companyProfile) {
+                    // Update existing company
+                    $user->companyProfile()->update([
+                        'name' => $validated['company_name'],
+                    ]);
+                    $companyId = $user->companyProfile->id;
+                } else {
+                    // Create new company record
+                    $company = Company::create([
+                        'name' => $validated['company_name'],
+                        'user_id' => $user->id,
+                    ]);
+                    $companyId = $company->id;
+                }
             }
 
-            $user->save();
+            // ✅ Update user
+            $user->update([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'role' => $validated['role'],
+                'company_id' => in_array($validated['role'], ['team', 'editor'])
+                    ? $validated['company_id']
+                    : ($validated['role'] === 'company' ? $companyId : null),
+            ]);
 
-            // Update company name if this user is a company owner
-            if ($user->role === 'company' && isset($validated['company_name'])) {
-                $user->companyProfile()->update([
-                    'name' => $validated['company_name'],
+            // ✅ Update password only if provided
+            if (!empty($validated['password'])) {
+                $user->update([
+                    'password' => Hash::make($validated['password']),
                 ]);
+            }
+
+            // ✅ Ensure company linkage for company role
+            if ($validated['role'] === 'company' && isset($company)) {
+                $company->update(['user_id' => $user->id]);
             }
 
             DB::commit();
@@ -178,6 +263,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
 
 

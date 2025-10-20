@@ -17,32 +17,41 @@ class DesignController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $company = $user->company;
 
-        // Ensure user is a company
-        if (!$user->isCompany()) {
+        // Ensure only company or editor can access
+        if (!$user->isCompany() && !$user->isEditor()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        $company = $user->company()->with([
-            'cardTemplate', // load normally
-            'cardSocialLinks' => fn($q) => $q->where('company_id', $user->company->id)->whereNull('card_id'),
-            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $user->company->id)->whereNull('card_id'),
-            'cardEmails' => fn($q) => $q->where('company_id', $user->company->id)->whereNull('card_id'),
-            'cardAddresses' => fn($q) => $q->where('company_id', $user->company->id)->whereNull('card_id'),
-            'cardButtons' => fn($q) => $q->where('company_id', $user->company->id)->whereNull('card_id'),
-        ])->first();
+
+        // Determine correct company reference
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
 
         if (!$company) {
             return response()->json(['message' => 'No company associated with this user'], 404);
         }
 
+        // Load related data
+        $company->load([
+            'cardTemplate',
+            'cardSocialLinks' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardEmails' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardAddresses' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardButtons' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+        ]);
+
         return inertia('Design/Index', [
             'pageType' => "template",
             'company' => $company,
             'card' => null,
-            'isSubscriptionActive' => $user->hasActiveSubscription(),
+            'isSubscriptionActive' => $user->isCompany()
+                ? $user->hasActiveSubscription()
+                : ($user->isEditor()
+                    ? optional(optional($user->company)->owner)->hasActiveSubscription()
+                    : false),
         ]);
     }
+
 
     public function cardEdit(Card $card)
     {
@@ -141,12 +150,22 @@ class DesignController extends Controller
     {
         $user = Auth::user();
 
-        // Ensure the logged-in user has a company
-        if (!$user->isCompany() || !$user->company) {
+        // ✅ Allow both company and editor
+        if (!$user->isCompany() && !$user->isEditor()) {
             return response()->json([
                 'success' => false,
-                'message' => 'You must be a company to create or update a template.',
+                'message' => 'Unauthorized: Only company or editor users can perform this action.',
             ], 403);
+        }
+
+        // ✅ Determine correct company reference
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+
+        if (!$company) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No company associated with this user.',
+            ], 404);
         }
 
         $validated = $request->validate([
@@ -155,6 +174,7 @@ class DesignController extends Controller
             'card_bg_color' => 'nullable|string|max:100',
             'name_text_color' => 'nullable|string|max:100',
             'company_text_color' => 'nullable|string|max:100',
+            'contact_btn_text' => 'nullable|string|max:50',
             'btn_bg_color' => 'nullable|string|max:100',
             'btn_text_color' => 'nullable|string|max:100',
 
@@ -169,6 +189,7 @@ class DesignController extends Controller
             'card_phone_numbers.*.id' => 'nullable|integer',
             'card_phone_numbers.*.phone_number' => 'required_with:card_phone_numbers|string|max:20',
             'card_phone_numbers.*.is_hidden' => 'nullable|boolean',
+            'card_phone_numbers.*.type' => 'nullable|string|max:10',
             'card_phone_numbers.*.text_color' => 'nullable|string|max:100',
             'card_phone_numbers.*.bg_color' => 'nullable|string|max:100',
 
@@ -177,6 +198,7 @@ class DesignController extends Controller
             'card_emails.*.id' => 'nullable|integer',
             'card_emails.*.email' => 'required_with:card_emails|email|max:255',
             'card_emails.*.is_hidden' => 'nullable|boolean',
+            'card_emails.*.type' => 'nullable|string|max:10',
             'card_emails.*.text_color' => 'nullable|string|max:100',
             'card_emails.*.bg_color' => 'nullable|string|max:100',
 
@@ -185,6 +207,7 @@ class DesignController extends Controller
             'card_addresses.*.id' => 'nullable|integer',
             'card_addresses.*.address' => 'required_with:card_addresses|string|max:500',
             'card_addresses.*.is_hidden' => 'nullable|boolean',
+            'card_addresses.*.type' => 'nullable|string|max:10',
             'card_addresses.*.text_color' => 'nullable|string|max:100',
             'card_addresses.*.bg_color' => 'nullable|string|max:100',
 
@@ -198,12 +221,10 @@ class DesignController extends Controller
             'card_buttons.*.bg_color' => 'nullable|string|max:100',
         ]);
 
-        $company = $user->company;
-
-        // Get or create template
+        // ✅ Get or create template
         $template = CompanyCardTemplate::firstOrNew(['company_id' => $company->id]);
 
-        // Handle banner image removal or replacement
+        // ✅ Handle banner removal
         if ($request->boolean('banner_removed')) {
             if ($template->banner_image && Storage::exists($template->banner_image)) {
                 Storage::delete($template->banner_image);
@@ -211,7 +232,7 @@ class DesignController extends Controller
             $validated['banner_image'] = null;
         }
 
-        // Handle banner upload
+        // ✅ Handle new banner upload
         if ($request->hasFile('banner_image')) {
             if ($template->banner_image && Storage::exists($template->banner_image)) {
                 Storage::delete($template->banner_image);
@@ -220,59 +241,41 @@ class DesignController extends Controller
             $validated['banner_image'] = $path;
         }
 
-        // Save template
+        // ✅ Save template
         $template->fill($validated);
         $template->company_id = $company->id;
         $template->save();
 
-        /**
-         * 🔹 Handle Card Social Links (separate function)
-         */
+        // ✅ Handle related models
         if ($request->has('card_social_links')) {
             $this->handleCardSocialLinks($company, $request->card_social_links);
         }
 
-
-        /**
-         * 🔹 Handle Card Phone Numbers (separate function)
-         */
         if ($request->has('card_phone_numbers')) {
             $this->handleCardPhoneNumbers($company, $request->card_phone_numbers);
         }
 
-
-        /**
-         * 🔹 Handle Card Phone Numbers (separate function)
-         */
         if ($request->has('card_emails')) {
             $this->handleCardEmails($company, $request->card_emails);
         }
 
-        /**
-         * 🔹 Handle Card Phone Numbers (separate function)
-         */
         if ($request->has('card_buttons')) {
             $this->handleCardButtons($company, $request->card_buttons);
         }
 
-
-        /**
-         * 🔹 Handle Card Addresses (separate function)
-         */
-        Log::info('Request has card_addresses: ' . ($request->has('card_addresses') ? 'true' : 'false'));
         if ($request->has('card_addresses')) {
             $this->handleCardAddresses($company, $request->card_addresses);
         }
 
-        // Reload updated company data
-        $company = $user->company()->with([
-            'cardTemplate', // load normally
-            'cardSocialLinks' => fn($q) => $q->where('company_id', $user->company->id)->whereNull('card_id'),
-            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $user->company->id)->whereNull('card_id'),
-            'cardEmails' => fn($q) => $q->where('company_id', $user->company->id)->whereNull('card_id'),
-            'cardAddresses' => fn($q) => $q->where('company_id', $user->company->id)->whereNull('card_id'),
-            'cardButtons' => fn($q) => $q->where('company_id', $user->company->id)->whereNull('card_id'),
-        ])->first();
+        // ✅ Reload updated company data
+        $company = $company->load([
+            'cardTemplate',
+            'cardSocialLinks' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardEmails' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardAddresses' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardButtons' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+        ]);
 
         return response()->json([
             'success' => true,
@@ -301,6 +304,7 @@ class DesignController extends Controller
             'first_name' => 'nullable|string|max:100',
             'last_name' => 'nullable|string|max:100',
             'position' => 'nullable|string|max:100',
+            'degree' => 'nullable|string|max:100',
             'department' => 'nullable|string|max:100',
 
             // Social Media Links
@@ -314,6 +318,7 @@ class DesignController extends Controller
             'card_phone_numbers.*.id' => 'nullable|integer',
             'card_phone_numbers.*.phone_number' => 'required_with:card_phone_numbers|string|max:20',
             'card_phone_numbers.*.is_hidden' => 'nullable|boolean',
+            'card_phone_numbers.*.type' => 'nullable|string|max:10',
             'card_phone_numbers.*.text_color' => 'nullable|string|max:100',
             'card_phone_numbers.*.bg_color' => 'nullable|string|max:100',
 
@@ -322,6 +327,7 @@ class DesignController extends Controller
             'card_emails.*.id' => 'nullable|integer',
             'card_emails.*.email' => 'required_with:card_emails|email|max:255',
             'card_emails.*.is_hidden' => 'nullable|boolean',
+            'card_emails.*.type' => 'nullable|string|max:10',
             'card_emails.*.text_color' => 'nullable|string|max:100',
             'card_emails.*.bg_color' => 'nullable|string|max:100',
 
@@ -330,6 +336,7 @@ class DesignController extends Controller
             'card_addresses.*.id' => 'nullable|integer',
             'card_addresses.*.address' => 'required_with:card_addresses|string|max:500',
             'card_addresses.*.is_hidden' => 'nullable|boolean',
+            'card_addresses.*.type' => 'nullable|string|max:10',
             'card_addresses.*.text_color' => 'nullable|string|max:100',
             'card_addresses.*.bg_color' => 'nullable|string|max:100',
 
@@ -444,144 +451,150 @@ class DesignController extends Controller
         ]);
     }
 
-public function bulkCardUpdate(Request $request)
-{
-    $user = Auth::user();
+    public function bulkCardUpdate(Request $request)
+    {
+        $user = Auth::user();
 
-    if (!$user->isCompany() || !$user->company) {
-        return response()->json([
-            'success' => false,
-            'message' => 'You must be a company to update cards.',
-        ], 403);
-    }
-
-    $company = $user->company;
-    $rows = $request->input('cards'); // array of CSV-transformed rows
-    if (!is_array($rows) || empty($rows)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'No card data provided.',
-        ], 400);
-    }
-
-    $missingCodes = [];
-    $updatedCards = [];
-
-    foreach ($rows as $index => $row) {
-        $cardCode = $row['card_code'] ?? null;
-        if (!$cardCode) continue;
-
-        // Check if card exists for this company
-        $card = $company->cards()->where('code', $cardCode)->first();
-        if (!$card) {
-            $missingCodes[] = $cardCode;
-            continue;
+        if (!$user->isCompany() || !$user->company) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You must be a company to update cards.',
+            ], 403);
         }
 
-        // Normalize data
-        $dataToUpdate = [];
-        $fillableFields = ['salutation', 'title', 'first_name', 'last_name', 'position', 'department'];
-        foreach ($fillableFields as $field) {
-            if (!empty($row[$field])) {
-                $dataToUpdate[$field] = $row[$field];
+        $company = $user->company;
+        $rows = $request->input('cards'); // array of CSV-transformed rows
+        if (!is_array($rows) || empty($rows)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No card data provided.',
+            ], 400);
+        }
+
+        $missingCodes = [];
+        $updatedCards = [];
+
+        foreach ($rows as $index => $row) {
+            $cardCode = $row['card_code'] ?? null;
+            if (!$cardCode)
+                continue;
+
+            // Check if card exists for this company
+            $card = $company->cards()->where('code', $cardCode)->first();
+            if (!$card) {
+                $missingCodes[] = $cardCode;
+                continue;
             }
-        }
 
-        // ✅ Handle profile image base64 upload
-        if (!empty($row['profile_image_base64'])) {
-            try {
-                $base64 = $row['profile_image_base64'];
-                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
-                    $data = substr($base64, strpos($base64, ',') + 1);
-                    $type = strtolower($type[1]); // jpg, png, etc.
-
-                    $data = base64_decode($data);
-                    if ($data === false) {
-                        Log::warning("⚠️ Failed to decode base64 for card {$cardCode}");
-                    } else {
-                        // Delete old image if exists
-                        if ($card->profile_image && Storage::exists($card->profile_image)) {
-                            Storage::delete($card->profile_image);
-                        }
-
-                        $filename = "card_profiles/{$cardCode}_" . time() . ".{$type}";
-                        Storage::disk('public')->put($filename, $data);
-                        $dataToUpdate['profile_image'] = $filename;
-
-                        Log::info("✅ Saved profile image for card {$cardCode} at {$filename}");
-                    }
+            // Normalize data
+            $dataToUpdate = [];
+            $fillableFields = ['salutation', 'title', 'first_name', 'last_name', 'position', 'department'];
+            foreach ($fillableFields as $field) {
+                if (!empty($row[$field])) {
+                    $dataToUpdate[$field] = $row[$field];
                 }
-            } catch (\Exception $e) {
-                Log::error("❌ Error saving profile image for card {$cardCode}: {$e->getMessage()}");
             }
+
+            // ✅ Handle profile image base64 upload
+            if (!empty($row['profile_image_base64'])) {
+                try {
+                    $base64 = $row['profile_image_base64'];
+                    if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
+                        $data = substr($base64, strpos($base64, ',') + 1);
+                        $type = strtolower($type[1]); // jpg, png, etc.
+
+                        $data = base64_decode($data);
+                        if ($data === false) {
+                            Log::warning("⚠️ Failed to decode base64 for card {$cardCode}");
+                        } else {
+                            // Delete old image if exists
+                            if ($card->profile_image && Storage::exists($card->profile_image)) {
+                                Storage::delete($card->profile_image);
+                            }
+
+                            $filename = "card_profiles/{$cardCode}_" . time() . ".{$type}";
+                            Storage::disk('public')->put($filename, $data);
+                            $dataToUpdate['profile_image'] = $filename;
+
+                            Log::info("✅ Saved profile image for card {$cardCode} at {$filename}");
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error("❌ Error saving profile image for card {$cardCode}: {$e->getMessage()}");
+                }
+            }
+
+            $card->fill($dataToUpdate);
+            $card->save();
+
+            // Normalize emails
+            $emails = [];
+            for ($i = 1; $i <= 4; $i++) {
+                if (!empty($row["card_email_$i"])) {
+                    $emails[] = ['email' => $row["card_email_$i"]];
+                }
+            }
+            if (!empty($emails))
+                $this->handleCardEmails($company, $emails, $card->id);
+
+            // Normalize phones
+            $phones = [];
+            for ($i = 1; $i <= 4; $i++) {
+                if (!empty($row["card_phone_$i"])) {
+                    $phones[] = ['phone_number' => $row["card_phone_$i"]];
+                }
+            }
+            if (!empty($phones))
+                $this->handleCardPhoneNumbers($company, $phones, $card->id);
+
+            // Normalize addresses
+            $addresses = [];
+            for ($i = 1; $i <= 4; $i++) {
+                if (!empty($row["card_address_$i"])) {
+                    $addresses[] = ['address' => $row["card_address_$i"]];
+                }
+            }
+            if (!empty($addresses))
+                $this->handleCardAddresses($company, $addresses, $card->id);
+
+            // Normalize buttons
+            $buttons = [];
+            for ($i = 1; $i <= 4; $i++) {
+                if (!empty($row["card_button_text_$i"]) && !empty($row["card_button_link_$i"])) {
+                    $buttons[] = [
+                        'button_text' => $row["card_button_text_$i"],
+                        'button_link' => $row["card_button_link_$i"]
+                    ];
+                }
+            }
+            if (!empty($buttons))
+                $this->handleCardButtons($company, $buttons, $card->id);
+
+            // Normalize social links
+            $socials = [];
+            for ($i = 1; $i <= 5; $i++) {
+                if (!empty($row["social_link_$i"])) {
+                    $socials[] = ['url' => $row["social_link_$i"]];
+                }
+            }
+            if (!empty($socials))
+                $this->handleCardSocialLinks($company, $socials, $card->id);
+
+            $updatedCards[] = $cardCode;
         }
 
-        $card->fill($dataToUpdate);
-        $card->save();
-
-        // Normalize emails
-        $emails = [];
-        for ($i = 1; $i <= 4; $i++) {
-            if (!empty($row["card_email_$i"])) {
-                $emails[] = ['email' => $row["card_email_$i"]];
-            }
+        $message = "Updated " . count($updatedCards) . " card(s) successfully.";
+        if (!empty($missingCodes)) {
+            $message .= " The following codes were not found or do not belong to your company: " . implode(", ", $missingCodes);
         }
-        if (!empty($emails)) $this->handleCardEmails($company, $emails, $card->id);
 
-        // Normalize phones
-        $phones = [];
-        for ($i = 1; $i <= 4; $i++) {
-            if (!empty($row["card_phone_$i"])) {
-                $phones[] = ['phone_number' => $row["card_phone_$i"]];
-            }
-        }
-        if (!empty($phones)) $this->handleCardPhoneNumbers($company, $phones, $card->id);
-
-        // Normalize addresses
-        $addresses = [];
-        for ($i = 1; $i <= 4; $i++) {
-            if (!empty($row["card_address_$i"])) {
-                $addresses[] = ['address' => $row["card_address_$i"]];
-            }
-        }
-        if (!empty($addresses)) $this->handleCardAddresses($company, $addresses, $card->id);
-
-        // Normalize buttons
-        $buttons = [];
-        for ($i = 1; $i <= 4; $i++) {
-            if (!empty($row["card_button_text_$i"]) && !empty($row["card_button_link_$i"])) {
-                $buttons[] = [
-                    'button_text' => $row["card_button_text_$i"],
-                    'button_link' => $row["card_button_link_$i"]
-                ];
-            }
-        }
-        if (!empty($buttons)) $this->handleCardButtons($company, $buttons, $card->id);
-
-        // Normalize social links
-        $socials = [];
-        for ($i = 1; $i <= 5; $i++) {
-            if (!empty($row["social_link_$i"])) {
-                $socials[] = ['url' => $row["social_link_$i"]];
-            }
-        }
-        if (!empty($socials)) $this->handleCardSocialLinks($company, $socials, $card->id);
-
-        $updatedCards[] = $cardCode;
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'updated_codes' => $updatedCards,
+            'missing_codes' => $missingCodes,
+        ]);
     }
-
-    $message = "Updated " . count($updatedCards) . " card(s) successfully.";
-    if (!empty($missingCodes)) {
-        $message .= " The following codes were not found or do not belong to your company: " . implode(", ", $missingCodes);
-    }
-
-    return response()->json([
-        'success' => true,
-        'message' => $message,
-        'updated_codes' => $updatedCards,
-        'missing_codes' => $missingCodes,
-    ]);
-}
 
 
 
@@ -633,6 +646,8 @@ public function bulkCardUpdate(Request $request)
     {
         $incomingNumbers = collect($incomingNumbers);
 
+
+
         $existingNumbers = $company->cardPhoneNumbers()
             ->where('company_id', $company->id)
             ->when($cardId !== null, fn($q) => $q->where('card_id', $cardId), fn($q) => $q->whereNull('card_id'))
@@ -645,6 +660,7 @@ public function bulkCardUpdate(Request $request)
                 if ($existingNumber) {
                     $existingNumber->update([
                         'phone_number' => $numberData['phone_number'] ?? '',
+                        'type' => $numberData['type'] ?? "Work",
                         'is_hidden' => $numberData['is_hidden'] ?? false,
                         'text_color' => $numberData['text_color'] ?? null,
                         'bg_color' => $numberData['bg_color'] ?? null,
@@ -653,6 +669,7 @@ public function bulkCardUpdate(Request $request)
             } else {
                 $company->cardPhoneNumbers()->create([
                     'phone_number' => $numberData['phone_number'] ?? '',
+                    'type' => $numberData['type'] ?? "Work",
                     'is_hidden' => $numberData['is_hidden'] ?? false,
                     'text_color' => $numberData['text_color'] ?? null,
                     'bg_color' => $numberData['bg_color'] ?? null,
@@ -660,6 +677,7 @@ public function bulkCardUpdate(Request $request)
                     'card_id' => $cardId,
                 ]);
             }
+            Log::info($numberData['type']);
         }
 
         // --- DELETE ---
@@ -685,6 +703,7 @@ public function bulkCardUpdate(Request $request)
                 if ($existingEmail) {
                     $existingEmail->update([
                         'email' => $emailData['email'] ?? '',
+                        'type' => $emailData['type'] ?? "Work",
                         'is_hidden' => $emailData['is_hidden'] ?? false,
                         'text_color' => $emailData['text_color'] ?? null,
                         'bg_color' => $emailData['bg_color'] ?? null,
@@ -693,6 +712,7 @@ public function bulkCardUpdate(Request $request)
             } else {
                 $company->cardEmails()->create([
                     'email' => $emailData['email'] ?? '',
+                    'type' => $emailData['type'] ?? "Work",
                     'is_hidden' => $emailData['is_hidden'] ?? false,
                     'text_color' => $emailData['text_color'] ?? null,
                     'bg_color' => $emailData['bg_color'] ?? null,
@@ -724,6 +744,7 @@ public function bulkCardUpdate(Request $request)
                 if ($existingAddress) {
                     $existingAddress->update([
                         'address' => $addressData['address'] ?? '',
+                        'type' => $addressData['type'] ?? "Work",
                         'is_hidden' => $addressData['is_hidden'] ?? false,
                         'text_color' => $addressData['text_color'] ?? null,
                         'bg_color' => $addressData['bg_color'] ?? null,
@@ -732,6 +753,7 @@ public function bulkCardUpdate(Request $request)
             } else {
                 $company->cardAddresses()->create([
                     'address' => $addressData['address'] ?? '',
+                    'type' => $addressData['type'] ?? "Work",
                     'is_hidden' => $addressData['is_hidden'] ?? false,
                     'text_color' => $addressData['text_color'] ?? null,
                     'bg_color' => $addressData['bg_color'] ?? null,

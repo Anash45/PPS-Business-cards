@@ -19,7 +19,7 @@ class Company extends Model
         'city',
         'country',
         'vat_id',
-        'user_id', // owner user (role = company)
+        'user_id',
     ];
 
     protected static function boot()
@@ -37,6 +37,12 @@ class Company extends Model
     public function owner()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /** 🔹 Company team members */
+    public function editors()
+    {
+        return $this->hasMany(User::class, 'company_id');
     }
 
     /** 🔹 Company team members */

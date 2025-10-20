@@ -55,6 +55,18 @@ export default function CardPreview({ isReal = false }) {
                                 ? `${cardFormData?.salutation} ${cardFormData?.title} ${cardFormData?.first_name} ${cardFormData?.last_name}`
                                 : "Mr. John Doe"}
                         </h2>
+                        {cardFormData.degree ? (
+                            <p
+                                className="text-sm italic leading-tight font-bold"
+                                style={{
+                                    color:
+                                        cardFormData?.name_text_color ||
+                                        "#000000",
+                                }}
+                            >
+                                {cardFormData.degree}
+                            </p>
+                        ) : null}
                         {cardFormData.position ||
                         cardFormData.department ||
                         cardFormData.company_name ? (

@@ -12,6 +12,7 @@ class CardPhoneNumber extends Model
     protected $fillable = [
         'company_id',
         'card_id',
+        'type',
         'phone_number',
         'text_color',
         'bg_color',

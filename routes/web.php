@@ -34,7 +34,7 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::post('/company/cards/{card}/update', [DesignController::class, 'cardUpdate'])
         ->name('card.update');
 
-        
+
 
     Route::get('/csv-import', [CsvController::class, 'index'])
         ->name('csv.index');
@@ -42,11 +42,18 @@ Route::middleware(['auth', 'company'])->group(function () {
         ->name('csv.import');
 
 });
+
+
+Route::middleware(['auth', 'company_or_editor'])->group(function () {
+    Route::get('/design', [DesignController::class, 'index'])
+        ->name('design.index');
+    Route::post('/design/createOrUpdate', [DesignController::class, 'createOrUpdate'])
+        ->name('design.createOrUpdate');
+});
 Route::get('/card/{code}', [DesignController::class, 'cardShow'])
     ->name('card.show');
 
 Route::middleware(['auth', 'admin'])->group(function () {
-    Route::resource('users', UserController::class);
     Route::post('/users/{user}/impersonate', [UserController::class, 'impersonate'])->name('users.impersonate');
 
     Route::get('/cards/groups/{group}/download', [CardsController::class, 'downloadGroup'])
@@ -63,6 +70,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
 });
 
 
+Route::middleware(['auth', 'admin_or_company'])->group(function () {
+    Route::resource('users', UserController::class);
+});
+
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -74,7 +86,6 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__ . '/auth.php';

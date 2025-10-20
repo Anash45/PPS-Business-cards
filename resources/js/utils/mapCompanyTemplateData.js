@@ -16,6 +16,7 @@ export function mapCompanyTemplateData(
     return {
         name_text_color: template?.name_text_color ?? "#000000",
         company_name: template?.company_name ?? selectedCompany?.name ?? "",
+        contact_btn_text: template?.contact_btn_text ?? "Save contact details",
         company_text_color: template?.company_text_color ?? "#000000",
         card_bg_color: template?.card_bg_color ?? "#ffffff",
         btn_bg_color: template?.btn_bg_color ?? "#87B88C",
@@ -28,10 +29,12 @@ export function mapCompanyTemplateData(
         // Conditionally add selectedCard fields only if it exists
         ...(selectedCard
             ? {
+                  code: selectedCard.code ?? "",
                   salutation: selectedCard.salutation ?? "",
                   title: selectedCard.title ?? "",
                   first_name: selectedCard.first_name ?? "",
                   last_name: selectedCard.last_name ?? "",
+                  degree: selectedCard.degree ?? "",
                   position: selectedCard.position ?? "",
                   department: selectedCard.department ?? "",
                   profile_image_url: selectedCard?.profile_image
@@ -58,6 +61,7 @@ export function mapCompanyTemplateData(
                   id: phone.id || null,
                   phone_number: phone.phone_number || "",
                   is_hidden: phone.is_hidden ?? false,
+                  type: phone.type ?? "Work",
                   text_color:
                       phone.text_color || template?.btn_text_color || "#ffffff",
                   bg_color:
@@ -73,6 +77,7 @@ export function mapCompanyTemplateData(
                   id: email.id || null,
                   email: email.email || "",
                   is_hidden: email.is_hidden ?? false,
+                  type: email.type ?? "Work",
                   text_color:
                       email.text_color || template?.btn_text_color || "#ffffff",
                   bg_color:
@@ -88,6 +93,7 @@ export function mapCompanyTemplateData(
                   id: addr.id || null,
                   address: addr.address || "",
                   is_hidden: addr.is_hidden ?? false,
+                  type: addr.type ?? "Work",
                   text_color:
                       addr.text_color || template?.btn_text_color || "#ffffff",
                   bg_color:
@@ -104,9 +110,6 @@ export function mapCompanyTemplateData(
                   button_text: btn.button_text || "",
                   button_link: btn.button_link || "",
                   icon: btn.icon || "",
-                  text_color:
-                      btn.text_color || template?.btn_text_color || "#000000",
-                  bg_color: btn.bg_color || template?.btn_bg_color || "#FFFFFF",
                   company_id: btn.company_id || null,
                   card_id: btn.card_id || null,
               }))

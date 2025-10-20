@@ -17,6 +17,7 @@ class Card extends Model
         'last_name',
         'profile_image',
         'position',
+        'degree',
         'department',
         'code',
         'company_id',

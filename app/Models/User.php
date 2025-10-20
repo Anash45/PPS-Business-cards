@@ -47,6 +47,11 @@ class User extends Authenticatable
         return $this->role === 'company';
     }
 
+    public function isEditor(): bool
+    {
+        return $this->role === 'editor';
+    }
+
     public function isTeam(): bool
     {
         return $this->role === 'team';

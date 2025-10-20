@@ -8,32 +8,37 @@ import Divider from "@/Components/Divider";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 
-export default function ManageUserModal({ onClose, user = null, title = "Manage User" }) {
+export default function ManageUserModal({
+    onClose,
+    user = null,
+    authUser,
+    companies = {},
+    title = "Manage User",
+}) {
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
-    const { data, setData, clearErrors: inertiaClearErrors } = useForm({
+    const {
+        data,
+        setData,
+        clearErrors: inertiaClearErrors,
+    } = useForm({
         company_name: user?.company?.name || "",
+        company_id: user?.company?.id || null,
         name: user?.name || "",
         email: user?.email || "",
         password: "",
         password_confirmation: "",
-        role: user?.role || "company",
+        role: user?.role || "team",
     });
 
-    // ✅ Field change handler — also clears error for that field
     const handleChange = (field, value) => {
         setData(field, value);
-
-        if (errors[field]) {
-            setErrors((prev) => ({ ...prev, [field]: null }));
-        }
-
+        if (errors[field]) setErrors((prev) => ({ ...prev, [field]: null }));
         inertiaClearErrors(field);
     };
 
-    // ✅ Submit handler
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -41,19 +46,15 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
 
         try {
             let res;
-            if (user) {
+            if (user)
                 res = await axios.put(route("users.update", user.id), data);
-            } else {
-                res = await axios.post(route("users.store"), data);
-            }
+            else res = await axios.post(route("users.store"), data);
 
             if (res.data.success) {
                 toast.success(res.data.message || "User saved successfully!");
                 handleClose();
                 router.visit(route("users.index"), { preserveScroll: true });
-            } else {
-                toast.error(res.data.message || "Something went wrong.");
-            }
+            } else toast.error(res.data.message || "Something went wrong.");
         } catch (err) {
             if (err.response?.status === 422) {
                 setErrors(err.response.data.errors || {});
@@ -66,7 +67,6 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
         }
     };
 
-    // ✅ Modal animation
     useEffect(() => {
         requestAnimationFrame(() => setShow(true));
     }, []);
@@ -76,6 +76,28 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
         setTimeout(onClose, 200);
     };
 
+    // ✅ Determine role-based permissions
+    const isAdmin = authUser?.role === "admin";
+    const isCompany = authUser?.role === "company";
+
+    // ✅ Role options (based on who is editing)
+    const roleOptions = isAdmin
+        ? [
+              { value: "admin", label: "Admin" },
+              // Only allow creating company if this is a new user (not editing)
+              ...(!user ? [{ value: "company", label: "Company Owner" }] : []),
+              { value: "editor", label: "Editor" },
+              //   { value: "team", label: "Team Member" },
+          ]
+        : isCompany
+        ? [
+              { value: "editor", label: "Editor" },
+              //   { value: "team", label: "Team Member" },
+          ]
+        : [];
+
+    console.log("User Modal:", authUser?.role);
+
     return (
         <div
             className={`transform rounded-xl bg-white py-5 px-6 shadow-xl transition-all duration-200 w-[650px] max-w-full 
@@ -83,7 +105,9 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
         >
             <div className="space-y-3">
                 <div className="space-y-1">
-                    <h2 className="text-lg text-[#201A20] font-semibold">{title}</h2>
+                    <h2 className="text-lg text-[#201A20] font-semibold">
+                        {title}
+                    </h2>
                     {!user && (
                         <p className="text-xs text-blue-800 bg-blue-100 rounded-full py-1 px-3 w-fit">
                             Creating new user
@@ -95,22 +119,56 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid sm:grid-cols-2 gap-4">
-                        {/* Company Name */}
-                        {data.role === "company" && (
+                        {/* ✅ Only Admin can edit company_name */}
+                        {isAdmin && data.role === "company" && (
                             <div className="space-y-1 sm:col-span-2">
-                                <InputLabel htmlFor="company_name" value="Company Name" />
+                                <InputLabel
+                                    htmlFor="company_name"
+                                    value="Company Name"
+                                />
                                 <TextInput
                                     id="company_name"
                                     name="company_name"
                                     value={data.company_name}
                                     onChange={(e) =>
-                                        handleChange("company_name", e.target.value)
+                                        handleChange(
+                                            "company_name",
+                                            e.target.value
+                                        )
                                     }
                                     className="w-full block"
                                 />
                                 <InputError message={errors.company_name} />
                             </div>
                         )}
+
+                        {/* ✅ Only Admin can assign company_id (for editors/team) */}
+                        {isAdmin &&
+                            (data.role === "editor" ||
+                                data.role === "team") && (
+                                <div className="space-y-1 sm:col-span-2">
+                                    <InputLabel
+                                        htmlFor="company_id"
+                                        value="Company"
+                                    />
+                                    <SelectInput
+                                        id="company_id"
+                                        name="company_id"
+                                        value={data.company_id}
+                                        onChange={(e) =>
+                                            handleChange(
+                                                "company_id",
+                                                e.target.value
+                                            )
+                                        }
+                                        options={companies.map((company) => ({
+                                            value: company.id,
+                                            label: company.name,
+                                        }))}
+                                    />
+                                    <InputError message={errors.company_id} />
+                                </div>
+                            )}
 
                         {/* Name */}
                         <div className="space-y-1">
@@ -119,7 +177,9 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
                                 id="name"
                                 name="name"
                                 value={data.name}
-                                onChange={(e) => handleChange("name", e.target.value)}
+                                onChange={(e) =>
+                                    handleChange("name", e.target.value)
+                                }
                                 className="w-full block"
                             />
                             <InputError message={errors.name} />
@@ -133,7 +193,9 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
                                 name="email"
                                 type="text"
                                 value={data.email}
-                                onChange={(e) => handleChange("email", e.target.value)}
+                                onChange={(e) =>
+                                    handleChange("email", e.target.value)
+                                }
                                 className="w-full block"
                             />
                             <InputError message={errors.email} />
@@ -142,11 +204,11 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
                         {/* Role */}
                         <div className="space-y-1">
                             <InputLabel htmlFor="role" value="Role" />
-                            {user ? (
+                            {user && user.role === "company" ? (
                                 <TextInput
                                     id="role"
                                     readOnly
-                                    defaultValue={data.role}
+                                    value={data.role}
                                     className="block w-full capitalize bg-gray-100"
                                 />
                             ) : (
@@ -154,16 +216,10 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
                                     id="role"
                                     name="role"
                                     value={data.role}
-                                    onChange={(e) => {
-                                        handleChange("role", e.target.value);
-                                        if (e.target.value !== "company") {
-                                            handleChange("company_name", "");
-                                        }
-                                    }}
-                                    options={[
-                                        { value: "admin", label: "Admin" },
-                                        { value: "company", label: "Company" },
-                                    ]}
+                                    onChange={(e) =>
+                                        handleChange("role", e.target.value)
+                                    }
+                                    options={roleOptions}
                                 />
                             )}
                             <InputError message={errors.role} />
@@ -173,7 +229,9 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
                         <div className="space-y-1">
                             <InputLabel
                                 htmlFor="password"
-                                value={`Password${user ? " (leave blank to keep current)" : ""}`}
+                                value={`Password${
+                                    user ? " (leave blank to keep current)" : ""
+                                }`}
                             />
                             <TextInput
                                 id="password"
@@ -200,19 +258,29 @@ export default function ManageUserModal({ onClose, user = null, title = "Manage 
                                 type="password"
                                 value={data.password_confirmation}
                                 onChange={(e) =>
-                                    handleChange("password_confirmation", e.target.value)
+                                    handleChange(
+                                        "password_confirmation",
+                                        e.target.value
+                                    )
                                 }
                                 className="w-full block"
                             />
                         </div>
                     </div>
 
-                    {/* Buttons */}
                     <div className="flex justify-end gap-3 pt-3">
-                        <Button variant="light" type="button" onClick={handleClose}>
+                        <Button
+                            variant="light"
+                            type="button"
+                            onClick={handleClose}
+                        >
                             Cancel
                         </Button>
-                        <Button variant="primary" type="submit" disabled={loading}>
+                        <Button
+                            variant="primary"
+                            type="submit"
+                            disabled={loading}
+                        >
                             {loading
                                 ? "Saving..."
                                 : user

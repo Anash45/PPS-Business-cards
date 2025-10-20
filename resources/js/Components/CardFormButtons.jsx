@@ -51,8 +51,6 @@ export default function CardFormButtons() {
             button_text: "",
             button_link: "",
             icon: "",
-            text_color: cardFormData.btn_text_color || "#000000",
-            bg_color: cardFormData.btn_bg_color || "#FFFFFF",
         };
 
         const newList = [...(cardFormData.card_buttons || []), newButton];
@@ -207,40 +205,6 @@ export default function CardFormButtons() {
                                         <Trash2 className="h-5 w-5" />
                                     </Button>
                                 )}
-                            </div>
-
-                            {/* Second Row: Color Pickers */}
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                <ColorInput
-                                    label="Text Color"
-                                    value={
-                                        item.text_color ||
-                                        cardFormData.btn_text_color ||
-                                        "#000000"
-                                    }
-                                    onChange={(e) =>
-                                        updateButtonField(
-                                            index,
-                                            "text_color",
-                                            e.target.value
-                                        )
-                                    }
-                                />
-                                <ColorInput
-                                    label="Background Color"
-                                    value={
-                                        item.bg_color ||
-                                        cardFormData.btn_bg_color ||
-                                        "#FFFFFF"
-                                    }
-                                    onChange={(e) =>
-                                        updateButtonField(
-                                            index,
-                                            "bg_color",
-                                            e.target.value
-                                        )
-                                    }
-                                />
                             </div>
                         </div>
                     ))}

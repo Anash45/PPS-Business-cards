@@ -11,6 +11,7 @@ import Button from "./Button";
 import ColorInput from "./ColorInput";
 import { toast } from "react-hot-toast";
 import InputLabel from "./InputLabel";
+import SelectInput from "./SelectInput";
 
 export default function CardFormPhoneNumbers() {
     const { cardFormData, setCardFormData, isTemplate } =
@@ -29,6 +30,7 @@ export default function CardFormPhoneNumbers() {
         }
 
         const newPhone = {
+            type: "Work",
             phone_number: "",
             is_hidden: false,
             text_color: cardFormData.btn_text_color || "#000000",
@@ -70,6 +72,7 @@ export default function CardFormPhoneNumbers() {
             card_phone_numbers: updated,
         }));
     };
+    // console.log("Phone: ", cardFormData);
 
     return (
         <div className="p-3 rounded-lg border border-[#EAECF0] space-y-3">
@@ -91,9 +94,32 @@ export default function CardFormPhoneNumbers() {
                     {/* First Row: Input + Checkbox + Trash */}
                     <div className="flex md:flex-row flex-col gap-3 md:items-center">
                         <div className="gap-4 grow flex items-center">
-                            <div className="w-9 shrink-0">
-                                <Phone className="h-5 w-5 mx-auto text-black" />
+                            <span className="shrink-0 text-xl w-9">📞</span>
+
+                            {/* ✅ Type Selector */}
+                            <div className="w-[125px]">
+                                <SelectInput
+                                    value={item.type || "Work"}
+                                    onChange={(e) => {
+                                        const newType = e.target
+                                            ? e.target.value
+                                            : e; // handle both normal and custom selects
+                                        updatePhoneField(
+                                            index,
+                                            "type",
+                                            newType
+                                        );
+                                    }}
+                                    className="w-full block"
+                                    placeholder="Type"
+                                    options={[
+                                        { value: "Work", label: "Work" },
+                                        { value: "Home", label: "Home" },
+                                    ]}
+                                />
                             </div>
+
+                            {/* ✅ Phone number input */}
                             <TextInput
                                 className="w-full"
                                 placeholder="Enter phone number"

@@ -6,6 +6,7 @@ import Button from "./Button";
 import ColorInput from "./ColorInput";
 import { toast } from "react-hot-toast";
 import InputLabel from "./InputLabel";
+import SelectInput from "./SelectInput";
 
 export default function CardFormEmails() {
     const { cardFormData, setCardFormData, isTemplate } =
@@ -24,6 +25,7 @@ export default function CardFormEmails() {
         }
 
         const newEmail = {
+            type: "Work",
             email: "",
             is_hidden: false,
             text_color: cardFormData.btn_text_color || "#000000",
@@ -85,8 +87,29 @@ export default function CardFormEmails() {
                     {/* First Row: Input + Checkbox + Trash */}
                     <div className="flex md:flex-row flex-col gap-3 md:items-center">
                         <div className="gap-4 grow flex items-center">
-                            <div className="w-9 shrink-0">
-                                <Mail className="h-5 w-5 mx-auto text-black" />
+                            <span className="shrink-0 text-xl">✉️</span>
+
+                            {/* ✅ Type Selector */}
+                            <div className="w-[125px]">
+                                <SelectInput
+                                    value={item.type || "Work"}
+                                    onChange={(e) => {
+                                        const newType = e.target
+                                            ? e.target.value
+                                            : e; // handle both normal and custom selects
+                                        updateEmailField(
+                                            index,
+                                            "type",
+                                            newType
+                                        );
+                                    }}
+                                    className="w-full block"
+                                    placeholder="Type"
+                                    options={[
+                                        { value: "Work", label: "Work" },
+                                        { value: "Home", label: "Home" },
+                                    ]}
+                                />
                             </div>
                             <TextInput
                                 className="w-full"

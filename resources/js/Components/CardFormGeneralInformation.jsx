@@ -156,6 +156,20 @@ export default function CardFormGeneralInformation() {
                                 className="w-full"
                             />
                         </div>
+                        <div className="space-y-1">
+                            <InputLabel
+                                className="text-black text-sm font-medium"
+                                value={"Degree"}
+                                isDemo={isTemplate}
+                            />
+                            <TextInput
+                                id="degree"
+                                value={cardFormData.degree}
+                                onChange={(e) => handleCardChange(e)}
+                                name="degree"
+                                className="w-full"
+                            />
+                        </div>
                     </div>
                     {isTemplate && (
                         <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
@@ -198,22 +212,39 @@ export default function CardFormGeneralInformation() {
                                     className="w-full"
                                 />
                             </div>
+
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Contact Button Text"}
+                                    htmlFor="contact_btn_text"
+                                />
+                                <TextInput
+                                    id="contact_btn_text"
+                                    value={cardFormData.contact_btn_text}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="contact_btn_text"
+                                    className="w-full"
+                                />
+                            </div>
                         </div>
                     )}
                     <div className="p-3 rounded-lg grid sm:grid-cols-2 gap-4 border border-[#EAECF0]">
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Company name"}
-                            />
-                            <TextInput
-                                id="company_name"
-                                value={cardFormData.company_name}
-                                onChange={(e) => handleCardChange(e)}
-                                name="company_name"
-                                className="w-full"
-                            />
-                        </div>
+                        {isTemplate && (
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Company name"}
+                                />
+                                <TextInput
+                                    id="company_name"
+                                    value={cardFormData.company_name}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="company_name"
+                                    className="w-full"
+                                />
+                            </div>
+                        )}
                         <div className="space-y-1">
                             <InputLabel
                                 className="text-black text-sm font-medium"
@@ -242,21 +273,6 @@ export default function CardFormGeneralInformation() {
                                 className="w-full"
                             />
                         </div>
-                        {isTemplate && (
-                            <div className="space-y-1">
-                                <InputLabel
-                                    className="text-black text-sm font-medium"
-                                    value={"Company Color"}
-                                />
-                                <ColorInput
-                                    id="company_text_color"
-                                    value={cardFormData.company_text_color}
-                                    onChange={(e) => handleCardChange(e)}
-                                    name="company_text_color"
-                                    className="w-full"
-                                />
-                            </div>
-                        )}
                     </div>
 
                     <CardFormPhoneNumbers />
