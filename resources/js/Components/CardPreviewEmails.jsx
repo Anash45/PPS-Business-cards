@@ -6,7 +6,7 @@ export default function CardPreviewEmails({ cardEmails }) {
     return cardEmails?.length > 0 ? (
         <div className="grid gap-2 grid-cols-1">
             {cardEmails.map((email, index) =>
-                !(email.hidden && isCardReal) ? (
+                !(email.is_hidden && isCardReal) ? (
                     <a
                         target="_blank"
                         href={`mailto:${email.email}`}
