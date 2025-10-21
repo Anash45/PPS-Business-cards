@@ -273,19 +273,21 @@ export default function CardFormGeneralInformation() {
                                 className="w-full"
                             />
                         </div>
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Company text Color"}
-                            />
-                            <ColorInput
-                                id="company_text_color"
-                                value={cardFormData.company_text_color}
-                                onChange={(e) => handleCardChange(e)}
-                                name="company_text_color"
-                                className="w-full"
-                            />
-                        </div>
+                        {isTemplate ? (
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Company text Color"}
+                                />
+                                <ColorInput
+                                    id="company_text_color"
+                                    value={cardFormData.company_text_color}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="company_text_color"
+                                    className="w-full"
+                                />
+                            </div>
+                        ) : null}
                     </div>
 
                     <CardFormPhoneNumbers />

@@ -18,7 +18,7 @@ export default function CardPreviewVCard() {
         })();
     }, []);
 
-    const handleSaveVCard = () => {
+    const handleSaveVCard = async () => {
         if (!cardFormData) return;
 
         const firstName = cardFormData.first_name || "";
@@ -36,9 +36,27 @@ ROLE:${cardFormData.department || ""}
 URL;TYPE=WORK:${linkDomain}/card/${cardFormData?.code ?? "XXXXXXX"}
 `;
 
-        // ✅ Include profile image if available
+        // ✅ Include profile image as base64 if available
         if (cardFormData.profile_image_url) {
-            vcard += `PHOTO;VALUE=URI:${linkDomain}${cardFormData.profile_image_url}\n`;
+            try {
+                const base64Image = await convertImageToBase64(
+                    `${linkDomain}${cardFormData.profile_image_url}`
+                );
+                if (base64Image) {
+                    // Determine image type and format accordingly
+                    const imageType = getImageType(
+                        cardFormData.profile_image_url
+                    );
+                    vcard += `PHOTO;ENCODING=b;TYPE=${imageType}:${base64Image}\n`;
+                }
+            } catch (error) {
+                console.warn(
+                    "Failed to convert image to base64, falling back to URL:",
+                    error
+                );
+                // Fallback to URL if base64 conversion fails
+                vcard += `PHOTO;VALUE=URI:${linkDomain}${cardFormData.profile_image_url}\n`;
+            }
         }
 
         // ✅ Phone numbers (with type + pref)
@@ -97,6 +115,56 @@ URL;TYPE=WORK:${linkDomain}/card/${cardFormData?.code ?? "XXXXXXX"}
         URL.revokeObjectURL(url);
 
         toast.success("vCard downloaded!");
+    };
+
+    // Helper function to convert image to base64
+    const convertImageToBase64 = (imageUrl) => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // Important for cross-origin images
+
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+
+                // Set canvas dimensions to image dimensions
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                // Draw image on canvas
+                ctx.drawImage(img, 0, 0);
+
+                try {
+                    // Convert to base64 - you can change format if needed
+                    const base64 = canvas.toDataURL("image/jpeg").split(",")[1];
+                    resolve(base64);
+                } catch (error) {
+                    reject(error);
+                }
+            };
+
+            img.onerror = reject;
+            img.src = imageUrl;
+
+            // If image is already cached, trigger load manually
+            if (img.complete) {
+                img.onload();
+            }
+        });
+    };
+
+    // Helper function to determine image type from URL
+    const getImageType = (imageUrl) => {
+        const extension = imageUrl.split(".").pop()?.toLowerCase() || "jpeg";
+        const typeMap = {
+            jpg: "JPEG",
+            jpeg: "JPEG",
+            png: "PNG",
+            gif: "GIF",
+            bmp: "BMP",
+            webp: "WEBP",
+        };
+        return typeMap[extension] || "JPEG";
     };
 
     return (

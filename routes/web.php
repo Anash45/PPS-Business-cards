@@ -25,6 +25,19 @@ Route::middleware(['auth', 'company'])->group(function () {
         ->name('design.index');
     Route::post('/design/createOrUpdate', [DesignController::class, 'createOrUpdate'])
         ->name('design.createOrUpdate');
+
+
+    Route::get('/design', [DesignController::class, 'index'])
+        ->name('design.index');
+    Route::post('/design/createOrUpdate', [DesignController::class, 'createOrUpdate'])
+        ->name('design.createOrUpdate');
+
+
+
+});
+
+
+Route::middleware(['auth', 'company_or_editor'])->group(function () {
     Route::get('/company/cards', [CardsController::class, 'companyCards'])
         ->name('company.cards');
     Route::put('/cards/{card}/toggle-status', [CardsController::class, 'toggleStatus']);
@@ -35,21 +48,10 @@ Route::middleware(['auth', 'company'])->group(function () {
     Route::post('/company/cards/{card}/update', [DesignController::class, 'cardUpdate'])
         ->name('card.update');
 
-
-
     Route::get('/csv-import', [CsvController::class, 'index'])
         ->name('csv.index');
     Route::post('/cards/bulk-update', [DesignController::class, 'bulkCardUpdate'])
         ->name('csv.import');
-
-});
-
-
-Route::middleware(['auth', 'company_or_editor'])->group(function () {
-    Route::get('/design', [DesignController::class, 'index'])
-        ->name('design.index');
-    Route::post('/design/createOrUpdate', [DesignController::class, 'createOrUpdate'])
-        ->name('design.createOrUpdate');
 });
 Route::get('/card/{code}', [DesignController::class, 'cardShow'])
     ->name('card.show');

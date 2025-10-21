@@ -236,9 +236,15 @@ class CardsController extends Controller
     {
         $user = Auth::user();
 
-        // Ensure user has a company
-        if (!$user->company) {
-            abort(403, 'You do not belong to any company.');
+        // Determine correct company reference
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+
+        // ✅ Allow both company and editor
+        if (!$user->isCompany() && !$user->isEditor()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only company or editor users can perform this action.',
+            ], 403);
         }
 
         // Get all cards for this company
@@ -247,7 +253,7 @@ class CardsController extends Controller
         // Pass to Inertia
         return Inertia::render('Cards/Company', [
             'cards' => $cards,
-            'isSubscriptionActive' => $user->hasActiveSubscription(),
+            'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
         ]);
     }
 
@@ -255,8 +261,19 @@ class CardsController extends Controller
     {
         $user = Auth::user();
 
-        // Ensure the card belongs to the logged-in user's company
-        if ($card->company_id !== $user->company_id) {
+
+        // ✅ Normalize company id for any user type
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id   // if user is a company
+            : $user->company_id;           // if user belongs to a company
+
+
+        // ✅ Now safe comparison
+        if (
+            !$user->isCompany() && (
+                !$user->isEditor() || (int) $card->company_id !== (int) $companyId
+            )
+        ) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized action.',

@@ -122,16 +122,26 @@ export default function Company() {
                 },
             },
             {
-                title: "Name",
+                title: "User",
                 data: null,
                 render: (data, type, row) => {
-                    const parts = [
+                    const nameParts = [
                         row.salutation,
                         row.title,
                         row.first_name,
                         row.last_name,
                     ].filter(Boolean);
-                    return parts.join(" ");
+                    const fullName = nameParts.join(" ");
+                    return `<div class="flex items-center gap-2">
+                        <img
+                            src="${row.profile_image ? `/storage/${row.profile_image}` : "/assets/images/profile-placeholder.svg" }"
+                            alt="Profile"
+                            class="rounded-full border-2 bg-white border-white w-8 h-8 object-cover shrink-0"
+                        />
+                        <div>
+                            <p class="font-medium text-[#181D27] text-sm">${fullName ? fullName : "Not assigned"}</p>
+                        </div>
+                    </div>`;
                 },
             },
             { title: "Position", data: "position" },
@@ -143,7 +153,7 @@ export default function Company() {
                     const isActive = data === "active";
                     const badgeClass = isActive
                         ? "bg-green-100 text-green-700 border border-green-200"
-                        : "bg-gray-100 text-gray-700 border border-gray-200";
+                        : "bg-red-100 text-red-700 border border-red-200";
 
                     return `<span class="px-2 py-1 text-xs font-medium rounded-full ${badgeClass}">${
                         isActive ? "Active" : "Inactive"

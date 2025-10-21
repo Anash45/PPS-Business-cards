@@ -50,7 +50,6 @@ export default function CardImageUploader({
             "image/jpeg": [],
             "image/jpg": [],
             "image/gif": [],
-            "image/svg+xml": [],
         },
         maxFiles: 1,
         maxSize: maxSizeMB * 1024 * 1024,

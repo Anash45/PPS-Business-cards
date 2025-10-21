@@ -49,8 +49,15 @@ const companyMenuGroups = [
 // 🧩 Regular user menu
 const editorMenuGroups = [
     {
-        groupName: "Design",
-        items: [{ name: "Template", icon: Palette, route: "design.index" }],
+        groupName: "Business Cards",
+        items: [
+            { name: "Cards", icon: IdCardIcon, route: "company.cards" },
+            {
+                name: "Bulk Import",
+                icon: UploadCloud,
+                route: "csv.index",
+            },
+        ],
     },
 ];
 
@@ -94,7 +101,13 @@ const SidebarMenu = () => {
 
     // 👇 Choose menu based on user role
     const menuGroups =
-        user?.role === "admin" ? adminMenuGroups : user?.role == "company" ? companyMenuGroups : user?.role == "editor" ? editorMenuGroups : null;
+        user?.role === "admin"
+            ? adminMenuGroups
+            : user?.role == "company"
+            ? companyMenuGroups
+            : user?.role == "editor"
+            ? editorMenuGroups
+            : null;
 
     return (
         <ul className="flex flex-col gap-3.5 pb-4 overflow-y-auto">

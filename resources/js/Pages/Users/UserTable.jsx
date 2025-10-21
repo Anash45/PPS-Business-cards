@@ -40,24 +40,20 @@ export default function UserTable({ users, plans, companies, authUser }) {
     };
 
     const handleImpersonate = async (userId) => {
-        if (confirm("Are you sure you want to impersonate this user?")) {
-            try {
-                const res = await axios.post(
-                    route("users.impersonate", userId)
-                );
+        try {
+            const res = await axios.post(route("users.impersonate", userId));
 
-                if (res.data.success) {
-                    toast.success(res.data.message);
-                    // Optionally redirect to dashboard as impersonated user
-                    setTimeout(() => {
-                        window.location.href = route("dashboard");
-                    }, 1000);
-                } else {
-                    toast.error(res.data.message || "Failed to impersonate");
-                }
-            } catch (err) {
-                toast.error(err.response?.data?.message || "An error occurred");
+            if (res.data.success) {
+                toast.success(res.data.message);
+                // Optionally redirect to dashboard as impersonated user
+                setTimeout(() => {
+                    window.location.href = route(res.data.route);
+                }, 1000);
+            } else {
+                toast.error(res.data.message || "Failed to impersonate");
             }
+        } catch (err) {
+            toast.error(err.response?.data?.message || "An error occurred");
         }
     };
 
@@ -150,7 +146,8 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                                 user.company.name.slice(1)}
                                         </p>
 
-                                        {authUser.role === "admin" && user.role == "company" ? (
+                                        {authUser.role === "admin" &&
+                                        user.role == "company" ? (
                                             <span
                                                 className={`text-xs font-semibold px-2 py-1 rounded-full 
                                     ${

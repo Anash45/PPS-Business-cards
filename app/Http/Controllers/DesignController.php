@@ -54,125 +54,15 @@ class DesignController extends Controller
     }
 
 
-    public function cardEdit(Card $card)
-    {
-        $user = Auth::user();
-
-        // Ensure user is a company and the card belongs to their company
-        if (!$user->isCompany() || $card->company_id !== $user->company_id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $company = $user->company()->with([
-            'cardTemplate', // load normally
-
-            // Fetch both template-level (card_id null) and selected card items
-            'cardSocialLinks' => fn($q) => $q->where('company_id', $user->company->id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')
-                        ->orWhere('card_id', $card->id);
-                }),
-            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $user->company->id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')
-                        ->orWhere('card_id', $card->id);
-                }),
-            'cardEmails' => fn($q) => $q->where('company_id', $user->company->id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')
-                        ->orWhere('card_id', $card->id);
-                }),
-            'cardAddresses' => fn($q) => $q->where('company_id', $user->company->id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')
-                        ->orWhere('card_id', $card->id);
-                }),
-            'cardButtons' => fn($q) => $q->where('company_id', $user->company->id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')
-                        ->orWhere('card_id', $card->id);
-                }),
-        ])->first();
-
-        if (!$company) {
-            return response()->json(['message' => 'No company associated with this user'], 404);
-        }
-
-        return inertia('Design/Index', [
-            'pageType' => 'card',
-            'company' => $company,
-            'selectedCard' => $card,
-            'isSubscriptionActive' => $user->hasActiveSubscription(),
-        ]);
-    }
-
-    public function cardShow($code, Request $request)
-    {
-        $card = Card::where('code', $code)->firstOrFail();
-
-        $company = $card->company()->with([
-            'cardTemplate',
-            'cardSocialLinks' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
-                }),
-            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
-                }),
-            'cardEmails' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
-                }),
-            'cardAddresses' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
-                }),
-            'cardButtons' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
-                }),
-        ])->first();
-
-        if (!$company) {
-            return response()->json(['message' => 'No company associated with this user'], 404);
-        }
-
-        $ip = $request->ip();
-        $userAgent = $request->header('User-Agent');
-
-        // Check if already viewed by this IP (for unique view)
-        $existingView = CardView::where('card_id', $card->id)
-            ->where('ip_address', $ip)
-            ->first();
-
-        // Log total view
-        CardView::create([
-            'card_id' => $card->id,
-            'ip_address' => $ip,
-            'user_agent' => $userAgent,
-            'user_id' => auth()->id(),
-        ]);
-
-
-        return inertia('Cards/Show', [
-            'pageType' => 'card',
-            'company' => $company,
-            'selectedCard' => $card,
-            'isSubscriptionActive' => $card->company->owner->hasActiveSubscription(),
-        ]);
-    }
-
-
     public function createOrUpdate(Request $request)
     {
         $user = Auth::user();
 
         // ✅ Allow both company and editor
-        if (!$user->isCompany() && !$user->isEditor()) {
+        if (!$user->isCompany()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized: Only company or editor users can perform this action.',
+                'message' => 'Unauthorized: Only company users can perform this action.',
             ], 403);
         }
 
@@ -305,15 +195,154 @@ class DesignController extends Controller
         ]);
     }
 
+
+    public function cardEdit(Card $card)
+    {
+        $user = Auth::user();
+
+
+        // ✅ Normalize company id for any user type
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id   // if user is a company
+            : $user->company_id;           // if user belongs to a company
+
+        Log::info("User company: {$card->company_id} and {$companyId}, {$user->role}");
+
+        // ✅ Now safe comparison
+        if (
+            !$user->isCompany() && (
+                !$user->isEditor() || (int) $card->company_id !== (int) $companyId
+            )
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access to this card.',
+            ], 403);
+        }
+
+        // ✅ Determine correct company reference
+        $companyRef = $user->isCompany() ? $user->companyProfile : $user->company;
+
+        // ✅ Load company with related data
+        $company = $companyRef->with([
+            'cardTemplate', // Load normally
+
+            // Shared eager-load conditions for card-related items
+            'cardSocialLinks' => fn($q) => $q->where('company_id', $companyRef->id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')
+                        ->orWhere('card_id', $card->id);
+                }),
+            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $companyRef->id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')
+                        ->orWhere('card_id', $card->id);
+                }),
+            'cardEmails' => fn($q) => $q->where('company_id', $companyRef->id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')
+                        ->orWhere('card_id', $card->id);
+                }),
+            'cardAddresses' => fn($q) => $q->where('company_id', $companyRef->id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')
+                        ->orWhere('card_id', $card->id);
+                }),
+            'cardButtons' => fn($q) => $q->where('company_id', $companyRef->id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')
+                        ->orWhere('card_id', $card->id);
+                }),
+        ])->first();
+
+        if (!$company) {
+            return response()->json(['message' => 'No company associated with this user'], 404);
+        }
+
+        return inertia('Design/Index', [
+            'pageType' => 'card',
+            'company' => $company,
+            'selectedCard' => $card,
+            'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
+        ]);
+    }
+
+    public function cardShow($code, Request $request)
+    {
+        $card = Card::where('code', $code)->firstOrFail();
+
+        $company = $card->company()->with([
+            'cardTemplate',
+            'cardSocialLinks' => fn($q) => $q->where('company_id', $card->company_id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                }),
+            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $card->company_id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                }),
+            'cardEmails' => fn($q) => $q->where('company_id', $card->company_id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                }),
+            'cardAddresses' => fn($q) => $q->where('company_id', $card->company_id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                }),
+            'cardButtons' => fn($q) => $q->where('company_id', $card->company_id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                }),
+        ])->first();
+
+        if (!$company) {
+            return response()->json(['message' => 'No company associated with this user'], 404);
+        }
+
+        $ip = $request->ip();
+        $userAgent = $request->header('User-Agent');
+
+        // Check if already viewed by this IP (for unique view)
+        $existingView = CardView::where('card_id', $card->id)
+            ->where('ip_address', $ip)
+            ->first();
+
+        // Log total view
+        CardView::create([
+            'card_id' => $card->id,
+            'ip_address' => $ip,
+            'user_agent' => $userAgent,
+            'user_id' => auth()->id(),
+        ]);
+
+
+        return inertia('Cards/Show', [
+            'pageType' => 'card',
+            'company' => $company,
+            'selectedCard' => $card,
+            'isSubscriptionActive' => $card->company->owner->hasActiveSubscription(),
+        ]);
+    }
+
     public function cardUpdate(Request $request, Card $card)
     {
         $user = Auth::user();
 
-        // Ensure the logged-in user has a company
-        if (!$user->isCompany() || !$user->company) {
+        // ✅ Normalize company id for any user type
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id   // if user is a company
+            : $user->company_id;           // if user belongs to a company
+
+
+        // ✅ Now safe comparison
+        if (
+            !$user->isCompany() && (
+                !$user->isEditor() || (int) $card->company_id !== (int) $companyId
+            )
+        ) {
             return response()->json([
                 'success' => false,
-                'message' => 'You must be a company to create or update a card.',
+                'message' => 'Unauthorized access to this card.',
             ], 403);
         }
 
@@ -471,14 +500,19 @@ class DesignController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->isCompany() || !$user->company) {
+        // ✅ Now safe comparison
+        if (
+            !$user->isCompany() && (
+                !$user->isEditor()
+            )
+        ) {
             return response()->json([
                 'success' => false,
-                'message' => 'You must be a company to update cards.',
+                'message' => 'Unauthorized access to this card.',
             ], 403);
         }
 
-        $company = $user->company;
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
         $rows = $request->input('cards'); // array of CSV-transformed rows
         if (!is_array($rows) || empty($rows)) {
             return response()->json([

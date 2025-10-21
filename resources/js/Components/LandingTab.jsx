@@ -344,7 +344,7 @@ export default function LandingTab() {
                         onClick={handleSaveTemplate}
                         disabled={isSaving}
                     >
-                        {isSaving ? "Saving..." : "Save Template"}
+                        {isSaving ? "Saving..." : selectedCard ? "Save Card" : "Save Template"}
                     </Button>
                 </div>
             </div>

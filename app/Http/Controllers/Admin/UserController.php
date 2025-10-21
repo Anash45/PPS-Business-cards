@@ -348,6 +348,7 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'message' => "You are now impersonating {$user->name}",
+            'route' => $user->role == "admin" ? 'dashboard' : ($user->role == "company" || $user->role == "editor" ? "company.cards" : "profile.edit"),
         ]);
     }
 

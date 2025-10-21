@@ -38,10 +38,43 @@ export default function FileDropzone({
             } else {
                 // ✅ Validate images and keep File prototype
                 const validImages = acceptedFiles.filter((file) => {
+                    // Check file size
                     if (file.size > 5 * 1024 * 1024) {
                         toast.error(`${file.name} exceeds 5 MB limit.`);
                         return false;
                     }
+
+                    // Check file format - only allow jpg, jpeg, png, webp
+                    const supportedFormats = [".jpg", ".jpeg", ".png", ".webp"];
+                    const fileName = file.name.toLowerCase();
+                    const fileExtension = fileName.split(".").pop();
+
+                    const isValidFormat = supportedFormats.some((format) =>
+                        fileName.endsWith(format)
+                    );
+
+                    if (!isValidFormat) {
+                        toast.error(
+                            `${file.name} has unsupported format (.${fileExtension}). Please use JPG, PNG, or WEBP.`
+                        );
+                        return false;
+                    }
+
+                    // Optional: Also check MIME type for extra security
+                    const supportedMimeTypes = [
+                        "image/jpeg",
+                        "image/jpg",
+                        "image/png",
+                        "image/webp",
+                    ];
+
+                    if (file.type && !supportedMimeTypes.includes(file.type)) {
+                        toast.error(
+                            `${file.name} has unsupported file type: ${file.type}`
+                        );
+                        return false;
+                    }
+
                     return true;
                 });
 
@@ -51,7 +84,9 @@ export default function FileDropzone({
                 }
 
                 // ✅ Check for duplicates by file name
-                const existingNames = new Set(files.map((f) => f.name.toLowerCase()));
+                const existingNames = new Set(
+                    files.map((f) => f.name.toLowerCase())
+                );
                 const duplicates = validImages.filter((f) =>
                     existingNames.has(f.name.toLowerCase())
                 );
@@ -73,7 +108,9 @@ export default function FileDropzone({
 
                 // Assign keys safely
                 uniqueFiles.forEach((file) => {
-                    file.key = `${file.name}-${file.lastModified}-${Math.random()}`;
+                    file.key = `${file.name}-${
+                        file.lastModified
+                    }-${Math.random()}`;
                 });
 
                 const merged = [...files, ...uniqueFiles];
@@ -91,7 +128,7 @@ export default function FileDropzone({
         accept:
             type === "csv"
                 ? { "text/csv": [".csv"] }
-                : { "image/*": [".jpg", ".jpeg", ".png", ".webp", ".svg"] },
+                : { "image/*": [".jpg", ".jpeg", ".png", ".webp"] },
     });
 
     return (

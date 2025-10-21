@@ -97,9 +97,6 @@ export default function CsvStepConfirm() {
                     response.data.message || "Cards updated successfully!"
                 );
                 setCsvImportProgress(1);
-                setTimeout(() => {
-                    router.reload();
-                }, 1000);
             } else {
                 toast.error(response.data.message || "Something went wrong.");
             }

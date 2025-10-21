@@ -8,26 +8,40 @@ import { FileText, IdCard } from "lucide-react";
 import LandingTab from "@/Components/LandingTab";
 
 export default function Design() {
-    const { company, isSubscriptionActive, selectedCard = null, pageType } = usePage().props;
-    const { setHeaderTitle, setHeaderText, isTemplate, setIsTemplate } = useGlobal(GlobalProvider);
+    const {
+        company,
+        isSubscriptionActive,
+        selectedCard = null,
+        pageType,
+    } = usePage().props;
+    const { setHeaderTitle, setHeaderText, isTemplate, setIsTemplate } =
+        useGlobal(GlobalProvider);
     const { openModal } = useModal();
 
     useEffect(() => {
         if (pageType === "template") {
             setIsTemplate(true);
-        }else{
+        } else {
             setIsTemplate(false);
         }
     }, [pageType]);
 
     useEffect(() => {
-        setHeaderTitle("Design Template");
+        setHeaderTitle(selectedCard ? "Card Editing" : "Design Template");
         setHeaderText("");
     }, []);
 
     const tabs = [
-        { icon: <FileText className="h-6 w-6" />, name: "Landing Page", content: <LandingTab /> },
-        { icon: <IdCard className="h-6 w-6" />, name: "Wallet", content: <div>Wallet Content</div> },
+        {
+            icon: <FileText className="h-6 w-6" />,
+            name: "Landing Page",
+            content: <LandingTab />,
+        },
+        {
+            icon: <IdCard className="h-6 w-6" />,
+            name: "Wallet",
+            content: <div>Wallet Content</div>,
+        },
     ];
 
     const [activeTab, setActiveTab] = useState(tabs[0].name);
@@ -36,7 +50,7 @@ export default function Design() {
 
     return (
         <AuthenticatedLayout>
-            <Head title="Card Template" />
+            <Head title={selectedCard ? "Card Editing" : "Design Template"} />
 
             <div className="py-4 md:px-6 px-4 flex flex-col gap-6">
                 {!isSubscriptionActive ? (
@@ -46,13 +60,16 @@ export default function Design() {
                     />
                 ) : (
                     <div className="space-y-5">
-                        <div className="flex gap-10"
-                        >
+                        <div className="flex gap-10">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.name}
                                     onClick={() => setActiveTab(tab.name)}
-                                    className={`font-medium text-sm flex items-center justify-center gap-2 py-3 border-b-2 ${activeTab === tab.name ? 'text-[#87B88C] border-b-primary' : 'text-[#667085] border-b-transparent'}`}
+                                    className={`font-medium text-sm flex items-center justify-center gap-2 py-3 border-b-2 ${
+                                        activeTab === tab.name
+                                            ? "text-[#87B88C] border-b-primary"
+                                            : "text-[#667085] border-b-transparent"
+                                    }`}
                                 >
                                     {tab.icon}
                                     <span>{tab.name}</span>
