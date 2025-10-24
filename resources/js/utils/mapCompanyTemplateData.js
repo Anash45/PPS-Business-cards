@@ -45,7 +45,7 @@ export function mapCompanyTemplateData(
                   department: selectedCard.department ?? "",
                   profile_image_url: selectedCard?.profile_image
                       ? `/storage/${selectedCard.profile_image}`
-                      : "/assets/images/profile-placeholder.svg",
+                      : "/assets/images/profile-placeholder.png",
                   profile_image: null,
               }
             : {}),

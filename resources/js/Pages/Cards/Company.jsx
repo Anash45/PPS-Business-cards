@@ -134,7 +134,7 @@ export default function Company() {
                     const fullName = nameParts.join(" ");
                     return `<div class="flex items-center gap-2">
                         <img
-                            src="${row.profile_image ? `/storage/${row.profile_image}` : "/assets/images/profile-placeholder.svg" }"
+                            src="${row.profile_image ? `/storage/${row.profile_image}` : "/assets/images/profile-placeholder.png" }"
                             alt="Profile"
                             class="rounded-full border-2 bg-white border-white w-8 h-8 object-cover shrink-0"
                         />

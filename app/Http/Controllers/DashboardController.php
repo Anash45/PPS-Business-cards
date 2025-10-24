@@ -16,6 +16,19 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
+        // ✅ If user is admin or company, show dashboard
+        if ($user->isAdmin() || $user->isCompany()) {
+
+        }elseif ($user->isEditor()) {
+            return redirect()->route('company.cards');
+        }else{
+            return redirect()->route('profile.edit');
+
+        }
+
+        // ✅ If user is editor, redirect to company.cards
+        
+
         if ($user->isAdmin()) {
             // Admin dashboard stats
             $data = [

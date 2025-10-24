@@ -34,7 +34,7 @@ export default function CardPreview({ isReal = false }) {
                         />
                     ) : (
                         <img
-                            src="/assets/images/profile-placeholder.svg"
+                            src="/assets/images/profile-placeholder.png"
                             alt="Profile"
                             className="rounded-full border-2 bg-white border-white absolute bottom-0 left-1/2 transform translate-y-1/2 -translate-x-1/2 w-[140px] h-[140px] object-cover"
                         />
