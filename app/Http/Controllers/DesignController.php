@@ -222,6 +222,7 @@ class DesignController extends Controller
 
         // ✅ Determine correct company reference
         $companyRef = $user->isCompany() ? $user->companyProfile : $user->company;
+        Log::info("CompanyRef: {$companyRef}");
 
         // ✅ Load company with related data
         $company = $companyRef->with([
