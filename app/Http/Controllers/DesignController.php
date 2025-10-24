@@ -225,36 +225,31 @@ class DesignController extends Controller
         Log::info("CompanyRef: {$companyRef}");
 
         // ✅ Load company with related data
-        $company = $companyRef->with([
-            'cardTemplate', // Load normally
-
-            // Shared eager-load conditions for card-related items
-            'cardSocialLinks' => fn($q) => $q->where('company_id', $companyRef->id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')
-                        ->orWhere('card_id', $card->id);
-                }),
-            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $companyRef->id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')
-                        ->orWhere('card_id', $card->id);
-                }),
-            'cardEmails' => fn($q) => $q->where('company_id', $companyRef->id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')
-                        ->orWhere('card_id', $card->id);
-                }),
-            'cardAddresses' => fn($q) => $q->where('company_id', $companyRef->id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')
-                        ->orWhere('card_id', $card->id);
-                }),
-            'cardButtons' => fn($q) => $q->where('company_id', $companyRef->id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')
-                        ->orWhere('card_id', $card->id);
-                }),
-        ])->first();
+        $company = $companyRef->newQuery()
+            ->with([
+                'cardTemplate',
+                'cardSocialLinks' => fn($q) => $q->where('company_id', $companyRef->id)
+                    ->where(function ($query) use ($card) {
+                        $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                    }),
+                'cardPhoneNumbers' => fn($q) => $q->where('company_id', $companyRef->id)
+                    ->where(function ($query) use ($card) {
+                        $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                    }),
+                'cardEmails' => fn($q) => $q->where('company_id', $companyRef->id)
+                    ->where(function ($query) use ($card) {
+                        $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                    }),
+                'cardAddresses' => fn($q) => $q->where('company_id', $companyRef->id)
+                    ->where(function ($query) use ($card) {
+                        $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                    }),
+                'cardButtons' => fn($q) => $q->where('company_id', $companyRef->id)
+                    ->where(function ($query) use ($card) {
+                        $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                    }),
+            ])
+            ->find($companyRef->id);
 
         if (!$company) {
             return response()->json(['message' => 'No company associated with this user'], 404);
