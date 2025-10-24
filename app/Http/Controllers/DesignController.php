@@ -259,6 +259,7 @@ class DesignController extends Controller
         if (!$company) {
             return response()->json(['message' => 'No company associated with this user'], 404);
         }
+        Log::info("CompanyDetails: {$company}");
 
         return inertia('Design/Index', [
             'pageType' => 'card',
