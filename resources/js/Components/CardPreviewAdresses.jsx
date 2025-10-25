@@ -3,9 +3,13 @@ import { MapPin } from "lucide-react";
 
 export default function CardPreviewAdresses({ cardAddresses }) {
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
-    return cardAddresses?.length > 0 ? (
+    
+    const visibleAddresses = cardAddresses?.filter(
+        (address) => !(address.is_hidden)
+    );
+    return visibleAddresses?.length > 0 ? (
         <div className="grid gap-2 grid-cols-1">
-            {cardAddresses.map((address, index) =>
+            {visibleAddresses.map((address, index) =>
                 !(address.is_hidden && isCardReal) ? (
                     <a
                         target="_blank"

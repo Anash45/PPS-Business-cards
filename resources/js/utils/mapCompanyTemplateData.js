@@ -27,6 +27,9 @@ export function mapCompanyTemplateData(
         email_text_color: template?.email_text_color ?? "#ffffff",
         address_bg_color: template?.address_bg_color ?? "#87B88C",
         address_text_color: template?.address_text_color ?? "#ffffff",
+        contact_btn_text: template?.contact_btn_text ?? "Save card",
+        vcard_btn_bg_color: template.vcard_btn_bg_color,
+        vcard_btn_text_color: template.vcard_btn_text_color,
         banner_image: null,
         banner_image_url: template?.banner_image
             ? `/storage/${template.banner_image}`

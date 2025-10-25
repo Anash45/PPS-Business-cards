@@ -82,7 +82,14 @@ export default function CardPreview({ isReal = false }) {
                                 cardFormData.department ? (
                                     <p className="text-sm font-medium flex items-center justify-center gap-1.5">
                                         <span>{cardFormData?.position}</span>{" "}
-                                        <span className="inline-block h-1 w-1 rounded-full bg-gray-400"></span>
+                                        <span
+                                            className="inline-block h-1 w-1 opacity-30 rounded-full"
+                                            style={{
+                                                backgroundColor:
+                                                    cardFormData?.company_text_color ||
+                                                    "#000000",
+                                            }}
+                                        ></span>
                                         <span>{cardFormData?.department}</span>
                                     </p>
                                 ) : null}

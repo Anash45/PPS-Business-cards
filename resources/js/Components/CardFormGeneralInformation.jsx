@@ -172,62 +172,99 @@ export default function CardFormGeneralInformation() {
                         </div>
                     </div>
                     {isTemplate && (
-                        <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
-                            <div className="space-y-1">
-                                <InputLabel
-                                    className="text-black text-sm font-medium"
-                                    value={"Page BG Color"}
-                                />
-                                <ColorInput
-                                    id="card_bg_color"
-                                    value={cardFormData.card_bg_color}
-                                    onChange={(e) => handleCardChange(e)}
-                                    name="card_bg_color"
-                                    className="w-full"
-                                />
+                        <>
+                            <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        className="text-black text-sm font-medium"
+                                        value={"Page BG Color"}
+                                    />
+                                    <ColorInput
+                                        id="card_bg_color"
+                                        value={cardFormData.card_bg_color}
+                                        onChange={(e) => handleCardChange(e)}
+                                        name="card_bg_color"
+                                        className="w-full"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        className="text-black text-sm font-medium"
+                                        value={"Buttons BG Color"}
+                                    />
+                                    <ColorInput
+                                        id="btn_bg_color"
+                                        value={cardFormData.btn_bg_color}
+                                        onChange={(e) => handleCardChange(e)}
+                                        name="btn_bg_color"
+                                        className="w-full"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        className="text-black text-sm font-medium"
+                                        value={"Button text Color"}
+                                    />
+                                    <ColorInput
+                                        id="btn_text_color"
+                                        value={cardFormData.btn_text_color}
+                                        onChange={(e) => handleCardChange(e)}
+                                        name="btn_text_color"
+                                        className="w-full"
+                                    />
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                <InputLabel
-                                    className="text-black text-sm font-medium"
-                                    value={"Buttons BG Color"}
-                                />
-                                <ColorInput
-                                    id="btn_bg_color"
-                                    value={cardFormData.btn_bg_color}
-                                    onChange={(e) => handleCardChange(e)}
-                                    name="btn_bg_color"
-                                    className="w-full"
-                                />
+                            <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        className="text-black text-sm font-medium"
+                                        value={"Contact Button Text"}
+                                        htmlFor="contact_btn_text"
+                                    />
+                                    <TextInput
+                                        id="contact_btn_text"
+                                        value={cardFormData.contact_btn_text}
+                                        onChange={(e) => handleCardChange(e)}
+                                        name="contact_btn_text"
+                                        className="w-full"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        htmlFor="vcard_btn_bg_color"
+                                        className="text-black text-sm font-medium"
+                                        value={"VCard Button BG Color"}
+                                    />
+                                    <ColorInput
+                                        id="vcard_btn_bg_color"
+                                        value={
+                                            cardFormData?.vcard_btn_bg_color ||
+                                            cardFormData.btn_bg_color || "#87B88C"
+                                        }
+                                        onChange={(e) => handleCardChange(e)}
+                                        name="vcard_btn_bg_color"
+                                        className="w-full"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        htmlFor="vcard_btn_text_color"
+                                        className="text-black text-sm font-medium"
+                                        value={"VCard Button Text Color"}
+                                    />
+                                    <ColorInput
+                                        id="vcard_btn_text_color"
+                                        value={
+                                            cardFormData?.vcard_btn_text_color ||
+                                            cardFormData.btn_text_color || "#ffffff"
+                                        }
+                                        onChange={(e) => handleCardChange(e)}
+                                        name="vcard_btn_text_color"
+                                        className="w-full"
+                                    />
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                <InputLabel
-                                    className="text-black text-sm font-medium"
-                                    value={"Button text Color"}
-                                />
-                                <ColorInput
-                                    id="btn_text_color"
-                                    value={cardFormData.btn_text_color}
-                                    onChange={(e) => handleCardChange(e)}
-                                    name="btn_text_color"
-                                    className="w-full"
-                                />
-                            </div>
-
-                            <div className="space-y-1">
-                                <InputLabel
-                                    className="text-black text-sm font-medium"
-                                    value={"Contact Button Text"}
-                                    htmlFor="contact_btn_text"
-                                />
-                                <TextInput
-                                    id="contact_btn_text"
-                                    value={cardFormData.contact_btn_text}
-                                    onChange={(e) => handleCardChange(e)}
-                                    name="contact_btn_text"
-                                    className="w-full"
-                                />
-                            </div>
-                        </div>
+                        </>
                     )}
                     <div className="p-3 rounded-lg grid sm:grid-cols-2 gap-4 border border-[#EAECF0]">
                         {isTemplate && (

@@ -6,7 +6,7 @@ export default function CardPreviewPhones({ cardPhones }) {
 
     // Filter out hidden phones (if isCardReal)
     const visiblePhones = cardPhones?.filter(
-        (phone) => !(phone.is_hidden && isCardReal)
+        (phone) => !(phone.is_hidden)
     );
 
     return visiblePhones?.length > 0 ? (

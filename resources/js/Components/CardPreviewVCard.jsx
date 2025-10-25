@@ -172,9 +172,9 @@ URL;TYPE=WORK:${linkDomain}/card/${cardFormData?.code ?? "XXXXXXX"}
             <button
                 onClick={handleSaveVCard}
                 style={{
-                    color: cardFormData?.btn_text_color || "#ffffff",
-                    backgroundColor: cardFormData?.btn_bg_color || "#87B88C",
-                    borderColor: cardFormData?.btn_bg_color || "#87B88C",
+                    color: cardFormData?.vcard_btn_text_color || cardFormData?.btn_text_color || "#ffffff",
+                    backgroundColor: cardFormData?.vcard_btn_bg_color || cardFormData?.btn_bg_color || "#87B88C",
+                    borderColor: cardFormData?.vcard_btn_bg_color || cardFormData?.btn_bg_color || "#87B88C",
                 }}
                 className="px-4 py-2.5 rounded-[10px] text-sm font-medium leading-tight w-fit"
             >

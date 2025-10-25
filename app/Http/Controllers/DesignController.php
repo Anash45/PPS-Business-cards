@@ -83,6 +83,8 @@ class DesignController extends Controller
             'name_text_color' => 'nullable|string|max:100',
             'company_text_color' => 'nullable|string|max:100',
             'contact_btn_text' => 'nullable|string|max:50',
+            'vcard_btn_bg_color' => 'nullable|string|max:100',
+            'vcard_btn_text_color' => 'nullable|string|max:100',
             'btn_bg_color' => 'nullable|string|max:100',
             'btn_text_color' => 'nullable|string|max:100',
             'phone_bg_color' => 'nullable|string|max:100',

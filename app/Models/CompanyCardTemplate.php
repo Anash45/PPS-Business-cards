@@ -25,6 +25,8 @@ class CompanyCardTemplate extends Model
         'email_text_color',
         'address_bg_color',
         'address_text_color',
+        'vcard_btn_text_color',
+        'vcard_btn_bg_color',
     ];
 
     public function company()

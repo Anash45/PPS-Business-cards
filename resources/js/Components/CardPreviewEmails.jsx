@@ -4,7 +4,7 @@ import { Mail } from "lucide-react";
 export default function CardPreviewEmails({ cardEmails }) {
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
     const visibleEmails = cardEmails?.filter(
-        (email) => !(email.is_hidden && isCardReal)
+        (email) => !(email.is_hidden)
     );
     return visibleEmails?.length > 0 ? (
         <div className="grid gap-2 grid-cols-1">

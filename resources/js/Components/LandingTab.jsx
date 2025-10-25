@@ -51,6 +51,8 @@ export default function LandingTab() {
             formData.append("btn_bg_color", cardFormData.btn_bg_color);
             formData.append("btn_text_color", cardFormData.btn_text_color);
             formData.append("contact_btn_text", cardFormData.contact_btn_text);
+            formData.append("vcard_btn_text_color", cardFormData.vcard_btn_text_color ?? "");
+            formData.append("vcard_btn_bg_color", cardFormData.vcard_btn_bg_color ?? "");
             formData.append("phone_bg_color", cardFormData.phone_bg_color);
             formData.append("phone_text_color", cardFormData.phone_text_color);
             formData.append("email_bg_color", cardFormData.email_bg_color);
