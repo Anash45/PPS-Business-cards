@@ -37,6 +37,7 @@ class DesignController extends Controller
             'cardSocialLinks' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
             'cardPhoneNumbers' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
             'cardEmails' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardWebsites' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
             'cardAddresses' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
             'cardButtons' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
         ]);
@@ -93,6 +94,8 @@ class DesignController extends Controller
             'email_text_color' => 'nullable|string|max:100',
             'address_bg_color' => 'nullable|string|max:100',
             'address_text_color' => 'nullable|string|max:100',
+            'website_bg_color' => 'nullable|string|max:100',
+            'website_text_color' => 'nullable|string|max:100',
 
             // Social Media Links
             'card_social_links' => 'nullable|array',
@@ -103,6 +106,7 @@ class DesignController extends Controller
             // Phone numbers
             'card_phone_numbers' => 'nullable|array',
             'card_phone_numbers.*.id' => 'nullable|integer',
+            'card_phone_numbers.*.label' => 'required_with:card_phone_numbers|string|max:255',
             'card_phone_numbers.*.phone_number' => 'required_with:card_phone_numbers|string|max:20',
             'card_phone_numbers.*.is_hidden' => 'nullable|boolean',
             'card_phone_numbers.*.type' => 'nullable|string|max:10',
@@ -110,13 +114,22 @@ class DesignController extends Controller
             // Emails
             'card_emails' => 'nullable|array',
             'card_emails.*.id' => 'nullable|integer',
+            'card_emails.*.label' => 'required_with:card_emails|string|max:255',
             'card_emails.*.email' => 'required_with:card_emails|email|max:255',
             'card_emails.*.is_hidden' => 'nullable|boolean',
             'card_emails.*.type' => 'nullable|string|max:10',
 
+            // Websites
+            'card_websites' => 'nullable|array',
+            'card_websites.*.id' => 'nullable|integer',
+            'card_websites.*.label' => 'required_with:card_websites|string|max:255',
+            'card_websites.*.url' => 'required_with:card_websites|url|max:255',
+            'card_websites.*.is_hidden' => 'nullable|boolean',
+
             // Addresses
             'card_addresses' => 'nullable|array',
             'card_addresses.*.id' => 'nullable|integer',
+            'card_addresses.*.label' => 'required_with:card_addresses|string|max:255',
             'card_addresses.*.street' => 'required_with:card_addresses|string|max:255',
             'card_addresses.*.house_number' => 'nullable|string|max:50',
             'card_addresses.*.zip' => 'nullable|string|max:20',
@@ -176,7 +189,11 @@ class DesignController extends Controller
         }
 
         if ($request->has('card_addresses')) {
-            $this->handleCardAddresses($company, $request->card_addresses);
+            $this->handleCardAddresses($company, incomingAddresses: $request->card_addresses);
+        }
+
+        if ($request->has('card_websites')) {
+            $this->handleCardWebsites($company, $request->card_websites);
         }
 
         // ✅ Reload updated company data
@@ -186,6 +203,7 @@ class DesignController extends Controller
             'cardPhoneNumbers' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
             'cardEmails' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
             'cardAddresses' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardWebsites' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
             'cardButtons' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
         ]);
 
@@ -246,6 +264,10 @@ class DesignController extends Controller
                     ->where(function ($query) use ($card) {
                         $query->whereNull('card_id')->orWhere('card_id', $card->id);
                     }),
+                'cardWebsites' => fn($q) => $q->where('company_id', $companyRef->id)
+                    ->where(function ($query) use ($card) {
+                        $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                    }),
                 'cardButtons' => fn($q) => $q->where('company_id', $companyRef->id)
                     ->where(function ($query) use ($card) {
                         $query->whereNull('card_id')->orWhere('card_id', $card->id);
@@ -285,6 +307,10 @@ class DesignController extends Controller
                     $query->whereNull('card_id')->orWhere('card_id', $card->id);
                 }),
             'cardAddresses' => fn($q) => $q->where('company_id', $card->company_id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+                }),
+            'cardWebsites' => fn($q) => $q->where('company_id', $card->company_id)
                 ->where(function ($query) use ($card) {
                     $query->whereNull('card_id')->orWhere('card_id', $card->id);
                 }),
@@ -364,6 +390,7 @@ class DesignController extends Controller
             // Phone numbers
             'card_phone_numbers' => 'nullable|array',
             'card_phone_numbers.*.id' => 'nullable|integer',
+            'card_phone_numbers.*.label' => 'required_with:card_phone_numbers|string|max:255',
             'card_phone_numbers.*.phone_number' => 'required_with:card_phone_numbers|string|max:20',
             'card_phone_numbers.*.is_hidden' => 'nullable|boolean',
             'card_phone_numbers.*.type' => 'nullable|string|max:10',
@@ -371,13 +398,22 @@ class DesignController extends Controller
             // Emails
             'card_emails' => 'nullable|array',
             'card_emails.*.id' => 'nullable|integer',
+            'card_emails.*.label' => 'required_with:card_emails|string|max:255',
             'card_emails.*.email' => 'required_with:card_emails|email|max:255',
             'card_emails.*.is_hidden' => 'nullable|boolean',
             'card_emails.*.type' => 'nullable|string|max:10',
 
+            // Websites
+            'card_websites' => 'nullable|array',
+            'card_websites.*.id' => 'nullable|integer',
+            'card_websites.*.label' => 'required_with:card_websites|string|max:255',
+            'card_websites.*.url' => 'required_with:card_websites|url|max:255',
+            'card_websites.*.is_hidden' => 'nullable|boolean',
+
             // Addresses
             'card_addresses' => 'nullable|array',
             'card_addresses.*.id' => 'nullable|integer',
+            'card_addresses.*.label' => 'required_with:card_addresses|string|max:255',
             'card_addresses.*.street' => 'required_with:card_addresses|string|max:255',
             'card_addresses.*.house_number' => 'nullable|string|max:50',
             'card_addresses.*.zip' => 'nullable|string|max:20',
@@ -456,6 +492,13 @@ class DesignController extends Controller
             $this->handleCardAddresses($company, $request->card_addresses, $card->id);
         }
 
+        /**
+         * 🔹 Handle Card Addresses (separate function)
+         */
+        if ($request->has('card_websites')) {
+            $this->handleCardWebsites($company, $request->card_websites, $card->id);
+        }
+
         $company = $user->company()->with([
             'cardTemplate', // load normally
 
@@ -471,6 +514,11 @@ class DesignController extends Controller
                         ->orWhere('card_id', $card->id);
                 }),
             'cardEmails' => fn($q) => $q->where('company_id', $user->company->id)
+                ->where(function ($query) use ($card) {
+                    $query->whereNull('card_id')
+                        ->orWhere('card_id', $card->id);
+                }),
+            'cardWebsites' => fn($q) => $q->where('company_id', $user->company->id)
                 ->where(function ($query) use ($card) {
                     $query->whereNull('card_id')
                         ->orWhere('card_id', $card->id);
@@ -733,6 +781,7 @@ class DesignController extends Controller
                 $existingNumber = $existingNumbers->firstWhere('id', $numberData['id']);
                 if ($existingNumber) {
                     $existingNumber->update([
+                        'label' => $numberData['label'] ?? '',
                         'phone_number' => $numberData['phone_number'] ?? '',
                         'type' => $numberData['type'] ?? "Work",
                         'is_hidden' => $numberData['is_hidden'] ?? false,
@@ -740,6 +789,7 @@ class DesignController extends Controller
                 }
             } else {
                 $company->cardPhoneNumbers()->create([
+                    'label' => $numberData['label'] ?? '',
                     'phone_number' => $numberData['phone_number'] ?? '',
                     'type' => $numberData['type'] ?? "Work",
                     'is_hidden' => $numberData['is_hidden'] ?? false,
@@ -772,6 +822,7 @@ class DesignController extends Controller
                 $existingEmail = $existingEmails->firstWhere('id', $emailData['id']);
                 if ($existingEmail) {
                     $existingEmail->update([
+                        'label' => $emailData['label'] ?? '',
                         'email' => $emailData['email'] ?? '',
                         'type' => $emailData['type'] ?? "Work",
                         'is_hidden' => $emailData['is_hidden'] ?? false,
@@ -779,6 +830,7 @@ class DesignController extends Controller
                 }
             } else {
                 $company->cardEmails()->create([
+                    'label' => $emailData['label'] ?? '',
                     'email' => $emailData['email'] ?? '',
                     'type' => $emailData['type'] ?? "Work",
                     'is_hidden' => $emailData['is_hidden'] ?? false,
@@ -795,6 +847,47 @@ class DesignController extends Controller
         }
     }
 
+    private function handleCardWebsites($company, $incomingWebsites, $cardId = null)
+    {
+        $incomingWebsites = collect($incomingWebsites);
+
+        $existingWebsites = $company->cardWebsites()
+            ->where('company_id', $company->id)
+            ->when($cardId !== null, fn($q) => $q->where('card_id', $cardId), fn($q) => $q->whereNull('card_id'))
+            ->get();
+
+        foreach ($incomingWebsites as $websiteData) {
+            if (!empty($websiteData['id'])) {
+                $existingWebsite = $existingWebsites->firstWhere('id', $websiteData['id']);
+                if ($existingWebsite) {
+                    $existingWebsite->update([
+                        'label' => $websiteData['label'] ?? '',
+                        'url' => $websiteData['url'] ?? '',
+                        'is_hidden' => $websiteData['is_hidden'] ?? false,
+                    ]);
+                }
+            } else {
+                $company->cardWebsites()->create([
+                    'label' => $websiteData['label'] ?? '',
+                    'url' => $websiteData['url'] ?? '',
+                    'is_hidden' => $websiteData['is_hidden'] ?? false,
+                    'company_id' => $company->id,
+                    'card_id' => $cardId,
+                ]);
+            }
+        }
+
+        // Delete websites not present in the incoming list
+        $incomingIds = $incomingWebsites->pluck('id')->filter()->toArray();
+        $toDelete = $existingWebsites->filter(fn($website) => !in_array($website->id, $incomingIds));
+
+        foreach ($toDelete as $website) {
+            $website->delete();
+        }
+    }
+
+
+
     private function handleCardAddresses($company, $incomingAddresses, $cardId = null)
     {
         $incomingAddresses = collect($incomingAddresses);
@@ -809,6 +902,7 @@ class DesignController extends Controller
                 $existingAddress = $existingAddresses->firstWhere('id', $addressData['id']);
                 if ($existingAddress) {
                     $existingAddress->update([
+                        'label' => $addressData['label'] ?? '',
                         'street' => $addressData['street'] ?? '',
                         'house_number' => $addressData['house_number'] ?? '',
                         'zip' => $addressData['zip'] ?? '',
@@ -820,6 +914,7 @@ class DesignController extends Controller
                 }
             } else {
                 $company->cardAddresses()->create([
+                    'label' => $addressData['label'] ?? '',
                     'street' => $addressData['street'] ?? '',
                     'house_number' => $addressData['house_number'] ?? '',
                     'zip' => $addressData['zip'] ?? '',

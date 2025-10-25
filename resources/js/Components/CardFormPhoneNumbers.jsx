@@ -93,83 +93,122 @@ export default function CardFormPhoneNumbers() {
                     Add New Number
                 </Button>
             </div>
-            {(cardFormData.card_phone_numbers || []).map((item, index) => (
-                <div key={index} className="space-y-2">
-                    {/* First Row: Input + Checkbox + Trash */}
-                    <div className="flex md:flex-row flex-col gap-3 md:items-center">
-                        <div className="gap-4 grow flex items-center">
-                            <span className="shrink-0 text-xl w-9">📞</span>
+            {(cardFormData.card_phone_numbers || []).map((item, index) => {
+                const isReadOnly = item.company_id && !isTemplate && item.card_id == null;
 
-                            {/* ✅ Type Selector */}
-                            <div className="w-[100px] shrink-0">
-                                <SelectInput
-                                    value={item.type || "Work"}
-                                    onChange={(e) => {
-                                        const newType = e.target
-                                            ? e.target.value
-                                            : e; // handle both normal and custom selects
-                                        updatePhoneField(
-                                            index,
-                                            "type",
-                                            newType
-                                        );
-                                    }}
-                                    className="w-full block"
-                                    placeholder="Type"
-                                    options={[
-                                        { value: "Work", label: "Work" },
-                                        { value: "Home", label: "Home" },
-                                    ]}
-                                />
+                return (
+                    <div
+                        key={index}
+                        className="space-y-3 border-b border-gray-100 pb-3"
+                    >
+                        <div className="flex flex-col md:flex-row md:items-center gap-3">
+                            {/* ✅ Input Group */}
+                            <div className="flex flex-wrap items-center gap-3 grow">
+                                <span className="shrink-0 text-xl w-9">📞</span>
+
+                                {/* Type Selector */}
+                                <div className="w-full sm:w-[120px] md:w-[100px] shrink-0">
+                                    <SelectInput
+                                        value={item.type || "Work"}
+                                        onChange={(e) => {
+                                            if (isReadOnly) return;
+                                            const newType = e.target
+                                                ? e.target.value
+                                                : e;
+                                            updatePhoneField(
+                                                index,
+                                                "type",
+                                                newType
+                                            );
+                                        }}
+                                        disabled={isReadOnly}
+                                        className="w-full block"
+                                        placeholder="Type"
+                                        options={[
+                                            { value: "Work", label: "Work" },
+                                            { value: "Home", label: "Home" },
+                                        ]}
+                                    />
+                                </div>
+
+                                {/* Label Field */}
+                                <div className="w-full sm:flex-1 md:w-[200px]">
+                                    <TextInput
+                                        className="w-full"
+                                        placeholder="Label (e.g. Office, Personal)"
+                                        value={item.label || ""}
+                                        onChange={(e) => {
+                                            if (isReadOnly) return;
+                                            updatePhoneField(
+                                                index,
+                                                "label",
+                                                e.target.value
+                                            );
+                                        }}
+                                        readOnly={isReadOnly}
+                                    />
+                                </div>
+
+                                {/* Phone Number Field */}
+                                <div className="w-full flex-1 min-w-[200px]">
+                                    <TextInput
+                                        className="w-full"
+                                        placeholder="Enter phone number"
+                                        value={item.phone_number || ""}
+                                        onChange={(e) => {
+                                            if (isReadOnly) return;
+                                            updatePhoneField(
+                                                index,
+                                                "phone_number",
+                                                e.target.value
+                                            );
+                                        }}
+                                        readOnly={isReadOnly}
+                                    />
+                                </div>
                             </div>
 
-                            {/* ✅ Phone number input */}
-                            <TextInput
-                                className="w-full"
-                                placeholder="Enter phone number"
-                                value={item.phone_number || ""}
-                                onChange={(e) =>
-                                    updatePhoneField(
-                                        index,
-                                        "phone_number",
-                                        e.target.value
-                                    )
-                                }
-                            />
+                            {/* Hidden Checkbox */}
+                            <label className="flex items-center gap-2 shrink-0">
+                                <input
+                                    type="checkbox"
+                                    checked={item.is_hidden || false}
+                                    onChange={(e) => {
+                                        if (isReadOnly) return;
+                                        updatePhoneField(
+                                            index,
+                                            "is_hidden",
+                                            e.target.checked
+                                        );
+                                    }}
+                                    disabled={isReadOnly}
+                                />
+                                <span className="text-sm text-[#71717A]">
+                                    Hidden
+                                </span>
+                            </label>
+
+                            {/* Delete Button */}
+                            {(!item.company_id ||
+                                (item.company_id && isTemplate) ||
+                                item.card_id) && (
+                                <Button
+                                    variant="danger-outline"
+                                    className="w-fit shrink-0"
+                                    onClick={() => {
+                                        if (isReadOnly) return;
+                                        removePhoneNumber(index);
+                                    }}
+                                    disabled={isReadOnly}
+                                >
+                                    <Trash2 className="h-5 w-5" />
+                                </Button>
+                            )}
                         </div>
-
-                        <label className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                checked={item.is_hidden || false}
-                                onChange={(e) =>
-                                    updatePhoneField(
-                                        index,
-                                        "is_hidden",
-                                        e.target.checked
-                                    )
-                                }
-                            />
-                            <span className="text-sm text-[#71717A]">
-                                Hidden
-                            </span>
-                        </label>
-
-                        {/* Delete button */}
-                        {(!item.company_id ||
-                            (item.company_id && isTemplate) ||
-                            item.card_id) && (
-                            <Button
-                                variant="danger-outline"
-                                className="w-fit ms-auto"
-                                onClick={() => removePhoneNumber(index)}
-                            >
-                                <Trash2 className="h-5 w-5" />
-                            </Button>
-                        )}
                     </div>
-                </div>
-            ))}
+                );
+            })}
+
             {/* Second Row: Color Pickers */}
             {isTemplate && cardFormData.card_phone_numbers.length > 0 ? (
                 <div className="grid sm:grid-cols-2 gap-3">

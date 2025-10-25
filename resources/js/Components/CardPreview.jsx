@@ -5,6 +5,7 @@ import CardPreviewEmails from "./CardPreviewEmails";
 import CardPreviewAdresses from "./CardPreviewAdresses";
 import CardPreviewButtons from "./CardPreviewButtons";
 import CardPreviewVCard from "./CardPreviewVCard";
+import CardPreviewWebsites from "./CardPreviewWebsites";
 
 export default function CardPreview({ isReal = false }) {
     const { cardFormData, setCardFormData } = useGlobal(GlobalProvider);
@@ -112,6 +113,9 @@ export default function CardPreview({ isReal = false }) {
                     />
                     <CardPreviewEmails
                         cardEmails={cardFormData?.card_emails ?? []}
+                    />
+                    <CardPreviewWebsites
+                        cardWebsites={cardFormData?.card_websites ?? []}
                     />
                     <CardPreviewAdresses
                         cardAddresses={cardFormData?.card_addresses ?? []}

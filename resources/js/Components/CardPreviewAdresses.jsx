@@ -3,9 +3,9 @@ import { MapPin } from "lucide-react";
 
 export default function CardPreviewAdresses({ cardAddresses }) {
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
-    
+
     const visibleAddresses = cardAddresses?.filter(
-        (address) => !(address.is_hidden)
+        (address) => !address.is_hidden
     );
     return visibleAddresses?.length > 0 ? (
         <div className="grid gap-2 grid-cols-1">
@@ -30,7 +30,9 @@ export default function CardPreviewAdresses({ cardAddresses }) {
                     >
                         <span className="shrink-0 text-xl">📍</span>
                         <span>
-                            <span className="capitalize">{address.type} address:{" "}</span>
+                            {address.label
+                                ? <span class="capitalize">{address.label}: </span>
+                                : ""}{" "}
                             {[address.street, address.house]
                                 .filter(Boolean)
                                 .join(" ")}

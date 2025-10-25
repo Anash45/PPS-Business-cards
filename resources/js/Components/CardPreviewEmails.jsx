@@ -3,9 +3,7 @@ import { Mail } from "lucide-react";
 
 export default function CardPreviewEmails({ cardEmails }) {
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
-    const visibleEmails = cardEmails?.filter(
-        (email) => !(email.is_hidden)
-    );
+    const visibleEmails = cardEmails?.filter((email) => !email.is_hidden);
     return visibleEmails?.length > 0 ? (
         <div className="grid gap-2 grid-cols-1">
             {visibleEmails.map((email, index) => (
@@ -27,8 +25,8 @@ export default function CardPreviewEmails({ cardEmails }) {
                     className="flex border text-sm leading-tight relative items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn"
                 >
                     <span className="shrink-0 text-xl">✉️</span>
-                    <span className="capitalize">
-                        {email.type} email: {email.email}
+                    <span>
+                        {email.label ? <span class="capitalize">{email.label}: </span> : ""} {email.email}
                     </span>
 
                     {email.is_hidden ? (

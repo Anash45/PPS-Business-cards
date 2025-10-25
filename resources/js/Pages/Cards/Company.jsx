@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { getDomain } from "@/utils/viteConfig";
 import SampleCsvDownload from "@/Components/SampleCsvDownload";
+import { csvFieldDefinitions } from "@/utils/csvFieldDefinitions";
 
 // Bind DataTables
 DataTable.use(DT);
@@ -111,9 +112,28 @@ export default function Company() {
         }
     };
 
+    const [isAnyChecked, setIsAnyChecked] = useState(false);
+    const [selectedIds, setSelectedIds] = useState([]);
+
     const columns = useMemo(
         () => [
-            { title: "ID", data: "id" },
+            {
+                title: `<input type="checkbox" id="select-all" /> ID`,
+                data: "id",
+                orderable: false,
+                render: (data, type, row) => {
+                    const isChecked = selectedIds.includes(row.id);
+                    return `
+        <div class="flex items-center gap-2">
+            <input type="checkbox" 
+                   class="row-checkbox" 
+                   value="${row.id}" 
+                   ${isChecked ? "checked" : ""} />
+            <span>${row.id}</span>
+        </div>
+    `;
+                },
+            },
             {
                 title: "Code",
                 data: "code",
@@ -132,16 +152,24 @@ export default function Company() {
                         row.last_name,
                     ].filter(Boolean);
                     const fullName = nameParts.join(" ");
-                    return `<div class="flex items-center gap-2">
+                    return `
+                    <div class="flex items-center gap-2">
                         <img
-                            src="${row.profile_image ? `/storage/${row.profile_image}` : "/assets/images/profile-placeholder.png" }"
+                            src="${
+                                row.profile_image
+                                    ? `/storage/${row.profile_image}`
+                                    : "/assets/images/profile-placeholder.png"
+                            }"
                             alt="Profile"
                             class="rounded-full border-2 bg-white border-white w-8 h-8 object-cover shrink-0"
                         />
                         <div>
-                            <p class="font-medium text-[#181D27] text-sm">${fullName ? fullName : "Not assigned"}</p>
+                            <p class="font-medium text-[#181D27] text-sm">
+                                ${fullName || "Not assigned"}
+                            </p>
                         </div>
-                    </div>`;
+                    </div>
+                `;
                 },
             },
             { title: "Position", data: "position" },
@@ -155,9 +183,9 @@ export default function Company() {
                         ? "bg-green-100 text-green-700 border border-green-200"
                         : "bg-red-100 text-red-700 border border-red-200";
 
-                    return `<span class="px-2 py-1 text-xs font-medium rounded-full ${badgeClass}">${
-                        isActive ? "Active" : "Inactive"
-                    }</span>`;
+                    return `<span class="px-2 py-1 text-xs font-medium rounded-full ${badgeClass}">
+                    ${isActive ? "Active" : "Inactive"}
+                </span>`;
                 },
             },
             {
@@ -170,6 +198,134 @@ export default function Company() {
         ],
         [linkDomain]
     );
+
+    useEffect(() => {
+        const selectAll = document.getElementById("select-all");
+        if (!selectAll) return;
+
+        // Handle "select all"
+        const handleSelectAll = (e) => {
+            const isChecked = e.target.checked;
+            const checkboxes = document.querySelectorAll(".row-checkbox");
+
+            const newSelectedIds = [];
+            checkboxes.forEach((cb) => {
+                cb.checked = isChecked;
+                if (isChecked) newSelectedIds.push(parseInt(cb.value));
+            });
+
+            setSelectedIds(isChecked ? newSelectedIds : []);
+            setIsAnyChecked(isChecked);
+        };
+
+        // Handle individual checkbox changes
+        const handleRowCheckboxChange = () => {
+            const checkboxes = document.querySelectorAll(".row-checkbox");
+            const checkedBoxes = Array.from(
+                document.querySelectorAll(".row-checkbox:checked")
+            );
+            const ids = checkedBoxes.map((cb) => parseInt(cb.value));
+
+            // Update the "Select All" checkbox
+            selectAll.checked = checkedBoxes.length === checkboxes.length;
+
+            // Update states
+            setSelectedIds(ids);
+            setIsAnyChecked(ids.length > 0);
+        };
+
+        // Add listeners
+        selectAll.addEventListener("change", handleSelectAll);
+        document.addEventListener("change", (e) => {
+            if (e.target.classList.contains("row-checkbox")) {
+                handleRowCheckboxChange();
+            }
+        });
+
+        // Cleanup
+        return () => {
+            selectAll.removeEventListener("change", handleSelectAll);
+        };
+    }, [linkDomain]);
+
+    const [saving, setSaving] = useState(false);
+
+    const handleDownload = async () => {
+        if (!cards?.length || !selectedIds?.length) return;
+
+        console.log(cards, selectedIds);
+        setSaving(true);
+
+        try {
+            // Extract headers from definitions
+            const headers = csvFieldDefinitions.map((f) => f.name);
+
+            // ✅ Filter cards by selected IDs
+            const filteredCards = cards.filter((card) =>
+                selectedIds.includes(card.id)
+            );
+
+            // Prepare CSV rows
+            const rows = filteredCards.map((card) => {
+                const row = headers.map((header, index) =>
+                    index === 0 ? card.code || "" : ""
+                );
+                return row;
+            });
+
+            // Build CSV string
+            const csvContent = [
+                headers.join(","), // header row
+                ...rows.map((r) => r.map((v) => `"${v}"`).join(",")), // data rows
+            ].join("\n");
+
+            // Create downloadable file
+            const blob = new Blob([csvContent], {
+                type: "text/csv;charset=utf-8;",
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "base_sample.csv";
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("CSV generation failed:", error);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const [toggling, setToggling] = useState(false);
+
+    const handleMultipleToggle = async (status) => {
+        if (!selectedIds.length) {
+            toast.warning("Please select at least one card.");
+            return;
+        }
+
+        setToggling(true);
+
+        try {
+            const response = await axios.post("/cards/toggle-multiple-status", {
+                ids: selectedIds,
+                status, // 'active' or 'inactive'
+            });
+
+            toast.success(response.data.message);
+            router.reload({ only: ["cards"] });
+
+            // ✅ Optional: refresh DataTable or state
+            if (typeof refreshTable === "function") refreshTable();
+        } catch (error) {
+            console.error("Toggle failed:", error);
+            const msg =
+                error.response?.data?.message || "Failed to update status.";
+            toast.error(msg);
+        } finally {
+            setToggling(false);
+        }
+    };
 
     return (
         <AuthenticatedLayout>
@@ -184,7 +340,48 @@ export default function Company() {
                     </div>
                 ) : (
                     <div className="space-y-5">
-                        <div className="py-4 md:px-6 px-4 rounded-[14px] bg-white flex flex-col gap-3">
+                        <div className="py-4 md:px-6 px-4 rounded-[14px] bg-white flex flex-col gap-3 space-y-3">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <Button
+                                        onClick={() =>
+                                            handleMultipleToggle("active")
+                                        }
+                                        disabled={
+                                            !selectedIds.length || toggling
+                                        }
+                                        variant="primary-outline"
+                                    >
+                                        Set Active
+                                    </Button>
+
+                                    <Button
+                                        onClick={() =>
+                                            handleMultipleToggle("inactive")
+                                        }
+                                        disabled={
+                                            !selectedIds.length || toggling
+                                        }
+                                        variant="danger-outline"
+                                    >
+                                        Set Inactive
+                                    </Button>
+                                    <Button
+                                        onClick={handleDownload}
+                                        variant="light"
+                                        disabled={!isAnyChecked}
+                                    >
+                                        {saving
+                                            ? "Saving..."
+                                            : "Download Base CSV"}
+                                    </Button>
+                                </div>
+                                {selectedIds.length > 0 ? (
+                                    <p className="text-sm text-primary">
+                                        {selectedIds.length} cards selected
+                                    </p>
+                                ) : null}
+                            </div>
                             <DataTable
                                 key={linkDomain}
                                 data={cards}

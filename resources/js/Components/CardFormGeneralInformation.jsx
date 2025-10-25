@@ -13,6 +13,7 @@ import ColorInput from "./ColorInput";
 import CardFormPhoneNumbers from "./CardFormPhoneNumbers";
 import CardFormEmails from "./CardFormEmails";
 import CardFormAddresses from "./CardFormAddresses";
+import CardFormWebsites from "./CardFormWebsites";
 
 export default function CardFormGeneralInformation() {
     const [open, setOpen] = useState(1);
@@ -330,6 +331,7 @@ export default function CardFormGeneralInformation() {
                     <CardFormPhoneNumbers />
 
                     <CardFormEmails />
+                    <CardFormWebsites />
 
                     <CardFormAddresses />
                 </div>

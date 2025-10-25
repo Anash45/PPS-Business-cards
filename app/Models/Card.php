@@ -90,6 +90,11 @@ class Card extends Model
         return $this->hasMany(CardAddress::class);
     }
 
+    public function cardWebsites()
+    {
+        return $this->hasMany(CardWebsite::class);
+    }
+
     public function cardButtons()
     {
         return $this->hasMany(CardButton::class);

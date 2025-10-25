@@ -12,6 +12,7 @@ class CardEmail extends Model
     protected $fillable = [
         'company_id',
         'card_id',
+        'label',
         'type',
         'email',
         'is_hidden',

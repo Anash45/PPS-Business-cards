@@ -50,7 +50,7 @@ class Company extends Model
     {
         return $this->hasMany(User::class, 'company_id');
     }
-    
+
     /** 🔹 Company cards */
     public function cards()
     {
@@ -72,6 +72,11 @@ class Company extends Model
     public function cardEmails()
     {
         return $this->hasMany(CardEmail::class);
+    }
+
+    public function cardWebsites()
+    {
+        return $this->hasMany(CardWebsite::class);
     }
     public function cardAddresses()
     {

@@ -52,6 +52,9 @@ Route::middleware(['auth', 'company_or_editor'])->group(function () {
         ->name('csv.index');
     Route::post('/cards/bulk-update', [DesignController::class, 'bulkCardUpdate'])
         ->name('csv.import');
+
+    Route::post('/cards/toggle-multiple-status', [CardsController::class, 'toggleMultipleStatus'])
+        ->name('cards.toggleMultipleStatus');
 });
 Route::get('/card/{code}', [DesignController::class, 'cardShow'])
     ->name('card.show');
@@ -77,7 +80,7 @@ Route::middleware(['auth', 'admin_or_company'])->group(function () {
     Route::resource('users', UserController::class);
 });
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 
 Route::get('/', function () {

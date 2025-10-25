@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CardPhoneNumber extends Model
+class CardWebsite extends Model
 {
     use HasFactory;
 
@@ -13,8 +13,7 @@ class CardPhoneNumber extends Model
         'company_id',
         'card_id',
         'label',
-        'type',
-        'phone_number',
+        'url',
         'is_hidden',
     ];
 

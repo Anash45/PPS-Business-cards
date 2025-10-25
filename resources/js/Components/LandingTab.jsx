@@ -57,6 +57,8 @@ export default function LandingTab() {
             formData.append("phone_text_color", cardFormData.phone_text_color);
             formData.append("email_bg_color", cardFormData.email_bg_color);
             formData.append("email_text_color", cardFormData.email_text_color);
+            formData.append("website_bg_color", cardFormData.website_bg_color);
+            formData.append("website_text_color", cardFormData.website_text_color);
             formData.append("address_bg_color", cardFormData.address_bg_color);
             formData.append(
                 "address_text_color",
@@ -128,6 +130,10 @@ export default function LandingTab() {
                     phone.phone_number || ""
                 );
                 formData.append(
+                    `card_phone_numbers[${index}][label]`,
+                    phone.label || ""
+                );
+                formData.append(
                     `card_phone_numbers[${index}][is_hidden]`,
                     phone.is_hidden ? "1" : "0"
                 );
@@ -154,6 +160,10 @@ export default function LandingTab() {
                     email.email || ""
                 );
                 formData.append(
+                    `card_emails[${index}][label]`,
+                    email.label || ""
+                );
+                formData.append(
                     `card_emails[${index}][is_hidden]`,
                     email.is_hidden ? "1" : "0"
                 );
@@ -172,9 +182,39 @@ export default function LandingTab() {
             });
         }
 
+        if (Array.isArray(cardFormData.card_websites)) {
+            cardFormData.card_websites.forEach((website, index) => {
+                formData.append(`card_websites[${index}][id]`, website.id || "");
+                formData.append(
+                    `card_websites[${index}][url]`,
+                    website.url || ""
+                );
+                formData.append(
+                    `card_websites[${index}][label]`,
+                    website.label || ""
+                );
+                formData.append(
+                    `card_websites[${index}][is_hidden]`,
+                    website.is_hidden ? "1" : "0"
+                );
+                formData.append(
+                    `card_websites[${index}][company_id]`,
+                    website.company_id || ""
+                );
+                formData.append(
+                    `card_websites[${index}][card_id]`,
+                    website.card_id || ""
+                );
+            });
+        }
+
         if (Array.isArray(cardFormData.card_addresses)) {
             cardFormData.card_addresses.forEach((addr, index) => {
                 formData.append(`card_addresses[${index}][id]`, addr.id || "");
+                formData.append(
+                    `card_addresses[${index}][label]`,
+                    addr.label || ""
+                );
                 formData.append(
                     `card_addresses[${index}][street]`,
                     addr.street || ""

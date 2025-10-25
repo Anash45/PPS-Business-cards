@@ -27,6 +27,8 @@ export function mapCompanyTemplateData(
         email_text_color: template?.email_text_color ?? "#ffffff",
         address_bg_color: template?.address_bg_color ?? "#87B88C",
         address_text_color: template?.address_text_color ?? "#ffffff",
+        website_bg_color: template?.website_bg_color ?? "#87B88C",
+        website_text_color: template?.website_text_color ?? "#ffffff",
         contact_btn_text: template?.contact_btn_text ?? "Save card",
         vcard_btn_bg_color: template.vcard_btn_bg_color,
         vcard_btn_text_color: template.vcard_btn_text_color,
@@ -73,6 +75,7 @@ export function mapCompanyTemplateData(
                   type: phone.type ?? "Work",
                   company_id: phone.company_id || null,
                   card_id: phone.card_id || null,
+                  label: phone.label || "",
               }))
             : [],
 
@@ -85,6 +88,7 @@ export function mapCompanyTemplateData(
                   type: email.type ?? "Work",
                   company_id: email.company_id || null,
                   card_id: email.card_id || null,
+                  label: email.label || "",
               }))
             : [],
 
@@ -101,6 +105,7 @@ export function mapCompanyTemplateData(
                   type: addr.type ?? "Work",
                   company_id: addr.company_id || null,
                   card_id: addr.card_id || null,
+                  label: addr.label || "",
               }))
             : [],
 
@@ -113,6 +118,18 @@ export function mapCompanyTemplateData(
                   icon: btn.icon || "",
                   company_id: btn.company_id || null,
                   card_id: btn.card_id || null,
+              }))
+            : [],
+
+        // ✅ Include card_websites
+        card_websites: Array.isArray(selectedCompany?.card_websites)
+            ? selectedCompany.card_websites.map((website) => ({
+                  id: website.id || null,
+                  url: website.url || "",
+                  is_hidden: website.is_hidden ?? false,
+                  company_id: website.company_id || null,
+                  card_id: website.card_id || null,
+                  label: website.label || "",
               }))
             : [],
     };

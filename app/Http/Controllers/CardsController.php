@@ -295,4 +295,42 @@ class CardsController extends Controller
         ]);
     }
 
+    public function toggleMultipleStatus(Request $request)
+    {
+        $user = Auth::user();
+
+        // ✅ Validate input
+        $data = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:cards,id',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        // ✅ Normalize company id for any user type
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id   // if user is a company
+            : $user->company_id;           // if user belongs to a company
+
+        // ✅ Fetch cards belonging to this company
+        $cardsQuery = Card::whereIn('id', $data['ids'])
+            ->where('company_id', $companyId);
+
+        // ✅ Additional security: editors can only affect their own company’s cards
+        if (!$user->isCompany() && !$user->isEditor()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        $updatedCount = $cardsQuery->update(['status' => $data['status']]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$updatedCount} card(s) updated successfully.",
+            'updated_count' => $updatedCount,
+        ]);
+    }
+
+
 }
