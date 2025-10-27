@@ -40,7 +40,7 @@ const companyMenuGroups = [
     {
         groupName: "System",
         items: [
-            { name: "Setting", icon: SettingsIcon, route: "profile.edit" },
+            { name: "Setting", icon: SettingsIcon, route: "settings.index" },
             { name: "API Documentation", icon: Book, route: "profile.edit" },
         ],
     },
@@ -58,6 +58,13 @@ const editorMenuGroups = [
                 route: "csv.index",
             },
         ],
+    },
+];
+
+const templateEditorMenuGroups = [
+    {
+        groupName: "Design",
+        items: [{ name: "Template", icon: Palette, route: "design.index" }],
     },
 ];
 
@@ -107,7 +114,9 @@ const SidebarMenu = () => {
             ? companyMenuGroups
             : user?.role == "editor"
             ? editorMenuGroups
-            : null;
+            : user?.role == "template_editor"
+            ? templateEditorMenuGroups
+            : [];
 
     return (
         <ul className="flex flex-col gap-3.5 pb-4 overflow-y-auto">

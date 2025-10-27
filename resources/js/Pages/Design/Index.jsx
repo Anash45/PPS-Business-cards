@@ -46,7 +46,7 @@ export default function Design() {
 
     const [activeTab, setActiveTab] = useState(tabs[0].name);
 
-    console.log("Page Data:", company, selectedCard, pageType, isTemplate);
+    console.log("Design Data:", company, selectedCard, pageType, isTemplate);
 
     return (
         <AuthenticatedLayout>

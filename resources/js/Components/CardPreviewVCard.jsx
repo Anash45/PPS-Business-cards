@@ -1,5 +1,6 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { getDomain } from "@/utils/viteConfig";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
@@ -21,6 +22,8 @@ export default function CardPreviewVCard() {
     const handleSaveVCard = async () => {
         if (!cardFormData) return;
 
+        console.log("cardFormData: ", cardFormData);
+
         const firstName = cardFormData.first_name || "";
         const lastName = cardFormData.last_name || "";
         const companyName = cardFormData.company_name || "";
@@ -33,7 +36,6 @@ FN:${[cardFormData.salutation, firstName, lastName].filter(Boolean).join(" ")}
 ORG:${companyName}
 TITLE:${cardFormData.position || ""}
 ROLE:${cardFormData.department || ""}
-URL;TYPE=WORK:${linkDomain}/card/${cardFormData?.code ?? "XXXXXXX"}
 `;
 
         // ✅ Include profile image as base64 if available
@@ -58,6 +60,19 @@ URL;TYPE=WORK:${linkDomain}/card/${cardFormData?.code ?? "XXXXXXX"}
                 vcard += `PHOTO;VALUE=URI:${linkDomain}${cardFormData.profile_image_url}\n`;
             }
         }
+
+        // ✅ Websites (with optional label)
+        (cardFormData.card_websites || []).forEach((w) => {
+            if (w.url) {
+                if (w.label) {
+                    // Include label/type in vCard
+                    vcard += `URL;TYPE=${w.label.toUpperCase()}:${w.url}\n`;
+                } else {
+                    // No label, just URL
+                    vcard += `URL:${w.url}\n`;
+                }
+            }
+        });
 
         // ✅ Phone numbers (with type + pref)
         (cardFormData.card_phone_numbers || []).forEach((p, index) => {
@@ -115,6 +130,27 @@ URL;TYPE=WORK:${linkDomain}/card/${cardFormData?.code ?? "XXXXXXX"}
         URL.revokeObjectURL(url);
 
         toast.success("vCard downloaded!");
+
+        // ✅ Increment downloads on server
+        try {
+            const response = await axios.post(
+                "/cards/increment-downloads",
+                {
+                    code: cardFormData.code,
+                }
+            );
+
+            if (response.data.success) {
+                console.log("Downloads updated:", response.data.downloads);
+            } else {
+                console.warn(
+                    "Download increment failed:",
+                    response.data.message
+                );
+            }
+        } catch (error) {
+            console.error("Error incrementing downloads:", error);
+        }
     };
 
     // Helper function to convert image to base64
@@ -172,9 +208,18 @@ URL;TYPE=WORK:${linkDomain}/card/${cardFormData?.code ?? "XXXXXXX"}
             <button
                 onClick={handleSaveVCard}
                 style={{
-                    color: cardFormData?.vcard_btn_text_color || cardFormData?.btn_text_color || "#ffffff",
-                    backgroundColor: cardFormData?.vcard_btn_bg_color || cardFormData?.btn_bg_color || "#87B88C",
-                    borderColor: cardFormData?.vcard_btn_bg_color || cardFormData?.btn_bg_color || "#87B88C",
+                    color:
+                        cardFormData?.vcard_btn_text_color ||
+                        cardFormData?.btn_text_color ||
+                        "#ffffff",
+                    backgroundColor:
+                        cardFormData?.vcard_btn_bg_color ||
+                        cardFormData?.btn_bg_color ||
+                        "#87B88C",
+                    borderColor:
+                        cardFormData?.vcard_btn_bg_color ||
+                        cardFormData?.btn_bg_color ||
+                        "#87B88C",
                 }}
                 className="px-4 py-2.5 rounded-[10px] text-sm font-medium leading-tight w-fit"
             >

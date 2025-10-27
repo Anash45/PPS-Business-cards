@@ -100,7 +100,7 @@ export default function CardFormAddresses() {
                                 {/* Type Selector */}
                                 <div className="w-full sm:w-[120px] md:w-[100px] shrink-0">
                                     <SelectInput
-                                        value={item.type || "Work"}
+                                        value={item.type?.toLowerCase() || "work"}
                                         onChange={(e) => {
                                             if (isReadOnly) return;
                                             const newType = e.target
@@ -116,8 +116,8 @@ export default function CardFormAddresses() {
                                         className="w-full block"
                                         placeholder="Type"
                                         options={[
-                                            { value: "Work", label: "Work" },
-                                            { value: "Home", label: "Home" },
+                                            { value: "work", label: "Work" },
+                                            { value: "home", label: "Home" },
                                         ]}
                                     />
                                 </div>

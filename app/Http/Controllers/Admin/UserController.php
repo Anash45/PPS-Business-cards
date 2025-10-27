@@ -83,7 +83,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed',
-            'role' => 'required|in:admin,company,editor,team',
+            'role' => 'required|in:admin,company,editor,template_editor,team',
         ];
 
         // 🔹 Company creation requires company_name
@@ -91,19 +91,19 @@ class UserController extends Controller
             $rules['company_name'] = 'required|string|max:255';
         }
 
-        // 🔹 Team/editor require company_id — only for admins (companies will auto-assign)
-        if (in_array($request->role, ['team', 'editor']) && $authUser->isAdmin()) {
+        // 🔹 Team/editor/template_editor require company_id — only for admins
+        if (in_array($request->role, ['team', 'editor', 'template_editor']) && $authUser->isAdmin()) {
             $rules['company_id'] = 'required|exists:companies,id';
         }
 
         $validated = $request->validate($rules);
 
-        // 🔹 Restrict company users to only create team/editor
+        // 🔹 Restrict company users to only create editor/template_editor/team
         if ($authUser->isCompany()) {
-            if (!in_array($validated['role'], ['editor', 'team'])) {
+            if (!in_array($validated['role'], ['editor', 'template_editor', 'team'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'You are only allowed to create editors or team members.',
+                    'message' => 'You are only allowed to create editors, template editors, or team members.',
                 ], 403);
             }
 
@@ -138,7 +138,7 @@ class UserController extends Controller
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'role' => $validated['role'],
-                'company_id' => in_array($validated['role'], ['team', 'editor'])
+                'company_id' => in_array($validated['role'], ['team', 'editor', 'template_editor'])
                     ? $validated['company_id']
                     : $companyId,
                 'created_by' => $authUser->id,
@@ -172,6 +172,7 @@ class UserController extends Controller
 
 
 
+
     public function edit(User $user)
     {
         $user->load('company'); // eager-load the related company
@@ -187,15 +188,15 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|min:8|confirmed',
-            'role' => 'required|in:admin,company,editor,team',
+            'role' => 'required|in:admin,company,editor,template_editor,team',
         ];
 
-        // Role-specific validations
+        // 🔹 Role-specific validations
         if ($request->role === 'company') {
             $rules['company_name'] = 'required|string|max:255';
         }
 
-        if (in_array($request->role, ['team', 'editor'])) {
+        if (in_array($request->role, ['team', 'editor', 'template_editor'])) {
             $rules['company_id'] = 'required|exists:companies,id';
         }
 
@@ -229,7 +230,7 @@ class UserController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'role' => $validated['role'],
-                'company_id' => in_array($validated['role'], ['team', 'editor'])
+                'company_id' => in_array($validated['role'], ['team', 'editor', 'template_editor'])
                     ? $validated['company_id']
                     : ($validated['role'] === 'company' ? $companyId : null),
             ]);
@@ -263,6 +264,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
 
 
@@ -348,7 +350,7 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'message' => "You are now impersonating {$user->name}",
-            'route' => $user->role == "admin" ? 'dashboard' : ($user->role == "company" || $user->role == "editor" ? "company.cards" : "profile.edit"),
+            'route' => $user->role == "admin" ? 'dashboard' : ($user->role == "company" || $user->role == "editor" ? "company.cards" : ($user->role == "template_editor" ? "design.index" : "profile.edit")),
         ]);
     }
 

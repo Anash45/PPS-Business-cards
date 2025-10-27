@@ -18,4 +18,8 @@ class Plan extends Model
         'description',
         'active',
     ];
+    public function subscription()
+    {
+        return $this->hasMany(Subscription::class);
+    }
 }

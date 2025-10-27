@@ -4,6 +4,7 @@ use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\AdminOrCompanyMiddleware;
 use App\Http\Middleware\CompanyMiddleware;
 use App\Http\Middleware\CompanyOrEditorMiddleware;
+use App\Http\Middleware\CompanyOrTemplateEditor;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'company' => CompanyMiddleware::class,
             'admin_or_company' => AdminOrCompanyMiddleware::class,
             'company_or_editor' => CompanyOrEditorMiddleware::class,
+            'company_or_templateEditor' => CompanyOrTemplateEditor::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

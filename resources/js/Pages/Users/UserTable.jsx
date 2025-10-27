@@ -79,9 +79,10 @@ export default function UserTable({ users, plans, companies, authUser }) {
                 {/* 🧾 Header (hidden on mobile) */}
                 <div className="hidden xl:flex border-b border-gray-200 pb-2 px-4 text-sm font-semibold text-[#263238]">
                     <div className="xl:pr-2 px-2 w-[5%]">ID</div>
-                    <div className="px-2 w-[30%]">Name</div>
+                    <div className="px-2 w-[20%]">Company</div>
+                    <div className="px-2 w-[20%]">Name</div>
                     <div className="px-2 w-[30%]">Email</div>
-                    <div className="px-2 w-[30%]">Role</div>
+                    <div className="px-2 w-[20%]">Role</div>
                     <div className="pl-2 w-[5%] text-right">Actions</div>
                 </div>
 
@@ -100,7 +101,45 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                     {user.id}
                                 </span>
                             </div>
-                            <div className="px-2 xl:w-[30%]">
+                            <div className="px-2 xl:w-[20%]">
+                                <span className="xl:hidden text-xs text-gray-500">
+                                    Company:{" "}
+                                </span>
+                                <span className="text-sm text-gray-800">
+                                    {user.role !== "admin" && (
+                                        <div className="flex gap-1 items-center flex-wrap mt-1">
+                                            <p className="text-sm">
+                                                {user.company?.name
+                                                    .charAt(0)
+                                                    .toUpperCase() +
+                                                    user.company?.name.slice(1)}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {authUser.role === "admin" &&
+                                    user.role == "company" ? (
+                                        <span
+                                            className={`text-xs font-semibold py-1 rounded-full 
+                                    ${
+                                        user?.subscription?.is_active == true
+                                            ? "text-green-700"
+                                            : user?.subscription?.is_active ==
+                                              false
+                                            ? "text-orange-500"
+                                            : "text-red-700"
+                                    }`}
+                                        >
+                                            {user?.subscription?.is_active
+                                                ? "Active"
+                                                : user?.subscription
+                                                      ?.is_active === false
+                                                ? "Expired"
+                                                : "No Subscribed"}
+                                        </span>
+                                    ) : null}
+                                </span>
+                            </div>
+                            <div className="px-2 xl:w-[20%]">
                                 <span className="xl:hidden text-xs text-gray-500">
                                     Name:{" "}
                                 </span>
@@ -116,7 +155,7 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                     {user.email}
                                 </span>
                             </div>
-                            <div className="pl-2 xl:w-[30%]">
+                            <div className="pl-2 xl:w-[20%]">
                                 <span className="xl:hidden text-xs text-gray-500">
                                     Role:{" "}
                                 </span>
@@ -127,6 +166,8 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                             ? "bg-green-100 text-green-700"
                                             : user.role === "company"
                                             ? "bg-blue-100 text-blue-700"
+                                            : user.role === "template_editor"
+                                            ? "bg-orange-100 text-orange-700"
                                             : user.role === "editor"
                                             ? "bg-purple-100 text-purple-700"
                                             : user.role === "team"
@@ -134,41 +175,15 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                             : "bg-gray-100 text-gray-700"
                                     }`}
                                 >
-                                    {user.role.charAt(0).toUpperCase() +
-                                        user.role.slice(1)}
+                                    {user.role
+                                        .split("_")
+                                        .map(
+                                            (word) =>
+                                                word.charAt(0).toUpperCase() +
+                                                word.slice(1)
+                                        )
+                                        .join(" ")}
                                 </span>
-                                {user.role !== "admin" && (
-                                    <div className="flex gap-1 items-center flex-wrap mt-1">
-                                        <p className="text-sm">
-                                            {user.company.name
-                                                .charAt(0)
-                                                .toUpperCase() +
-                                                user.company.name.slice(1)}
-                                        </p>
-
-                                        {authUser.role === "admin" &&
-                                        user.role == "company" ? (
-                                            <span
-                                                className={`text-xs font-semibold px-2 py-1 rounded-full 
-                                    ${
-                                        user?.subscription?.is_active == true
-                                            ? "text-green-700"
-                                            : user?.subscription?.is_active ==
-                                              false
-                                            ? "text-orange-500"
-                                            : "text-red-700"
-                                    }`}
-                                            >
-                                                {user?.subscription?.is_active
-                                                    ? "Active"
-                                                    : user?.subscription
-                                                          ?.is_active === false
-                                                    ? "Expired"
-                                                    : "No Subscribed"}
-                                            </span>
-                                        ) : null}
-                                    </div>
-                                )}
                             </div>
 
                             <div className="mt-3 sm:mt-0 flex gap-3 justify-end sm:w-[5%] flex-wrap">

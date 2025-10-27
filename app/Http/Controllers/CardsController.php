@@ -331,6 +331,34 @@ class CardsController extends Controller
             'updated_count' => $updatedCount,
         ]);
     }
+    public function incrementDownloadsByCode(Request $request)
+    {
+        $code = $request->input('code');
+
+        if (!$code) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Card code is required.',
+            ], 422);
+        }
+
+        $card = Card::where('code', $code)->first();
+
+        if (!$card) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Card not found.',
+            ], 404);
+        }
+
+        $card->increment('downloads');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Download count incremented successfully.',
+            'downloads' => $card->downloads,
+        ]);
+    }
 
 
 }

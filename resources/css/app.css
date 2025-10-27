@@ -130,3 +130,7 @@ body {
 .site-datatable thead th:last-child{
     border-top-right-radius: 12px !important;
 }
+
+.dt-container{
+    overflow-x: auto;
+}

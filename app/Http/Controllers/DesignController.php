@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Card;
 use App\Models\CardView;
 use App\Models\CompanyCardTemplate;
+use App\Traits\LoadsCompanyDesignData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,9 @@ use Log;
 
 class DesignController extends Controller
 {
+
+    use LoadsCompanyDesignData;
+
     /**
      * Display the current company design template.
      */
@@ -19,40 +23,31 @@ class DesignController extends Controller
     {
         $user = Auth::user();
 
-        // Ensure only company or editor can access
-        if (!$user->isCompany() && !$user->isEditor()) {
+        if (!$user->isCompany() && !$user->isTemplateEditor()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Determine correct company reference
-        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+        $company = $this->getCompanyWithDesignData($user);
 
         if (!$company) {
             return response()->json(['message' => 'No company associated with this user'], 404);
         }
 
-        // Load related data
-        $company->load([
-            'cardTemplate',
-            'cardSocialLinks' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
-            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
-            'cardEmails' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
-            'cardWebsites' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
-            'cardAddresses' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
-            'cardButtons' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
-        ]);
+        $isSubscriptionActive = $user->isCompany()
+            ? $user->hasActiveSubscription()
+            : ($user->isTemplateEditor()
+                ? optional(optional($user->company)->owner)->hasActiveSubscription()
+                : false);
 
         return inertia('Design/Index', [
             'pageType' => "template",
             'company' => $company,
             'card' => null,
-            'isSubscriptionActive' => $user->isCompany()
-                ? $user->hasActiveSubscription()
-                : ($user->isEditor()
-                    ? optional(optional($user->company)->owner)->hasActiveSubscription()
-                    : false),
+            'isSubscriptionActive' => $isSubscriptionActive,
         ]);
     }
+
+
 
 
     public function createOrUpdate(Request $request)
@@ -60,7 +55,7 @@ class DesignController extends Controller
         $user = Auth::user();
 
         // ✅ Allow both company and editor
-        if (!$user->isCompany()) {
+        if (!$user->isCompany() && !$user->isTemplateEditor()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized: Only company users can perform this action.',
@@ -636,8 +631,9 @@ class DesignController extends Controller
             for ($i = 1; $i <= 4; $i++) {
                 if (!empty($row["card_email_$i"])) {
                     $emails[] = [
-                        'email' => $row["card_email_$i"],
-                        'type' => $row["card_email_{$i}_type"] ?? null
+                        'label' => $row["card_email_label_{$i}"] ?? null,
+                        'email' => $row["card_email_{$i}"] ?? null,
+                        'type' => $row["card_email_{$i}_type"] ?? null,
                     ];
                 }
             }
@@ -649,13 +645,28 @@ class DesignController extends Controller
             for ($i = 1; $i <= 4; $i++) {
                 if (!empty($row["card_phone_$i"])) {
                     $phones[] = [
-                        'phone_number' => $row["card_phone_$i"],
+                        'label' => $row["card_phone_label_$i"] ?? null,
+                        'phone_number' => $row["card_phone_$i"] ?? null,
                         'type' => $row["card_phone_{$i}_type"] ?? null
                     ];
                 }
             }
             if (!empty($phones))
                 $this->handleCardPhoneNumbers($company, $phones, $card->id);
+
+            
+            // Normalize websites
+            $websites = [];
+            for ($i = 1; $i <= 4; $i++) {
+                if (!empty($row["website_label_$i"])) {
+                    $websites[] = [
+                        'label' => $row["website_label_$i"] ?? null,
+                        'url' => $row["website_url_$i"] ?? null,
+                    ];
+                }
+            }
+            if (!empty($websites))
+                $this->handleCardWebsites($company, $websites, $card->id);
 
             // Normalize addresses
             $addresses = [];
@@ -667,6 +678,7 @@ class DesignController extends Controller
                 ) {
 
                     $addresses[] = [
+                        'label' => $row["address_{$i}_label"] ?? null,
                         'street' => $row["address_{$i}_street"] ?? null,
                         'house_number' => $row["address_{$i}_house_number"] ?? null,
                         'zip' => $row["address_{$i}_zip"] ?? null,

@@ -87,11 +87,13 @@ export default function ManageUserModal({
               // Only allow creating company if this is a new user (not editing)
               ...(!user ? [{ value: "company", label: "Company Owner" }] : []),
               { value: "editor", label: "Editor" },
+              { value: "template_editor", label: "Template Editor" },
               //   { value: "team", label: "Team Member" },
           ]
         : isCompany
         ? [
               { value: "editor", label: "Editor" },
+              { value: "template_editor", label: "Template Editor" },
               //   { value: "team", label: "Team Member" },
           ]
         : [];
@@ -145,6 +147,7 @@ export default function ManageUserModal({
                         {/* ✅ Only Admin can assign company_id (for editors/team) */}
                         {isAdmin &&
                             (data.role === "editor" ||
+                                data.role === "template_editor" ||
                                 data.role === "team") && (
                                 <div className="space-y-1 sm:col-span-2">
                                     <InputLabel

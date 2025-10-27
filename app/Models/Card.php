@@ -22,7 +22,8 @@ class Card extends Model
         'code',
         'company_id',
         'cards_group_id',
-        'status'
+        'status',
+        'downloads',
     ];
 
     public function company()

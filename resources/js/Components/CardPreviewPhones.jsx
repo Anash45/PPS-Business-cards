@@ -4,12 +4,24 @@ import { Phone } from "lucide-react";
 export default function CardPreviewPhones({ cardPhones }) {
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
 
-    // Filter out hidden phones (if isCardReal)
+    // ✅ Filter visible phone numbers
     const visiblePhones = cardPhones?.filter((phone) => !phone.is_hidden);
 
-    return visiblePhones?.length > 0 ? (
-        <div className={`grid gap-2 grid-cols-1`}>
-            {visiblePhones.map((phone, index) => (
+    // ✅ Fallback if no phone numbers exist
+    const displayPhones =
+        visiblePhones && visiblePhones.length > 0
+            ? visiblePhones
+            : [
+                  {
+                      label: "Sample",
+                      phone_number: "+44 1234 567890",
+                      is_hidden: false,
+                  },
+              ];
+
+    return (
+        <div className="grid gap-2 grid-cols-1">
+            {displayPhones.map((phone, index) => (
                 <a
                     key={index}
                     target="_blank"
@@ -29,7 +41,9 @@ export default function CardPreviewPhones({ cardPhones }) {
                 >
                     <span className="shrink-0 text-xl">📞</span>
                     <span>
-                        {phone.label ? <span class="capitalize">{phone.label}: </span> : ""}{" "}
+                        {phone.label ? (
+                            <span className="capitalize">{phone.label}: </span>
+                        ) : null}{" "}
                         {phone.phone_number}
                     </span>
                     {phone.is_hidden && (
@@ -40,5 +54,5 @@ export default function CardPreviewPhones({ cardPhones }) {
                 </a>
             ))}
         </div>
-    ) : null;
+    );
 }

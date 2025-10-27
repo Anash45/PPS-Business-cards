@@ -1,0 +1,1 @@
+import{j as e}from"./app-CeHC17CF.js";function r({title:t}){return e.jsx("div",{className:"flex items-center gap-3 flex-wrap justify-between",children:e.jsx("h5",{className:"font-bold text-xl text-grey900",children:t})})}export{r as default};

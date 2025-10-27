@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CardsController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CsvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DesignController;
@@ -25,14 +26,20 @@ Route::middleware(['auth', 'company'])->group(function () {
         ->name('design.index');
     Route::post('/design/createOrUpdate', [DesignController::class, 'createOrUpdate'])
         ->name('design.createOrUpdate');
+    Route::get('/settings', [CompanyController::class, 'index'])
+        ->name('settings.index');
+    Route::put('/settings/company', [CompanyController::class, 'update'])
+        ->name('settings.company.update');
 
+});
+
+
+Route::middleware(['auth', 'company_or_templateEditor'])->group(function () {
 
     Route::get('/design', [DesignController::class, 'index'])
         ->name('design.index');
     Route::post('/design/createOrUpdate', [DesignController::class, 'createOrUpdate'])
         ->name('design.createOrUpdate');
-
-
 
 });
 
@@ -58,6 +65,7 @@ Route::middleware(['auth', 'company_or_editor'])->group(function () {
 });
 Route::get('/card/{code}', [DesignController::class, 'cardShow'])
     ->name('card.show');
+Route::post('/cards/increment-downloads', [CardsController::class, 'incrementDownloadsByCode']);
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/users/{user}/impersonate', [UserController::class, 'impersonate'])->name('users.impersonate');
@@ -81,6 +89,8 @@ Route::middleware(['auth', 'admin_or_company'])->group(function () {
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard/views', [DashboardController::class, 'getViewsData']);
+Route::get('/dashboard/top-cards', [DashboardController::class, 'getTopCardsByViews']);
 
 
 Route::get('/', function () {
