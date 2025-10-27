@@ -1,14 +1,17 @@
 import { Trash2 } from "lucide-react";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import TextInput from "./TextInput";
+import Picker from "emoji-picker-react";
 import Button from "./Button";
 import ColorInput from "./ColorInput";
 import { toast } from "react-hot-toast";
 import InputLabel from "./InputLabel";
+import { useState } from "react";
 
 export default function CardFormWebsites() {
     const { cardFormData, setCardFormData, handleCardChange, isTemplate } =
         useGlobal(GlobalProvider);
+    const [showPickerIndex, setShowPickerIndex] = useState(null);
 
     // ✅ Add new website
     const addWebsite = () => {
@@ -82,7 +85,8 @@ export default function CardFormWebsites() {
             </div>
 
             {(cardFormData.card_websites || []).map((item, index) => {
-                const isReadOnly = item.company_id && !item.card_id && !isTemplate;
+                const isReadOnly =
+                    item.company_id && !item.card_id && !isTemplate;
 
                 return (
                     <div
@@ -92,7 +96,40 @@ export default function CardFormWebsites() {
                         {/* Row Container */}
                         <div className="flex flex-col md:flex-row md:items-center gap-3">
                             <div className="flex flex-wrap items-center gap-3 grow">
-                                <span className="shrink-0 text-xl">🌐</span>
+                                {/* Emoji Selector */}
+                                <div className="relative">
+                                    <Button
+                                        variant="secondary"
+                                        type="button"
+                                        onClick={() =>
+                                            setShowPickerIndex(
+                                                showPickerIndex === index
+                                                    ? null
+                                                    : index
+                                            )
+                                        }
+                                        className="w-10 h-10 flex items-center justify-center p-0 text-2xl"
+                                    >
+                                        <span className="text-xl">
+                                            {item.icon || <span>🌐</span>}
+                                        </span>
+                                    </Button>
+                                    {showPickerIndex === index && (
+                                        <div className="absolute z-50 mt-2">
+                                            <Picker
+                                                onEmojiClick={(emojiData) => {
+                                                    updateWebsiteField(
+                                                        index,
+                                                        "icon",
+                                                        emojiData.emoji
+                                                    );
+                                                    setShowPickerIndex(null);
+                                                }}
+                                                theme="light"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Label */}
                                 <div className="w-full sm:w-[200px]">

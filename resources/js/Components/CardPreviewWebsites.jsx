@@ -33,11 +33,16 @@ export default function CardPreviewWebsites({ cardWebsites }) {
                     }}
                     className="flex border text-sm leading-tight relative items-center gap-3 justify-start rounded-lg px-4 py-2.5 font-medium preview-btn"
                 >
-                    <span className="shrink-0 text-xl">🌐</span>
+                    <span className="shrink-0 text-xl">
+                        {site.icon ? (
+                            <span>{site.icon}</span>
+                        ) : (
+                            <span>🌐</span>
+                        )}</span>
 
                     <span className="truncate">
                         {site.label ? (
-                            <span className="capitalize">{site.label}</span>
+                            <span>{site.label}</span>
                         ) : (
                             site.url
                         )}

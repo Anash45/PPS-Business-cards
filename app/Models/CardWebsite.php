@@ -12,6 +12,7 @@ class CardWebsite extends Model
     protected $fillable = [
         'company_id',
         'card_id',
+        'icon',
         'label',
         'url',
         'is_hidden',

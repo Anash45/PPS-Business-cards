@@ -42,7 +42,7 @@ export default function CardPreviewPhones({ cardPhones }) {
                     <span className="shrink-0 text-xl">📞</span>
                     <span>
                         {phone.label ? (
-                            <span className="capitalize">{phone.label}: </span>
+                            <span>{phone.label}: </span>
                         ) : null}{" "}
                         {phone.phone_number}
                     </span>

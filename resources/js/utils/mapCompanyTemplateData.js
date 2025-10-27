@@ -30,8 +30,8 @@ export function mapCompanyTemplateData(
         website_bg_color: template?.website_bg_color ?? "#87B88C",
         website_text_color: template?.website_text_color ?? "#ffffff",
         contact_btn_text: template?.contact_btn_text ?? "Save card",
-        vcard_btn_bg_color: template.vcard_btn_bg_color,
-        vcard_btn_text_color: template.vcard_btn_text_color,
+        vcard_btn_bg_color: template?.vcard_btn_bg_color ?? "#87B88C",
+        vcard_btn_text_color: template?.vcard_btn_text_color ?? "#ffffff",
         banner_image: null,
         banner_image_url: template?.banner_image
             ? `/storage/${template.banner_image}`
@@ -126,6 +126,7 @@ export function mapCompanyTemplateData(
             ? selectedCompany.card_websites.map((website) => ({
                   id: website.id || null,
                   url: website.url || "",
+                  icon: website.icon || null,
                   is_hidden: website.is_hidden ?? false,
                   company_id: website.company_id || null,
                   card_id: website.card_id || null,

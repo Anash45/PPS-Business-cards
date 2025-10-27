@@ -116,6 +116,7 @@ class DesignController extends Controller
 
             // Websites
             'card_websites' => 'nullable|array',
+            'card_websites.*.icon' => 'nullable|string|max:50',
             'card_websites.*.id' => 'nullable|integer',
             'card_websites.*.label' => 'required_with:card_websites|string|max:255',
             'card_websites.*.url' => 'required_with:card_websites|url|max:255',
@@ -400,6 +401,7 @@ class DesignController extends Controller
 
             // Websites
             'card_websites' => 'nullable|array',
+            'card_websites.*.icon' => 'nullable|string|max:50',
             'card_websites.*.id' => 'nullable|integer',
             'card_websites.*.label' => 'required_with:card_websites|string|max:255',
             'card_websites.*.url' => 'required_with:card_websites|url|max:255',
@@ -654,7 +656,7 @@ class DesignController extends Controller
             if (!empty($phones))
                 $this->handleCardPhoneNumbers($company, $phones, $card->id);
 
-            
+
             // Normalize websites
             $websites = [];
             for ($i = 1; $i <= 4; $i++) {
@@ -874,6 +876,7 @@ class DesignController extends Controller
                 if ($existingWebsite) {
                     $existingWebsite->update([
                         'label' => $websiteData['label'] ?? '',
+                        'icon' => $websiteData['icon'] ?? '',
                         'url' => $websiteData['url'] ?? '',
                         'is_hidden' => $websiteData['is_hidden'] ?? false,
                     ]);
@@ -881,6 +884,7 @@ class DesignController extends Controller
             } else {
                 $company->cardWebsites()->create([
                     'label' => $websiteData['label'] ?? '',
+                    'icon' => $websiteData['icon'] ?? '',
                     'url' => $websiteData['url'] ?? '',
                     'is_hidden' => $websiteData['is_hidden'] ?? false,
                     'company_id' => $company->id,

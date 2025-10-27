@@ -139,9 +139,11 @@ export default function CardFormButtons() {
                                             }
                                             className="w-10 h-10 flex items-center justify-center p-0 text-2xl"
                                         >
-                                            {item.icon || (
-                                                <Smile className="h-8 w-8 shrink-0" />
-                                            )}
+                                            <span className="text-xl">
+                                                {item.icon || (
+                                                    <Smile className="h-8 w-8 shrink-0" />
+                                                )}
+                                            </span>
                                         </Button>
                                         {showPickerIndex === index && (
                                             <div className="absolute z-50 mt-2">
@@ -209,10 +211,7 @@ export default function CardFormButtons() {
                         </div>
                     ))}
                     <div className="flex items-center">
-                        <Button
-                            variant="primary-outline"
-                            onClick={addButton}
-                        >
+                        <Button variant="primary-outline" onClick={addButton}>
                             Add New Button
                         </Button>
                     </div>

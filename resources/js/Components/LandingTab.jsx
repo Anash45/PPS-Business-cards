@@ -194,6 +194,10 @@ export default function LandingTab() {
                     website.label || ""
                 );
                 formData.append(
+                    `card_websites[${index}][icon]`,
+                    website.icon || ""
+                );
+                formData.append(
                     `card_websites[${index}][is_hidden]`,
                     website.is_hidden ? "1" : "0"
                 );

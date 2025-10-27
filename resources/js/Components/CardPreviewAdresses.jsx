@@ -31,7 +31,7 @@ export default function CardPreviewAdresses({ cardAddresses }) {
                         <span className="shrink-0 text-xl">📍</span>
                         <span>
                             {address.label
-                                ? <span class="capitalize">{address.label}: </span>
+                                ? <span>{address.label}: </span>
                                 : ""}{" "}
                             {[address.street, address.house]
                                 .filter(Boolean)

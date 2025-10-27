@@ -40,7 +40,7 @@ export default function CardPreviewEmails({ cardEmails }) {
                     <span className="shrink-0 text-xl">✉️</span>
                     <span>
                         {email.label ? (
-                            <span className="capitalize">{email.label}: </span>
+                            <span>{email.label}: </span>
                         ) : null}
                         {email.email}
                     </span>
