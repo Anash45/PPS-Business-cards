@@ -88,9 +88,13 @@ Route::middleware(['auth', 'admin_or_company'])->group(function () {
     Route::resource('users', UserController::class);
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard/views', [DashboardController::class, 'getViewsData']);
-Route::get('/dashboard/top-cards', [DashboardController::class, 'getTopCardsByViews']);
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/views', [DashboardController::class, 'getViewsData']);
+    Route::get('/dashboard/top-cards', [DashboardController::class, 'getTopCardsByViews']);
+});
+
+
 
 
 Route::get('/', function () {
