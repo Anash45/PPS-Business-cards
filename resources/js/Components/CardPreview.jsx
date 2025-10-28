@@ -6,9 +6,10 @@ import CardPreviewAdresses from "./CardPreviewAdresses";
 import CardPreviewButtons from "./CardPreviewButtons";
 import CardPreviewVCard from "./CardPreviewVCard";
 import CardPreviewWebsites from "./CardPreviewWebsites";
+import CardPreviewSections from "./CardPreviewSections";
 
 export default function CardPreview({ isReal = false }) {
-    const { cardFormData, setCardFormData } = useGlobal(GlobalProvider);
+    const { cardFormData } = useGlobal(GlobalProvider);
     return (
         <div
             className={`border ${
@@ -110,23 +111,7 @@ export default function CardPreview({ isReal = false }) {
                 <CardPreviewSocials
                     cardSocialsLinks={cardFormData?.card_social_links ?? []}
                 />
-                <div className="space-y-2">
-                    <CardPreviewPhones
-                        cardPhones={cardFormData?.card_phone_numbers ?? []}
-                    />
-                    <CardPreviewEmails
-                        cardEmails={cardFormData?.card_emails ?? []}
-                    />
-                    <CardPreviewWebsites
-                        cardWebsites={cardFormData?.card_websites ?? []}
-                    />
-                    <CardPreviewAdresses
-                        cardAddresses={cardFormData?.card_addresses ?? []}
-                    />
-                    <CardPreviewButtons
-                        cardButtons={cardFormData?.card_buttons ?? []}
-                    />
-                </div>
+                <CardPreviewSections />
             </div>
         </div>
     );

@@ -94,7 +94,7 @@ class DesignController extends Controller
 
             // Social Media Links
             'card_social_links' => 'nullable|array',
-            'card_social_links.*.icon' => 'required_with:card_social_links|string|max:100',
+            'card_social_links.*.icon' => 'nullable|string|max:100',
             'card_social_links.*.url' => 'required_with:card_social_links|url|max:255',
             'card_social_links.*.id' => 'nullable|integer',
 
@@ -379,7 +379,7 @@ class DesignController extends Controller
 
             // Social Media Links
             'card_social_links' => 'nullable|array',
-            'card_social_links.*.icon' => 'required_with:card_social_links|string|max:100',
+            'card_social_links.*.icon' => 'nullable|string|max:100',
             'card_social_links.*.url' => 'required_with:card_social_links|url|max:255',
             'card_social_links.*.id' => 'nullable|integer',
 

@@ -67,11 +67,11 @@ export default function CardFormEmails() {
     };
 
     return (
-        <div className="p-3 rounded-lg border border-[#EAECF0] space-y-3">
-            <div className="flex flex-wrap gap-4 justify-between items-center">
+        <div className="p-3 rounded-lg border border-[#EAECF0] space-y-3 bg-white">
+            <div className="flex flex-wrap gap-4 justify-between items-end">
                 <InputLabel
                     value={"Email Addresses"}
-                    className="text-sm text-black font-medium"
+                    className="text-lg text-black font-semibold"
                 />
                 <Button
                     variant="primary-outline"
@@ -197,7 +197,7 @@ export default function CardFormEmails() {
             })}
 
             {/* Second Row: Color Pickers */}
-            {isTemplate && cardFormData.card_emails.length > 0 ? (
+            {isTemplate ? (
                 <div className="grid sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                         <InputLabel

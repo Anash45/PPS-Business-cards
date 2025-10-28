@@ -14,6 +14,7 @@ export function mapCompanyTemplateData(
     const template = selectedCompany?.card_template;
 
     return {
+        company_id: template?.company_id ?? null,
         name_text_color: template?.name_text_color ?? "#000000",
         company_name: template?.company_name ?? selectedCompany?.name ?? "",
         contact_btn_text: template?.contact_btn_text ?? "Save contact details",

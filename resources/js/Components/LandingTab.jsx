@@ -10,6 +10,11 @@ import CardFormSocialLinks from "./CardFormSocialLinks";
 import CardPreview from "./CardPreview";
 import CardFormProfile from "./CardFormProfile";
 import CardFormButtons from "./CardFormButtons";
+import CardFormPhoneNumbers from "./CardFormPhoneNumbers";
+import CardFormEmails from "./CardFormEmails";
+import CardFormWebsites from "./CardFormWebsites";
+import CardFormAddresses from "./CardFormAddresses";
+import CardFormSections from "./CardFormSections";
 
 export default function LandingTab() {
     const { company, selectedCard = null } = usePage().props;
@@ -51,14 +56,23 @@ export default function LandingTab() {
             formData.append("btn_bg_color", cardFormData.btn_bg_color);
             formData.append("btn_text_color", cardFormData.btn_text_color);
             formData.append("contact_btn_text", cardFormData.contact_btn_text);
-            formData.append("vcard_btn_text_color", cardFormData.vcard_btn_text_color ?? "");
-            formData.append("vcard_btn_bg_color", cardFormData.vcard_btn_bg_color ?? "");
+            formData.append(
+                "vcard_btn_text_color",
+                cardFormData.vcard_btn_text_color ?? ""
+            );
+            formData.append(
+                "vcard_btn_bg_color",
+                cardFormData.vcard_btn_bg_color ?? ""
+            );
             formData.append("phone_bg_color", cardFormData.phone_bg_color);
             formData.append("phone_text_color", cardFormData.phone_text_color);
             formData.append("email_bg_color", cardFormData.email_bg_color);
             formData.append("email_text_color", cardFormData.email_text_color);
             formData.append("website_bg_color", cardFormData.website_bg_color);
-            formData.append("website_text_color", cardFormData.website_text_color);
+            formData.append(
+                "website_text_color",
+                cardFormData.website_text_color
+            );
             formData.append("address_bg_color", cardFormData.address_bg_color);
             formData.append(
                 "address_text_color",
@@ -184,7 +198,10 @@ export default function LandingTab() {
 
         if (Array.isArray(cardFormData.card_websites)) {
             cardFormData.card_websites.forEach((website, index) => {
-                formData.append(`card_websites[${index}][id]`, website.id || "");
+                formData.append(
+                    `card_websites[${index}][id]`,
+                    website.id || ""
+                );
                 formData.append(
                     `card_websites[${index}][url]`,
                     website.url || ""
@@ -382,7 +399,9 @@ export default function LandingTab() {
                 <CardFormProfile />
                 <CardFormGeneralInformation />
                 <CardFormSocialLinks />
-                <CardFormButtons />
+
+                <CardFormSections />
+                
                 <div className="flex flex-wrap gap-5 justify-end">
                     <Button
                         className="px-8"
@@ -390,7 +409,11 @@ export default function LandingTab() {
                         onClick={handleSaveTemplate}
                         disabled={isSaving}
                     >
-                        {isSaving ? "Saving..." : selectedCard ? "Save Card" : "Save Template"}
+                        {isSaving
+                            ? "Saving..."
+                            : selectedCard
+                            ? "Save Card"
+                            : "Save Template"}
                     </Button>
                 </div>
             </div>

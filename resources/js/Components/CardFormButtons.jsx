@@ -119,7 +119,7 @@ export default function CardFormButtons() {
                 </div>
             </AccordionHeader>
             <AccordionBody className="overflow-visible p-0">
-                <div className="p-3 rounded-lg border border-[#EAECF0] space-y-3">
+                <div className="p-3 rounded-lg border border-[#EAECF0] space-y-3 bg-white">
                     {(cardFormData.card_buttons || []).map((item, index) => (
                         <div key={index} className="space-y-2 relative">
                             {/* First Row: Emoji Picker + Text + Link + Delete */}

@@ -5,10 +5,20 @@ import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createRoot } from "react-dom/client";
 import { Toaster } from "react-hot-toast";
-import { GlobalProvider } from "./context/GlobalProvider";
+import { GlobalProvider, useGlobal } from "./context/GlobalProvider";
 import { ModalProvider } from "./context/ModalProvider";
+import Loader from "./Components/Loader";
 
 const appName = import.meta.env.VITE_APP_NAME || "Laravel";
+function GlobalWrapper({ children }) {
+    const { isPageLoading } = useGlobal();
+    return (
+        <>
+            {children}
+            <Loader show={isPageLoading} />
+        </>
+    );
+}
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -23,8 +33,10 @@ createInertiaApp({
         root.render(
             <GlobalProvider>
                 <ModalProvider>
-                    <App {...props} />
-                    <Toaster position="top-center" reverseOrder={false} />
+                    <GlobalWrapper>
+                        <App {...props} />
+                        <Toaster position="top-center" reverseOrder={false} />
+                    </GlobalWrapper>
                 </ModalProvider>
             </GlobalProvider>
         );

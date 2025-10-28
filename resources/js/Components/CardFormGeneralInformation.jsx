@@ -10,10 +10,6 @@ import TextInput from "./TextInput";
 import SelectInput from "./SelectInput";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import ColorInput from "./ColorInput";
-import CardFormPhoneNumbers from "./CardFormPhoneNumbers";
-import CardFormEmails from "./CardFormEmails";
-import CardFormAddresses from "./CardFormAddresses";
-import CardFormWebsites from "./CardFormWebsites";
 
 export default function CardFormGeneralInformation() {
     const [open, setOpen] = useState(1);
@@ -328,12 +324,7 @@ export default function CardFormGeneralInformation() {
                         ) : null}
                     </div>
 
-                    <CardFormPhoneNumbers />
-
-                    <CardFormEmails />
-                    <CardFormWebsites />
-
-                    <CardFormAddresses />
+                    
                 </div>
             </AccordionBody>
         </Accordion>

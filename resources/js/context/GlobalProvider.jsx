@@ -13,9 +13,11 @@ export const GlobalProvider = ({ children }) => {
     const [csvImages, setCsvImages] = useState([]);
     const [loadingButton, setLoadingButton] = useState(null);
     const [loadingImport, setLoadingImport] = useState(null);
+    const [isPageLoading, setIsPageLoading] = useState(false);
     const [mapping, setMapping] = useState({});
     const [warnings, setWarnings] = useState([]);
     const [errors, setErrors] = useState([]);
+    const [cardSectionsOrder, setCardSectionsOrder] = useState([]);
 
     // 🔹 Card form state
     const [cardFormData, setCardFormData] = useState({
@@ -101,6 +103,10 @@ export const GlobalProvider = ({ children }) => {
                 setWarnings,
                 errors,
                 setErrors,
+                isPageLoading,
+                setIsPageLoading,
+                cardSectionsOrder,
+                setCardSectionsOrder,
             }}
         >
             {children}
@@ -140,6 +146,10 @@ export const useGlobal = () => {
             setLoadingButton: () => {},
             mapping: {},
             setMapping: () => {},
+            isPageLoading: null,
+            setIsPageLoading: () => {},
+            cardSectionsOrder: null,
+            setCardSectionsOrder: () => {},
         };
     }
     return context;

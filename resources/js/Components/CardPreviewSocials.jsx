@@ -11,13 +11,15 @@ export default function CardPreviewSocials({ cardSocialsLinks }) {
                             rel="noopener noreferrer"
                             className="text-gray-500 hover:text-gray-700 transition"
                         >
-                            <img
-                                src={`/assets/images/icons/${link.icon
-                                    .replace(/^Fa/, "")
-                                    .toLowerCase()}.png`}
-                                alt={link.icon}
-                                className="h-7"
-                            />
+                            {link.icon ? (
+                                <img
+                                    src={`/assets/images/icons/${link.icon
+                                        .replace(/^Fa/, "")
+                                        .toLowerCase()}.png`}
+                                    alt={link.icon}
+                                    className="h-7"
+                                />
+                            ) : null}
                         </a>
                     )
             )}

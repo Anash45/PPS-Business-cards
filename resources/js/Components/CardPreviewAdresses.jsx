@@ -30,18 +30,23 @@ export default function CardPreviewAdresses({ cardAddresses }) {
                     >
                         <span className="shrink-0 text-xl">📍</span>
                         <span>
-                            {address.label
-                                ? <span>{address.label}: </span>
-                                : ""}{" "}
-                            {[address.street, address.house]
-                                .filter(Boolean)
-                                .join(" ")}
-                            {", "}
-                            {[address.zip, address.city]
-                                .filter(Boolean)
-                                .join(" ")}
-                            {", "}
-                            {address.country || ""}
+                            {address.label ? (
+                                <span>{address.label}</span>
+                            ) : (
+                                <span>
+                                    {[address.street, address.house]
+                                        .filter(Boolean)
+                                        .join(" ")}
+                                    {address.street || address.house
+                                        ? ", "
+                                        : ""}
+                                    {[address.zip, address.city]
+                                        .filter(Boolean)
+                                        .join(" ")}
+                                    {address.zip || address.city ? ", " : ""}
+                                    {address.country || ""}
+                                </span>
+                            )}
                         </span>
 
                         {address.is_hidden ? (

@@ -253,44 +253,30 @@ export default function Company() {
     const handleDownload = async () => {
         if (!cards?.length || !selectedIds?.length) return;
 
-        console.log(cards, selectedIds);
         setSaving(true);
 
         try {
-            // Extract headers from definitions
-            const headers = csvFieldDefinitions.map((f) => f.name);
-
-            // ✅ Filter cards by selected IDs
-            const filteredCards = cards.filter((card) =>
-                selectedIds.includes(card.id)
+            const response = await axios.post(
+                "/cards/download",
+                {
+                    selected_ids: selectedIds,
+                    csv_fields: csvFieldDefinitions.map((f) => f.name),
+                },
+                { responseType: "blob" } // Important: expect binary data
             );
 
-            // Prepare CSV rows
-            const rows = filteredCards.map((card) => {
-                const row = headers.map((header, index) =>
-                    index === 0 ? card.code || "" : ""
-                );
-                return row;
-            });
-
-            // Build CSV string
-            const csvContent = [
-                headers.join(","), // header row
-                ...rows.map((r) => r.map((v) => `"${v}"`).join(",")), // data rows
-            ].join("\n");
-
-            // Create downloadable file
-            const blob = new Blob([csvContent], {
+            // ✅ Create a downloadable link
+            const blob = new Blob([response.data], {
                 type: "text/csv;charset=utf-8;",
             });
-            const url = URL.createObjectURL(blob);
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
             link.download = "base_sample.csv";
             link.click();
-            URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(url);
         } catch (error) {
-            console.error("CSV generation failed:", error);
+            console.error("CSV download failed:", error);
         } finally {
             setSaving(false);
         }

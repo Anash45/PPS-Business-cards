@@ -1,4 +1,5 @@
 import { Dropdown, DropdownItem } from "@/Components/DropdownUi";
+import { useGlobal } from "@/context/GlobalProvider";
 import { useModal } from "@/context/ModalProvider";
 import { Link, router } from "@inertiajs/react";
 import { Edit, Trash2, Search, VenetianMask, CreditCard } from "lucide-react";
@@ -8,6 +9,7 @@ import toast from "react-hot-toast";
 export default function UserTable({ users, plans, companies, authUser }) {
     const [search, setSearch] = useState("");
     const { openModal } = useModal();
+    const { setIsPageLoading } = useGlobal();
 
     // 🔍 Debounced search
     useEffect(() => {
@@ -40,6 +42,7 @@ export default function UserTable({ users, plans, companies, authUser }) {
     };
 
     const handleImpersonate = async (userId) => {
+        setIsPageLoading(true);
         try {
             const res = await axios.post(route("users.impersonate", userId));
 
@@ -49,10 +52,13 @@ export default function UserTable({ users, plans, companies, authUser }) {
                 setTimeout(() => {
                     window.location.href = route(res.data.route);
                 }, 1000);
+                setIsPageLoading(false);
             } else {
+                setIsPageLoading(false);
                 toast.error(res.data.message || "Failed to impersonate");
             }
         } catch (err) {
+            setIsPageLoading(false);
             toast.error(err.response?.data?.message || "An error occurred");
         }
     };

@@ -92,6 +92,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/views', [DashboardController::class, 'getViewsData']);
     Route::get('/dashboard/top-cards', [DashboardController::class, 'getTopCardsByViews']);
+
+    // routes/web.php
+    Route::get('/company/{company}/card-sections-order', [CompanyController::class, 'getCardSectionsOrder']);
+    Route::post('/company/{company}/card-sections-order', [CompanyController::class, 'saveCardSectionsOrder']);
+
+    Route::post('/cards/download', [CardsController::class, 'downloadCsv'])->name('cards.download');
+
 });
 
 

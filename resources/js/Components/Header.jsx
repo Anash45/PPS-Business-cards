@@ -7,7 +7,7 @@ import { useGlobal } from "@/context/GlobalProvider";
 
 export default function Header() {
     const { props } = usePage();
-    const { headerTitle, headerText } = useGlobal();
+    const { headerTitle, headerText, setIsPageLoading } = useGlobal();
 
     // Reactive state
     const [isImpersonating, setIsImpersonating] = useState(
@@ -20,17 +20,21 @@ export default function Header() {
     }, [props?.auth?.user?.impersonated_by]);
 
     const stopImpersonate = async () => {
+        setIsPageLoading(true);
         try {
             await axios.post(route("users.stopImpersonate"));
             toast.success("Stopped impersonating.");
 
+            setIsPageLoading(false);
             setTimeout(() => {
                 // Refresh the page to reload auth and props
                 window.location = route("users.index");
             }, 1000);
         } catch (err) {
+            setIsPageLoading(false);
             toast.error("Failed to stop impersonation.");
         }
+        setIsPageLoading(false);
     };
     // console.log(props?.auth, isImpersonating);
 

@@ -69,11 +69,11 @@ export default function CardFormAddresses() {
     };
 
     return (
-        <div className="p-3 rounded-lg border border-[#EAECF0] space-y-3">
-            <div className="flex flex-wrap gap-4 justify-between items-center">
+        <div className="p-3 rounded-lg border border-[#EAECF0] space-y-3 bg-white">
+            <div className="flex flex-wrap gap-4 justify-between items-end">
                 <InputLabel
                     value={"Addresses"}
-                    className="text-sm text-black font-medium"
+                    className="text-lg text-black font-semibold"
                 />
                 <Button
                     variant="primary-outline"
@@ -85,7 +85,8 @@ export default function CardFormAddresses() {
             </div>
 
             {(cardFormData.card_addresses || []).map((item, index) => {
-                const isReadOnly = item.company_id && !isTemplate && item.card_id == null;
+                const isReadOnly =
+                    item.company_id && !isTemplate && item.card_id == null;
 
                 return (
                     <div
@@ -100,7 +101,9 @@ export default function CardFormAddresses() {
                                 {/* Type Selector */}
                                 <div className="w-full sm:w-[120px] md:w-[100px] shrink-0">
                                     <SelectInput
-                                        value={item.type?.toLowerCase() || "work"}
+                                        value={
+                                            item.type?.toLowerCase() || "work"
+                                        }
                                         onChange={(e) => {
                                             if (isReadOnly) return;
                                             const newType = e.target
@@ -265,7 +268,7 @@ export default function CardFormAddresses() {
             })}
 
             {/* Second Row: Color Pickers */}
-            {isTemplate && cardFormData.card_addresses.length > 0 ? (
+            {isTemplate ? (
                 <div className="grid sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                         <InputLabel

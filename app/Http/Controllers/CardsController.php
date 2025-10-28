@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CardsController extends Controller
 {
@@ -359,6 +360,127 @@ class CardsController extends Controller
             'downloads' => $card->downloads,
         ]);
     }
+
+    public function downloadCsv(Request $request): StreamedResponse
+    {
+        $validated = $request->validate([
+            'selected_ids' => 'required|array',
+            'selected_ids.*' => 'integer|exists:cards,id',
+            'csv_fields' => 'required|array',
+            'csv_fields.*' => 'string',
+        ]);
+
+        $headers = $validated['csv_fields'];
+        $filename = 'base_sample.csv';
+
+        // Fetch cards with all relations
+        $cards = Card::whereIn('id', $validated['selected_ids'])
+            ->with([
+                'cardWebsites',
+                'cardEmails',
+                'cardPhoneNumbers',
+                'cardButtons',
+                'cardSocialLinks',
+                'cardAddresses',
+            ])
+            ->get();
+
+        // Direct card fields
+        $cardTableFields = [
+            'card_code' => 'code',
+            'salutation' => 'salutation',
+            'title' => 'title',
+            'first_name' => 'first_name',
+            'last_name' => 'last_name',
+            'degree' => 'degree',
+            'position' => 'position',
+            'department' => 'department',
+        ];
+
+        return response()->streamDownload(function () use ($cards, $headers, $cardTableFields) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $headers);
+
+            foreach ($cards as $card) {
+                $row = [];
+
+                $websites = $card->cardWebsites->take(4)->values();
+                $emails = $card->cardEmails->take(4)->values();
+                $phones = $card->cardPhoneNumbers->take(4)->values();
+                $buttons = $card->cardButtons->take(4)->values();
+                $socials = $card->cardSocialLinks->take(5)->values();
+                $addresses = $card->cardAddresses->take(4)->values();
+
+                foreach ($headers as $field) {
+                    // 🔹 Direct fields on cards table
+                    if (isset($cardTableFields[$field])) {
+                        $row[] = $card->{$cardTableFields[$field]} ?? '';
+
+                        // 🔹 Websites
+                    } elseif (preg_match('/website_url_(\d+)/', $field, $m)) {
+                        $row[] = $websites[$m[1] - 1]->url ?? '';
+                    } elseif (preg_match('/website_label_(\d+)/', $field, $m)) {
+                        $row[] = $websites[$m[1] - 1]->label ?? '';
+
+                        // 🔹 Emails
+                    } elseif (preg_match('/card_email_(\d+)$/', $field, $m)) {
+                        $row[] = $emails[$m[1] - 1]->email ?? '';
+                    } elseif (preg_match('/card_email_label_(\d+)/', $field, $m)) {
+                        $row[] = $emails[$m[1] - 1]->label ?? '';
+                    } elseif (preg_match('/card_email_(\d+)_type/', $field, $m)) {
+                        $row[] = $emails[$m[1] - 1]->type ?? '';
+
+                        // 🔹 Phones
+                    } elseif (preg_match('/card_phone_(\d+)$/', $field, $m)) {
+                        $row[] = $phones[$m[1] - 1]->phone_number ?? '';
+                    } elseif (preg_match('/card_phone_label_(\d+)/', $field, $m)) {
+                        $row[] = $phones[$m[1] - 1]->label ?? '';
+                    } elseif (preg_match('/card_phone_(\d+)_type/', $field, $m)) {
+                        $row[] = $phones[$m[1] - 1]->type ?? '';
+
+                        // 🔹 Buttons
+                    } elseif (preg_match('/card_button_text_(\d+)/', $field, $m)) {
+                        $row[] = $buttons[$m[1] - 1]->button_text ?? '';
+                    } elseif (preg_match('/card_button_link_(\d+)/', $field, $m)) {
+                        $row[] = $buttons[$m[1] - 1]->button_link ?? '';
+
+                        // 🔹 Social Links
+                    } elseif (preg_match('/social_link_(\d+)/', $field, $m)) {
+                        $row[] = $socials[$m[1] - 1]->url ?? '';
+
+                        // 🔹 Addresses
+                    } elseif (preg_match('/address_(\d+)_label/', $field, $m)) {
+                        $row[] = $addresses[$m[1] - 1]->label ?? '';
+                    } elseif (preg_match('/address_(\d+)_type/', $field, $m)) {
+                        $row[] = $addresses[$m[1] - 1]->type ?? '';
+                    } elseif (preg_match('/address_(\d+)_street/', $field, $m)) {
+                        $row[] = $addresses[$m[1] - 1]->street ?? '';
+                    } elseif (preg_match('/address_(\d+)_house_number/', $field, $m)) {
+                        $row[] = $addresses[$m[1] - 1]->house_number ?? '';
+                    } elseif (preg_match('/address_(\d+)_zip/', $field, $m)) {
+                        $row[] = $addresses[$m[1] - 1]->zip ?? '';
+                    } elseif (preg_match('/address_(\d+)_city/', $field, $m)) {
+                        $row[] = $addresses[$m[1] - 1]->city ?? '';
+                    } elseif (preg_match('/address_(\d+)_country/', $field, $m)) {
+                        $row[] = $addresses[$m[1] - 1]->country ?? '';
+
+                        // 🔹 Fallback empty cell
+                    } else {
+                        $row[] = '';
+                    }
+                }
+
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Cache-Control' => 'no-store, no-cache',
+        ]);
+    }
+
+
 
 
 }

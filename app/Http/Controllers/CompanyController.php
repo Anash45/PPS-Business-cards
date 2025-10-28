@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CompanyCardOrder;
 use App\Models\Plan;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
@@ -76,6 +77,25 @@ class CompanyController extends Controller
         ]);
     }
 
+    public function getCardSectionsOrder($companyId)
+    {
+        $order = CompanyCardOrder::where('company_id', $companyId)->first();
+        return response()->json(['order' => $order?->order]);
+    }
+
+    public function saveCardSectionsOrder(Request $request, $companyId)
+    {
+        $request->validate([
+            'order' => 'required|array',
+        ]);
+
+        CompanyCardOrder::updateOrCreate(
+            ['company_id' => $companyId],
+            ['order' => $request->order]
+        );
+
+        return response()->json(['success' => true]);
+    }
 
 
 }
