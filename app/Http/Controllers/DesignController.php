@@ -167,29 +167,46 @@ class DesignController extends Controller
         $template->company_id = $company->id;
         $template->save();
 
-        // ✅ Handle related models
+        // ✅ Social Links
         if ($request->has('card_social_links')) {
             $this->handleCardSocialLinks($company, $request->card_social_links);
+        } else {
+            $company->cardSocialLinks()->whereNull('card_id')->delete();
         }
 
+        // ✅ Phone Numbers
         if ($request->has('card_phone_numbers')) {
             $this->handleCardPhoneNumbers($company, $request->card_phone_numbers);
+        } else {
+            $company->cardPhoneNumbers()->whereNull('card_id')->delete();
         }
 
+        // ✅ Emails
         if ($request->has('card_emails')) {
             $this->handleCardEmails($company, $request->card_emails);
+        } else {
+            $company->cardEmails()->whereNull('card_id')->delete();
         }
 
+        // ✅ Buttons
         if ($request->has('card_buttons')) {
             $this->handleCardButtons($company, $request->card_buttons);
+        } else {
+            $company->cardButtons()->whereNull('card_id')->delete();
         }
 
+        // ✅ Addresses
         if ($request->has('card_addresses')) {
             $this->handleCardAddresses($company, incomingAddresses: $request->card_addresses);
+        } else {
+            $company->cardAddresses()->whereNull('card_id')->delete();
         }
 
+        // ✅ Websites
         if ($request->has('card_websites')) {
             $this->handleCardWebsites($company, $request->card_websites);
+        } else {
+            $company->cardWebsites()->whereNull('card_id')->delete();
         }
 
         // ✅ Reload updated company data
@@ -453,47 +470,69 @@ class DesignController extends Controller
         $card->save();
 
         /**
-         * 🔹 Handle Card Social Links (separate function)
+         * 🔹 Handle Card Social Links
          */
         if ($request->has('card_social_links')) {
             $this->handleCardSocialLinks($company, $request->card_social_links, $card->id);
+        } else {
+            $company->cardSocialLinks()
+                ->where('card_id', $card->id)
+                ->delete();
         }
 
-
         /**
-         * 🔹 Handle Card Phone Numbers (separate function)
+         * 🔹 Handle Card Phone Numbers
          */
         if ($request->has('card_phone_numbers')) {
             $this->handleCardPhoneNumbers($company, $request->card_phone_numbers, $card->id);
+        } else {
+            $company->cardPhoneNumbers()
+                ->where('card_id', $card->id)
+                ->delete();
         }
 
-
         /**
-         * 🔹 Handle Card Phone Numbers (separate function)
+         * 🔹 Handle Card Emails
          */
         if ($request->has('card_emails')) {
             $this->handleCardEmails($company, $request->card_emails, $card->id);
+        } else {
+            $company->cardEmails()
+                ->where('card_id', $card->id)
+                ->delete();
         }
 
         /**
-         * 🔹 Handle Card Buttons (separate function)
+         * 🔹 Handle Card Buttons
          */
         if ($request->has('card_buttons')) {
             $this->handleCardButtons($company, $request->card_buttons, $card->id);
+        } else {
+            $company->cardButtons()
+                ->where('card_id', $card->id)
+                ->delete();
         }
 
         /**
-         * 🔹 Handle Card Addresses (separate function)
+         * 🔹 Handle Card Addresses
          */
         if ($request->has('card_addresses')) {
             $this->handleCardAddresses($company, $request->card_addresses, $card->id);
+        } else {
+            $company->cardAddresses()
+                ->where('card_id', $card->id)
+                ->delete();
         }
 
         /**
-         * 🔹 Handle Card Addresses (separate function)
+         * 🔹 Handle Card Websites
          */
         if ($request->has('card_websites')) {
             $this->handleCardWebsites($company, $request->card_websites, $card->id);
+        } else {
+            $company->cardWebsites()
+                ->where('card_id', $card->id)
+                ->delete();
         }
 
         $company = $user->company()->with([
