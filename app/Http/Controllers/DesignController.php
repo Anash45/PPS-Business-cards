@@ -101,7 +101,7 @@ class DesignController extends Controller
             // Phone numbers
             'card_phone_numbers' => 'nullable|array',
             'card_phone_numbers.*.id' => 'nullable|integer',
-            'card_phone_numbers.*.label' => 'required_with:card_phone_numbers|string|max:255',
+            'card_phone_numbers.*.label' => 'nullable|string|max:255',
             'card_phone_numbers.*.phone_number' => 'required_with:card_phone_numbers|string|max:20',
             'card_phone_numbers.*.is_hidden' => 'nullable|boolean',
             'card_phone_numbers.*.type' => 'nullable|string|max:10',
@@ -109,7 +109,7 @@ class DesignController extends Controller
             // Emails
             'card_emails' => 'nullable|array',
             'card_emails.*.id' => 'nullable|integer',
-            'card_emails.*.label' => 'required_with:card_emails|string|max:255',
+            'card_emails.*.label' => 'nullable|string|max:255',
             'card_emails.*.email' => 'required_with:card_emails|email|max:255',
             'card_emails.*.is_hidden' => 'nullable|boolean',
             'card_emails.*.type' => 'nullable|string|max:10',
@@ -118,14 +118,14 @@ class DesignController extends Controller
             'card_websites' => 'nullable|array',
             'card_websites.*.icon' => 'nullable|string|max:50',
             'card_websites.*.id' => 'nullable|integer',
-            'card_websites.*.label' => 'required_with:card_websites|string|max:255',
+            'card_websites.*.label' => 'nullable|string|max:255',
             'card_websites.*.url' => 'required_with:card_websites|url|max:255',
             'card_websites.*.is_hidden' => 'nullable|boolean',
 
             // Addresses
             'card_addresses' => 'nullable|array',
             'card_addresses.*.id' => 'nullable|integer',
-            'card_addresses.*.label' => 'required_with:card_addresses|string|max:255',
+            'card_addresses.*.label' => 'nullable|string|max:255',
             'card_addresses.*.street' => 'required_with:card_addresses|string|max:255',
             'card_addresses.*.house_number' => 'nullable|string|max:50',
             'card_addresses.*.zip' => 'nullable|string|max:20',
@@ -403,7 +403,7 @@ class DesignController extends Controller
             // Phone numbers
             'card_phone_numbers' => 'nullable|array',
             'card_phone_numbers.*.id' => 'nullable|integer',
-            'card_phone_numbers.*.label' => 'required_with:card_phone_numbers|string|max:255',
+            'card_phone_numbers.*.label' => 'nullable|string|max:255',
             'card_phone_numbers.*.phone_number' => 'required_with:card_phone_numbers|string|max:20',
             'card_phone_numbers.*.is_hidden' => 'nullable|boolean',
             'card_phone_numbers.*.type' => 'nullable|string|max:10',
@@ -411,7 +411,7 @@ class DesignController extends Controller
             // Emails
             'card_emails' => 'nullable|array',
             'card_emails.*.id' => 'nullable|integer',
-            'card_emails.*.label' => 'required_with:card_emails|string|max:255',
+            'card_emails.*.label' => 'nullable|string|max:255',
             'card_emails.*.email' => 'required_with:card_emails|email|max:255',
             'card_emails.*.is_hidden' => 'nullable|boolean',
             'card_emails.*.type' => 'nullable|string|max:10',
@@ -420,14 +420,14 @@ class DesignController extends Controller
             'card_websites' => 'nullable|array',
             'card_websites.*.icon' => 'nullable|string|max:50',
             'card_websites.*.id' => 'nullable|integer',
-            'card_websites.*.label' => 'required_with:card_websites|string|max:255',
+            'card_websites.*.label' => 'nullable|string|max:255',
             'card_websites.*.url' => 'required_with:card_websites|url|max:255',
             'card_websites.*.is_hidden' => 'nullable|boolean',
 
             // Addresses
             'card_addresses' => 'nullable|array',
             'card_addresses.*.id' => 'nullable|integer',
-            'card_addresses.*.label' => 'required_with:card_addresses|string|max:255',
+            'card_addresses.*.label' => 'nullable|string|max:255',
             'card_addresses.*.street' => 'required_with:card_addresses|string|max:255',
             'card_addresses.*.house_number' => 'nullable|string|max:50',
             'card_addresses.*.zip' => 'nullable|string|max:20',

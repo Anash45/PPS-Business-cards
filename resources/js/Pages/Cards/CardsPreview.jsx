@@ -36,12 +36,13 @@ export default function CardsPreview({ previewCards, domain }) {
                                         URL:{" "}
                                     </span>
                                     <span className="text-xs text-body">
-                                        <Link
+                                        <a
+                                            target="_blank"
                                             href={`${domain}/card/${c.code}`}
                                             className="underline break-all"
                                         >
                                             {domain}/card/{c.code}
-                                        </Link>
+                                        </a>
                                     </span>
                                 </div>
                                 <div className="lg:w-40 shrink-0">
