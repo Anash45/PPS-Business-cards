@@ -6,6 +6,7 @@ import { useModal } from "@/context/ModalProvider";
 import Alert from "@/Components/Alert";
 import { FileText, IdCard } from "lucide-react";
 import LandingTab from "@/Components/LandingTab";
+import WalletTab from "@/Components/WalletTab";
 
 export default function Design() {
     const {
@@ -40,7 +41,7 @@ export default function Design() {
         {
             icon: <IdCard className="h-6 w-6" />,
             name: "Wallet",
-            content: <div>Wallet Content</div>,
+            content: <WalletTab />,
         },
     ];
 
