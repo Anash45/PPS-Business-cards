@@ -7,9 +7,30 @@ import CardPreviewButtons from "./CardPreviewButtons";
 import CardPreviewVCard from "./CardPreviewVCard";
 import CardPreviewWebsites from "./CardPreviewWebsites";
 import CardPreviewSections from "./CardPreviewSections";
+import { useEffect, useRef, useState } from "react";
 
 export default function CardPreview({ isReal = false }) {
     const { cardFormData } = useGlobal(GlobalProvider);
+
+    const positionRef = useRef(null);
+    const departmentRef = useRef(null);
+    const [sameLine, setSameLine] = useState(true);
+
+    useEffect(() => {
+        const checkSameLine = () => {
+            if (positionRef.current && departmentRef.current) {
+                const posRect = positionRef.current.getBoundingClientRect();
+                const depRect = departmentRef.current.getBoundingClientRect();
+                setSameLine(Math.abs(posRect.top - depRect.top) < 5); // same line if Y positions are close
+            }
+        };
+
+        // Run on mount and resize
+        checkSameLine();
+        window.addEventListener("resize", checkSameLine);
+        return () => window.removeEventListener("resize", checkSameLine);
+    }, [cardFormData?.position, cardFormData?.department]);
+
     return (
         <div
             className={`border ${
@@ -82,20 +103,31 @@ export default function CardPreview({ isReal = false }) {
                             >
                                 {cardFormData.position ||
                                 cardFormData.department ? (
-                                    <p className="text-sm font-medium flex items-center justify-center gap-1.5">
-                                        <span>{cardFormData?.position}</span>{" "}
-                                        {cardFormData.position &&
-                                        cardFormData.department ? (
-                                            <span
-                                                className="inline-block h-1 w-1 opacity-30 rounded-full"
-                                                style={{
-                                                    backgroundColor:
-                                                        cardFormData?.company_text_color ||
-                                                        "#000000",
-                                                }}
-                                            ></span>
-                                        ) : null}
-                                        <span>{cardFormData?.department}</span>
+                                    <p className="text-sm font-medium flex items-center justify-center flex-wrap gap-1.5 text-center">
+                                        {cardFormData?.position && (
+                                            <span ref={positionRef}>
+                                                {cardFormData.position}
+                                            </span>
+                                        )}
+
+                                        {cardFormData?.position &&
+                                            cardFormData?.department &&
+                                            sameLine && (
+                                                <span
+                                                    className="inline-block h-1 w-1 rounded-full opacity-40"
+                                                    style={{
+                                                        backgroundColor:
+                                                            cardFormData?.company_text_color ||
+                                                            "#000",
+                                                    }}
+                                                ></span>
+                                            )}
+
+                                        {cardFormData?.department && (
+                                            <span ref={departmentRef}>
+                                                {cardFormData.department}
+                                            </span>
+                                        )}
                                     </p>
                                 ) : null}
                                 {cardFormData.company_name ? (

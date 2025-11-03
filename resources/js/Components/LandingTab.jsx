@@ -21,52 +21,6 @@ export default function LandingTab() {
         setIsChanged,
     } = useGlobal(GlobalProvider);
     const [isSaving, setIsSaving] = useState(false);
-    useEffect(() => {
-        const handleBeforeUnload = (event) => {
-            if (isChanged) {
-                event.preventDefault();
-                event.returnValue =
-                    "You have unsaved changes. Are you sure you want to leave?";
-            }
-        };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () =>
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-    }, [isChanged]);
-
-    // Warn on Inertia page navigation
-    useEffect(() => {
-        const handleBefore = (event) => {
-            if (isChanged) {
-                const shouldLeave = confirm(
-                    "You have unsaved changes. Are you sure you want to leave this page?"
-                );
-
-                if (shouldLeave) {
-                    // User confirmed - reset the changed state
-                    setIsChanged(false);
-                    // Allow navigation to proceed
-                } else {
-                    // User canceled - prevent navigation
-                    event.preventDefault();
-                }
-            }
-        };
-
-        // Check if router has event methods
-        if (router && router.on) {
-            router.on("before", handleBefore);
-
-            return () => {
-                if (router.off) {
-                    router.off("before", handleBefore);
-                }
-            };
-        }
-    }, [isChanged, setIsChanged]);
-
-    console.log("isChanged:", isChanged);
 
     useEffect(() => {
         if (company) {
@@ -381,7 +335,6 @@ export default function LandingTab() {
 
             // 3. Handle Success
             if (response?.data?.success) {
-                setIsChanged(false);
                 toast.success(
                     response.data.message || "Template saved successfully!"
                 );
@@ -399,6 +352,10 @@ export default function LandingTab() {
                     ...prev,
                     ...mappedData1,
                 }));
+                
+                setTimeout(() => {
+                    setIsChanged(false);
+                }, 500);
             } else {
                 // Should generally not be hit if status is 2xx, but good for custom success:false responses
                 toast.error(

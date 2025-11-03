@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { usePage } from "@inertiajs/react";
+import React, {
+    createContext,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 
 const GlobalContext = createContext(undefined);
 
@@ -66,7 +73,10 @@ export const GlobalProvider = ({ children }) => {
     const [changeCount, setChangeCount] = useState(0);
     const initialDataRef = useRef(null);
 
-    // Capture initial data once — when the page first loads
+    // ✅ Get current URL (Inertia updates this when navigating)
+    const url = window.location.pathname;
+
+    // Capture initial data when page first loads
     useEffect(() => {
         if (!initialDataRef.current) {
             initialDataRef.current = cardFormData;
@@ -74,7 +84,7 @@ export const GlobalProvider = ({ children }) => {
         }
     }, []);
 
-    // Detect changes compared to initial data (runs even after first load)
+    // ✅ Detect changes compared to initial data
     useEffect(() => {
         if (!initialDataRef.current) return;
 
@@ -84,14 +94,21 @@ export const GlobalProvider = ({ children }) => {
         if (initial !== current) {
             setChangeCount((prev) => prev + 1);
             console.log("⚠️ cardFormData changed:", changeCount + 1, "times");
+            if (changeCount > 1) {
+                setIsChanged(true);
+            }
         } else {
             console.log("ℹ️ cardFormData is same as initial.");
         }
-
-        if(changeCount > 0) {
-            setIsChanged(true);
-        }
     }, [cardFormData]);
+
+    // ✅ Reset counters when URL changes
+    useEffect(() => {
+        setChangeCount(0);
+        setIsChanged(false);
+        initialDataRef.current = cardFormData; // reset reference to new page data
+        console.log("🔄 URL changed to:", url, "— counters reset");
+    }, [url]);
 
     // 🔹 Steps
     const progressSteps = [

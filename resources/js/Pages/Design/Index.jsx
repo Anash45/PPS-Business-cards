@@ -15,9 +15,48 @@ export default function Design() {
         selectedCard = null,
         pageType,
     } = usePage().props;
-    const { setHeaderTitle, setHeaderText, isTemplate, setIsTemplate } =
-        useGlobal(GlobalProvider);
+    const {
+        setHeaderTitle,
+        setHeaderText,
+        isTemplate,
+        setIsTemplate,
+        isChanged,
+        setIsChanged,
+    } = useGlobal(GlobalProvider);
     const { openModal } = useModal();
+
+    useEffect(() => {
+        // ✅ Get current URL path from Inertia
+        const currentUrl = window.location.pathname;
+
+        // ✅ Define which routes should trigger the warning
+        const shouldWarn =
+            isChanged &&
+            ((currentUrl.startsWith("/company/cards/") &&
+                currentUrl.includes("/edit")) ||
+                currentUrl === "/design");
+
+        if (!shouldWarn) return; // Skip if not on the specified pages
+
+        // Warn when closing the tab or refreshing
+        const handleBeforeUnload = (event) => {
+            console.log("Is Changed 1: ", isChanged);
+            if (isChanged) {
+                event.preventDefault();
+                event.returnValue =
+                    "You have unsaved changes. Are you sure you want to leave?";
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, [isChanged, setIsChanged]);
+
+    console.log("isChanged:", isChanged);
 
     useEffect(() => {
         if (pageType === "template") {
