@@ -4,23 +4,69 @@ import CardFormBanner from "./CardFormBanner";
 import CardFormGeneralInformation from "./CardFormGeneralInformation";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import toast from "react-hot-toast";
-import { usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { mapCompanyTemplateData } from "@/utils/mapCompanyTemplateData";
 import CardFormSocialLinks from "./CardFormSocialLinks";
 import CardPreview from "./CardPreview";
 import CardFormProfile from "./CardFormProfile";
-import CardFormButtons from "./CardFormButtons";
-import CardFormPhoneNumbers from "./CardFormPhoneNumbers";
-import CardFormEmails from "./CardFormEmails";
-import CardFormWebsites from "./CardFormWebsites";
-import CardFormAddresses from "./CardFormAddresses";
 import CardFormSections from "./CardFormSections";
 
 export default function LandingTab() {
     const { company, selectedCard = null } = usePage().props;
-    const { cardFormData, setCardFormData, isTemplate } =
-        useGlobal(GlobalProvider);
+    const {
+        cardFormData,
+        setCardFormData,
+        isTemplate,
+        isChanged,
+        setIsChanged,
+    } = useGlobal(GlobalProvider);
     const [isSaving, setIsSaving] = useState(false);
+    useEffect(() => {
+        const handleBeforeUnload = (event) => {
+            if (isChanged) {
+                event.preventDefault();
+                event.returnValue =
+                    "You have unsaved changes. Are you sure you want to leave?";
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () =>
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+    }, [isChanged]);
+
+    // Warn on Inertia page navigation
+    useEffect(() => {
+        const handleBefore = (event) => {
+            if (isChanged) {
+                const shouldLeave = confirm(
+                    "You have unsaved changes. Are you sure you want to leave this page?"
+                );
+
+                if (shouldLeave) {
+                    // User confirmed - reset the changed state
+                    setIsChanged(false);
+                    // Allow navigation to proceed
+                } else {
+                    // User canceled - prevent navigation
+                    event.preventDefault();
+                }
+            }
+        };
+
+        // Check if router has event methods
+        if (router && router.on) {
+            router.on("before", handleBefore);
+
+            return () => {
+                if (router.off) {
+                    router.off("before", handleBefore);
+                }
+            };
+        }
+    }, [isChanged, setIsChanged]);
+
+    console.log("isChanged:", isChanged);
 
     useEffect(() => {
         if (company) {
@@ -335,6 +381,7 @@ export default function LandingTab() {
 
             // 3. Handle Success
             if (response?.data?.success) {
+                setIsChanged(false);
                 toast.success(
                     response.data.message || "Template saved successfully!"
                 );
@@ -401,7 +448,7 @@ export default function LandingTab() {
                 <CardFormSocialLinks />
 
                 <CardFormSections />
-                
+
                 <div className="flex flex-wrap gap-5 justify-end">
                     <Button
                         className="px-8"

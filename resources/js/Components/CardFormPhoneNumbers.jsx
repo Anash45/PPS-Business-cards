@@ -107,7 +107,7 @@ export default function CardFormPhoneNumbers() {
                                 <span className="shrink-0 text-xl w-9">📞</span>
 
                                 {/* Type Selector */}
-                                <div className="w-full sm:w-[120px] md:w-[100px] shrink-0">
+                                <div className="w-full sm:w-[120px] shrink-0">
                                     <SelectInput
                                         value={item?.type?.toLowerCase() || "work"}
                                         onChange={(e) => {
@@ -127,6 +127,7 @@ export default function CardFormPhoneNumbers() {
                                         options={[
                                             { value: "work", label: "Work" },
                                             { value: "home", label: "Home" },
+                                            { value: "cell", label: "Mobil" },
                                         ]}
                                     />
                                 </div>

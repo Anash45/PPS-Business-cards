@@ -93,58 +93,57 @@ export default function CardFormAddresses() {
                         key={index}
                         className="space-y-3 border-b border-gray-100 pb-3"
                     >
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <span className="shrink-0 text-xl w-9">📍</span>
+
+                            {/* Type Selector */}
+                            <div className="w-full sm:w-[120px] shrink-0">
+                                <SelectInput
+                                    value={item.type?.toLowerCase() || "work"}
+                                    onChange={(e) => {
+                                        if (isReadOnly) return;
+                                        const newType = e.target
+                                            ? e.target.value
+                                            : e;
+                                        updateAddressField(
+                                            index,
+                                            "type",
+                                            newType
+                                        );
+                                    }}
+                                    disabled={isReadOnly}
+                                    className="w-full block"
+                                    placeholder="Type"
+                                    options={[
+                                        { value: "work", label: "Work" },
+                                        { value: "home", label: "Home" },
+                                    ]}
+                                />
+                            </div>
+
+                            {/* Label Field */}
+                            <div className="w-full sm:flex-1 md:w-full">
+                                <TextInput
+                                    className="w-full"
+                                    placeholder="Label (e.g. Office, HQ)"
+                                    value={item.label || ""}
+                                    onChange={(e) => {
+                                        if (isReadOnly) return;
+                                        updateAddressField(
+                                            index,
+                                            "label",
+                                            e.target.value
+                                        );
+                                    }}
+                                    readOnly={isReadOnly}
+                                />
+                            </div>
+                        </div>
                         {/* ✅ First Row: Type + Label + Street + House Number */}
                         <div className="flex flex-col md:flex-row md:items-center gap-3">
-                            <div className="flex flex-wrap items-center gap-3 grow">
-                                <span className="shrink-0 text-xl w-9">📍</span>
-
-                                {/* Type Selector */}
-                                <div className="w-full sm:w-[120px] md:w-[100px] shrink-0">
-                                    <SelectInput
-                                        value={
-                                            item.type?.toLowerCase() || "work"
-                                        }
-                                        onChange={(e) => {
-                                            if (isReadOnly) return;
-                                            const newType = e.target
-                                                ? e.target.value
-                                                : e;
-                                            updateAddressField(
-                                                index,
-                                                "type",
-                                                newType
-                                            );
-                                        }}
-                                        disabled={isReadOnly}
-                                        className="w-full block"
-                                        placeholder="Type"
-                                        options={[
-                                            { value: "work", label: "Work" },
-                                            { value: "home", label: "Home" },
-                                        ]}
-                                    />
-                                </div>
-
-                                {/* Label Field */}
-                                <div className="w-full sm:flex-1 md:w-[200px]">
-                                    <TextInput
-                                        className="w-full"
-                                        placeholder="Label (e.g. Office, HQ)"
-                                        value={item.label || ""}
-                                        onChange={(e) => {
-                                            if (isReadOnly) return;
-                                            updateAddressField(
-                                                index,
-                                                "label",
-                                                e.target.value
-                                            );
-                                        }}
-                                        readOnly={isReadOnly}
-                                    />
-                                </div>
-
+                            <div className="grid gap-3 2xl:grid-cols-3 xl:grid-cols-2 md:grid-cols-3 sm:grid-cols-2 grow">
                                 {/* Street */}
-                                <div className="w-full flex-1 min-w-[200px]">
+                                <div>
                                     <TextInput
                                         className="w-full"
                                         placeholder="Street"
@@ -162,7 +161,7 @@ export default function CardFormAddresses() {
                                 </div>
 
                                 {/* House Number */}
-                                <div className="w-[100px] shrink-0">
+                                <div>
                                     <TextInput
                                         className="w-full"
                                         placeholder="No."
@@ -178,90 +177,84 @@ export default function CardFormAddresses() {
                                         readOnly={isReadOnly}
                                     />
                                 </div>
-                            </div>
-
-                            {/* Hidden Checkbox */}
-                            <label className="flex items-center gap-2 shrink-0">
-                                <input
-                                    type="checkbox"
-                                    checked={item.is_hidden || false}
+                                <TextInput
+                                    placeholder="ZIP"
+                                    value={item.zip || ""}
                                     onChange={(e) => {
                                         if (isReadOnly) return;
                                         updateAddressField(
                                             index,
-                                            "is_hidden",
-                                            e.target.checked
+                                            "zip",
+                                            e.target.value
                                         );
                                     }}
-                                    disabled={isReadOnly}
+                                    readOnly={isReadOnly}
                                 />
-                                <span className="text-sm text-[#71717A]">
-                                    Hidden
-                                </span>
-                            </label>
-
-                            {/* Delete Button */}
-                            {(!item.company_id ||
-                                (item.company_id && isTemplate) ||
-                                item.card_id) && (
-                                <Button
-                                    variant="danger-outline"
-                                    className="w-fit shrink-0"
-                                    onClick={() => {
+                                <TextInput
+                                    placeholder="City"
+                                    value={item.city || ""}
+                                    onChange={(e) => {
                                         if (isReadOnly) return;
-                                        removeAddress(index);
+                                        updateAddressField(
+                                            index,
+                                            "city",
+                                            e.target.value
+                                        );
                                     }}
-                                    disabled={isReadOnly}
-                                >
-                                    <Trash2 className="h-5 w-5" />
-                                </Button>
-                            )}
-                        </div>
+                                    readOnly={isReadOnly}
+                                />
+                                <TextInput
+                                    placeholder="Country"
+                                    value={item.country || ""}
+                                    onChange={(e) => {
+                                        if (isReadOnly) return;
+                                        updateAddressField(
+                                            index,
+                                            "country",
+                                            e.target.value
+                                        );
+                                    }}
+                                    readOnly={isReadOnly}
+                                />
+                                <div className="flex items-center gap-3 justify-end">
+                                    {/* Hidden Checkbox */}
+                                    <label className="flex items-center gap-2 shrink-0">
+                                        <input
+                                            type="checkbox"
+                                            checked={item.is_hidden || false}
+                                            onChange={(e) => {
+                                                if (isReadOnly) return;
+                                                updateAddressField(
+                                                    index,
+                                                    "is_hidden",
+                                                    e.target.checked
+                                                );
+                                            }}
+                                            disabled={isReadOnly}
+                                        />
+                                        <span className="text-sm text-[#71717A]">
+                                            Hidden
+                                        </span>
+                                    </label>
 
-                        {/* ✅ Second Row: ZIP + City + Country */}
-                        <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-                            <TextInput
-                                className="w-full sm:w-[150px]"
-                                placeholder="ZIP"
-                                value={item.zip || ""}
-                                onChange={(e) => {
-                                    if (isReadOnly) return;
-                                    updateAddressField(
-                                        index,
-                                        "zip",
-                                        e.target.value
-                                    );
-                                }}
-                                readOnly={isReadOnly}
-                            />
-                            <TextInput
-                                className="w-full sm:w-[250px]"
-                                placeholder="City"
-                                value={item.city || ""}
-                                onChange={(e) => {
-                                    if (isReadOnly) return;
-                                    updateAddressField(
-                                        index,
-                                        "city",
-                                        e.target.value
-                                    );
-                                }}
-                                readOnly={isReadOnly}
-                            />
-                            <TextInput
-                                className="w-full sm:w-[250px]"
-                                placeholder="Country"
-                                value={item.country || ""}
-                                onChange={(e) => {
-                                    if (isReadOnly) return;
-                                    updateAddressField(
-                                        index,
-                                        "country",
-                                        e.target.value
-                                    );
-                                }}
-                                readOnly={isReadOnly}
-                            />
+                                    {/* Delete Button */}
+                                    {(!item.company_id ||
+                                        (item.company_id && isTemplate) ||
+                                        item.card_id) && (
+                                        <Button
+                                            variant="danger-outline"
+                                            className="w-fit shrink-0"
+                                            onClick={() => {
+                                                if (isReadOnly) return;
+                                                removeAddress(index);
+                                            }}
+                                            disabled={isReadOnly}
+                                        >
+                                            <Trash2 className="h-5 w-5" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );

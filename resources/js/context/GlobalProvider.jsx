@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 
 const GlobalContext = createContext(undefined);
 
@@ -18,6 +18,7 @@ export const GlobalProvider = ({ children }) => {
     const [warnings, setWarnings] = useState([]);
     const [errors, setErrors] = useState([]);
     const [cardSectionsOrder, setCardSectionsOrder] = useState([]);
+    const [isChanged, setIsChanged] = useState(false);
 
     // 🔹 Card form state
     const [cardFormData, setCardFormData] = useState({
@@ -61,6 +62,36 @@ export const GlobalProvider = ({ children }) => {
             return { ...prev, ...updates };
         });
     };
+
+    const [changeCount, setChangeCount] = useState(0);
+    const initialDataRef = useRef(null);
+
+    // Capture initial data once — when the page first loads
+    useEffect(() => {
+        if (!initialDataRef.current) {
+            initialDataRef.current = cardFormData;
+            console.log("✅ Initial cardFormData captured:", cardFormData);
+        }
+    }, []);
+
+    // Detect changes compared to initial data (runs even after first load)
+    useEffect(() => {
+        if (!initialDataRef.current) return;
+
+        const initial = JSON.stringify(initialDataRef.current);
+        const current = JSON.stringify(cardFormData);
+
+        if (initial !== current) {
+            setChangeCount((prev) => prev + 1);
+            console.log("⚠️ cardFormData changed:", changeCount + 1, "times");
+        } else {
+            console.log("ℹ️ cardFormData is same as initial.");
+        }
+
+        if(changeCount > 0) {
+            setIsChanged(true);
+        }
+    }, [cardFormData]);
 
     // 🔹 Steps
     const progressSteps = [
@@ -107,6 +138,8 @@ export const GlobalProvider = ({ children }) => {
                 setIsPageLoading,
                 cardSectionsOrder,
                 setCardSectionsOrder,
+                isChanged,
+                setIsChanged,
             }}
         >
             {children}
@@ -150,6 +183,8 @@ export const useGlobal = () => {
             setIsPageLoading: () => {},
             cardSectionsOrder: null,
             setCardSectionsOrder: () => {},
+            isChanged: null,
+            setIsChanged: () => {},
         };
     }
     return context;

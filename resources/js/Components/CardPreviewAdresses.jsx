@@ -12,9 +12,20 @@ export default function CardPreviewAdresses({ cardAddresses }) {
             {visibleAddresses.map((address, index) =>
                 !(address.is_hidden && isCardReal) ? (
                     <a
-                        target="_blank"
-                        href={`https://www.google.com/maps/search/?api=1&query=${address.address}`}
                         key={index}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href={`https://www.google.de/maps/search/?api=1&query=${encodeURIComponent(
+                            [
+                                address.street,
+                                address.house_number,
+                                address.zip,
+                                address.city,
+                                address.country,
+                            ]
+                                .filter(Boolean)
+                                .join(" ")
+                        )}`}
                         style={{
                             color:
                                 cardFormData?.address_text_color ??
@@ -34,10 +45,10 @@ export default function CardPreviewAdresses({ cardAddresses }) {
                                 <span>{address.label}</span>
                             ) : (
                                 <span>
-                                    {[address.street, address.house]
+                                    {[address.street, address.house_number]
                                         .filter(Boolean)
                                         .join(" ")}
-                                    {address.street || address.house
+                                    {address.street || address.house_number
                                         ? ", "
                                         : ""}
                                     {[address.zip, address.city]
