@@ -79,15 +79,15 @@ export default function WalletTab() {
                     }
                 );
             } else if (!isTemplate && selectedCard) {
-                response = await axios.post(
-                    `/company/cards/card_wallet/${selectedCard.id}/update`,
-                    formData,
-                    {
-                        headers: {
-                            "Content-Type": "multipart/form-data", // Important for file uploads
-                        },
-                    }
-                );
+                // response = await axios.post(
+                //     `/company/cards/card_wallet/${selectedCard.id}/update`,
+                //     formData,
+                //     {
+                //         headers: {
+                //             "Content-Type": "multipart/form-data", // Important for file uploads
+                //         },
+                //     }
+                // );
             } else {
                 throw new Error(
                     "Invalid state: isTemplate and selectedCard mismatch."
