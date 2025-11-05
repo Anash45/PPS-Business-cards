@@ -449,8 +449,9 @@ class DesignController extends Controller
                 : 'Get in touch via my digital business card.',
             'image' => $card->profile_image
                 ? '/storage/' . $card->profile_image
-                : $card->company ? '/storage/' . $card->company
-                : '/assets/images/profile-placeholder.png',
+                : ($card->company
+                    ? '/storage/' . $card->company
+                    : '/assets/images/profile-placeholder.png'),
             'url' => request()->fullUrl(),
         ];
 
