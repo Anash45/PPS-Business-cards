@@ -66,6 +66,14 @@ export const GlobalProvider = ({ children }) => {
                     : null;
             }
 
+            if (name === "wallet_logo_image") {
+                updates.wallet_logo_image_url = value
+                    ? typeof value === "string"
+                        ? `/storage/${value}`
+                        : URL.createObjectURL(value)
+                    : null;
+            }
+
             return { ...prev, ...updates };
         });
     };

@@ -40,6 +40,8 @@ Route::middleware(['auth', 'company_or_templateEditor'])->group(function () {
         ->name('design.index');
     Route::post('/design/createOrUpdate', [DesignController::class, 'createOrUpdate'])
         ->name('design.createOrUpdate');
+    Route::post('/design/card_wallet/update', [DesignController::class, 'templateWalletUpdate'])
+        ->name('design.templateWalletUpdate');
 
 });
 

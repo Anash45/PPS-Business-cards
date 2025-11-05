@@ -76,6 +76,7 @@ export default function CardFormBanner() {
                                 cardFormData.banner_image ??
                                 cardFormData.banner_image_url
                             }
+                            message="File size should be less than 5MB. Ideal dimensions: 1600x800 pixels OR 2/1 ratio."
                             onChange={handleCardChange}
                             label="Logo Image"
                         />

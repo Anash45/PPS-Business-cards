@@ -1,11 +1,6 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import CardPreviewSocials from "./CardPreviewSocials";
-import CardPreviewPhones from "./CardPreviewPhones";
-import CardPreviewEmails from "./CardPreviewEmails";
-import CardPreviewAdresses from "./CardPreviewAdresses";
-import CardPreviewButtons from "./CardPreviewButtons";
 import CardPreviewVCard from "./CardPreviewVCard";
-import CardPreviewWebsites from "./CardPreviewWebsites";
 import CardPreviewSections from "./CardPreviewSections";
 import { useEffect, useRef, useState } from "react";
 
@@ -41,14 +36,20 @@ export default function CardPreview({ isReal = false }) {
             }}
         >
             <div className="space-y-4">
-                <div className="relative border border-[#EAECF0] bg-gradient bg-gradient-to-b from-[#eaffec] to-transparent rounded-lg w-full h-[200px]">
+                <div className="relative border border-[#EAECF0] bg-gradient bg-gradient-to-b from-[#eaffec] to-transparent rounded-lg w-full">
                     {cardFormData.banner_image_url ? (
                         <img
                             src={cardFormData.banner_image_url}
                             alt="Banner"
-                            className="w-full h-full object-cover rounded-lg"
+                            className="w-full h-full object-cover rounded-lg aspect-[2/1]"
                         />
-                    ) : null}
+                    ) : (
+                        <img
+                            src={`/assets/images/white-placeholder.webp`}
+                            alt="Banner"
+                            className="w-full h-full object-cover rounded-lg aspect-[2/1]"
+                        />
+                    )}
                     {cardFormData.profile_image_url ? (
                         <img
                             src={cardFormData.profile_image_url}

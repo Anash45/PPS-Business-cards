@@ -13,8 +13,13 @@ export default function Company() {
         isSubscriptionActive,
         pageType = "card",
     } = usePage().props;
-    const { setHeaderTitle, setHeaderText, setCardFormData, setIsCardReal } =
-        useGlobal(GlobalProvider);
+    const {
+        setHeaderTitle,
+        setHeaderText,
+        cardFormData,
+        setCardFormData,
+        setIsCardReal,
+    } = useGlobal(GlobalProvider);
 
     useEffect(() => {
         setHeaderTitle("Business Card");
@@ -37,7 +42,48 @@ export default function Company() {
 
     return (
         <CardLayout>
-            <Head title="Cards" />
+            <Head>
+                {/* ✅ Page Title */}
+                <title>
+                    {cardFormData?.title ||
+                    cardFormData?.first_name ||
+                    cardFormData?.last_name
+                        ? [
+                              cardFormData?.title,
+                              cardFormData?.first_name,
+                              cardFormData?.last_name,
+                          ]
+                              .filter(Boolean)
+                              .join(" ")
+                        : "Great Guy To Know"}
+                </title>
+
+                {/* ✅ Favicon / Browser Tab Icon */}
+                <link
+                    rel="icon"
+                    type="image/png"
+                    href={
+                        cardFormData.profile_image_url
+                            ? `${cardFormData.profile_image_url}`
+                            : cardFormData.banner_image_url
+                            ? `${cardFormData.banner_image_url}`
+                            : "/assets/images/profile-placeholder.png"
+                    }
+                />
+
+                <meta
+                    property="description"
+                    content={
+                        cardFormData?.meta_description ??
+                        cardFormData?.description ??
+                        (cardFormData?.position || cardFormData?.department
+                            ? [cardFormData?.position, cardFormData?.department]
+                                  .filter(Boolean)
+                                  .join(" - ")
+                            : "Get in touch via my digital business card.")
+                    }
+                />
+            </Head>
 
             <div className="py-4 md:px-6 px-4 flex flex-col gap-6">
                 {!isSubscriptionActive ? (
@@ -49,7 +95,8 @@ export default function Company() {
                     <CardPreview isReal={true} />
                 ) : (
                     <div className="p-4 text-center bg-orange-100 text-orange-700 rounded-md">
-                        This card is currently inactive. Please contact the administrator for more information.
+                        This card is currently inactive. Please contact the
+                        administrator for more information.
                     </div>
                 )}
             </div>

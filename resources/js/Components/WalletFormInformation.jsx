@@ -11,6 +11,7 @@ import SelectInput from "./SelectInput";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import ColorInput from "./ColorInput";
 import CardImageUploader from "./CardImagesUploader";
+import card from "@material-tailwind/react/theme/components/card";
 
 export default function WalletFormInformation() {
     const [open, setOpen] = useState(1);
@@ -105,10 +106,10 @@ export default function WalletFormInformation() {
                                     value={"Wallet Logo Image"}
                                 />
                                 <CardImageUploader
-                                    name="wallet_logo"
+                                    name="wallet_logo_image"
                                     value={
-                                        cardFormData.wallet_logo ??
-                                        cardFormData.wallet_logo_url
+                                        cardFormData.wallet_logo_image ??
+                                        cardFormData.wallet_logo_image_url
                                     }
                                     onChange={handleCardChange}
                                     label="Logo Image"
@@ -116,12 +117,12 @@ export default function WalletFormInformation() {
                             </div>
                         ) : null}
                     </div>
-                    <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
+                    <div className="p-3 rounded-lg grid sm:grid-cols-2 gap-4 border border-[#EAECF0]">
                         <div className="space-y-1">
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 isDemo={!isTemplate}
-                                value={"Label 1"}
+                                value={"Label 1 - Name"}
                             />
                             <TextInput
                                 id="wallet_label_1"
@@ -135,7 +136,7 @@ export default function WalletFormInformation() {
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 isDemo={!isTemplate}
-                                value={"Label 2"}
+                                value={"Label 2 - Company Name"}
                             />
                             <TextInput
                                 id="wallet_label_2"
@@ -149,7 +150,7 @@ export default function WalletFormInformation() {
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 isDemo={!isTemplate}
-                                value={"Label 3"}
+                                value={"Label 3 - Titel"}
                             />
                             <TextInput
                                 id="wallet_label_3"
@@ -159,34 +160,75 @@ export default function WalletFormInformation() {
                                 className="w-full"
                             />
                         </div>
+                        <div className="space-y-1">
+                            <InputLabel
+                                className="text-black text-sm font-medium"
+                                isDemo={!isTemplate}
+                                value={"Pass Title"}
+                            />
+                            <TextInput
+                                id="wallet_title"
+                                value={cardFormData.wallet_title}
+                                onChange={(e) => handleCardChange(e)}
+                                name="wallet_title"
+                                className="w-full"
+                            />
+                        </div>
                     </div>
                     <div className="p-3 rounded-lg grid sm:grid-cols-2 gap-4 border border-[#EAECF0]">
                         <div className="space-y-1">
                             <InputLabel
                                 className="text-black text-sm font-medium"
-                                isDemo={isTemplate}
-                                value={"Label: Title"}
+                                isDemo={true}
+                                value={"Name"}
                             />
                             <TextInput
                                 id="wallet_name"
-                                value={`${
-                                    cardFormData?.salutation &&
-                                    cardFormData.salutation.trim() !== ""
-                                        ? cardFormData.salutation
-                                        : "Mr."
-                                } ${
-                                    cardFormData?.first_name &&
-                                    cardFormData.first_name.trim() !== ""
-                                        ? cardFormData.first_name
-                                        : "John"
-                                } ${
-                                    cardFormData?.last_name &&
-                                    cardFormData.last_name.trim() !== ""
-                                        ? cardFormData.last_name
-                                        : "Doe"
-                                }`}
-                                onChange={handleCardChange}
+                                value={cardFormData.wallet_name}
+                                onChange={(e) => handleCardChange(e)}
                                 name="wallet_name"
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <InputLabel
+                                className="text-black text-sm font-medium"
+                                isDemo={true}
+                                value={"Company Name"}
+                            />
+                            <TextInput
+                                id="wallet_company_name"
+                                value={cardFormData.wallet_company_name}
+                                name="wallet_company_name"
+                                onChange={(e) => handleCardChange(e)}
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <InputLabel
+                                className="text-black text-sm font-medium"
+                                isDemo={true}
+                                value={"Titel"}
+                            />
+                            <TextInput
+                                id="wallet_position"
+                                value={cardFormData.wallet_position}
+                                name="wallet_position"
+                                onChange={(e) => handleCardChange(e)}
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <InputLabel
+                                className="text-black text-sm font-medium"
+                                isDemo={!isTemplate}
+                                value={"QR-Caption (max. 18 Zeichen)"}
+                            />
+                            <TextInput
+                                id="wallet_qr_caption"
+                                value={cardFormData.wallet_qr_caption}
+                                name="wallet_qr_caption"
+                                onChange={(e) => handleCardChange(e)}
                                 className="w-full"
                             />
                         </div>

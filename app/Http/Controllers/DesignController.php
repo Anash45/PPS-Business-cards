@@ -228,6 +228,84 @@ class DesignController extends Controller
         ]);
     }
 
+    public function templateWalletUpdate(Request $request)
+    {
+        $user = Auth::user();
+
+        // ✅ Allow both company and editor
+        if (!$user->isCompany() && !$user->isTemplateEditor()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only company users can perform this action.',
+            ], 403);
+        }
+
+        // ✅ Determine correct company reference
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+
+        if (!$company) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No company associated with this user.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'wallet_logo_image' => 'nullable|image|max:5120',
+            'company_name' => 'required|string|max:255',
+            'wallet_bg_color' => 'nullable|string|max:100',
+            'wallet_text_color' => 'nullable|string|max:100',
+            'wallet_label_1' => 'nullable|string|max:100',
+            'wallet_label_2' => 'nullable|string|max:100',
+            'wallet_label_3' => 'nullable|string|max:100',
+            'wallet_qr_caption' => 'nullable|string|max:18',
+        ]);
+
+        // ✅ Get or create template
+        $template = CompanyCardTemplate::firstOrNew(['company_id' => $company->id]);
+
+        // ✅ Handle banner removal
+        if ($request->boolean('wallet_logo_removed')) {
+            if ($template->wallet_logo_image && Storage::exists($template->wallet_logo_image)) {
+                Storage::delete($template->wallet_logo_image);
+            }
+            $validated['wallet_logo_image'] = null;
+        }
+
+        // ✅ Handle new banner upload
+        if ($request->hasFile('wallet_logo_image')) {
+            if ($template->wallet_logo_image && Storage::exists($template->wallet_logo_image)) {
+                Storage::delete($template->wallet_logo_image);
+            }
+            $path = $request->file('wallet_logo_image')->store('company_logos', 'public');
+            $validated['wallet_logo_image'] = $path;
+        }
+
+        // ✅ Save template
+        $template->fill($validated);
+        $template->company_id = $company->id;
+        $template->save();
+
+
+        // ✅ Reload updated company data
+        $company = $company->load([
+            'cardTemplate',
+            'cardSocialLinks' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardEmails' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardAddresses' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardWebsites' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+            'cardButtons' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Template ' . ($template->wasRecentlyCreated ? 'created' : 'updated') . ' successfully!',
+            'company' => $company,
+            'selectedCard' => null,
+        ]);
+    }
+
 
     public function cardEdit(Card $card)
     {
@@ -353,13 +431,36 @@ class DesignController extends Controller
             'user_id' => auth()->id(),
         ]);
 
+        // ✅ Prepare meta info
+        $meta = [
+            'title' => ($card->title || $card->first_name || $card->last_name)
+                ? trim(implode(' ', array_filter([
+                    $card->title,
+                    $card->first_name,
+                    $card->last_name,
+                ])))
+                : 'Great Guy to Know',
+            'description' => ($card->position || $card->department)
+                ? trim(strip_tags(
+                    $card->position .
+                    (($card->position && $card->department) ? ' - ' : '') .
+                    $card->department
+                ))
+                : 'Get in touch via my digital business card.',
+            'image' => $card->profile_image
+                ? '/storage/' . $card->profile_image
+                : $card->company ? '/storage/' . $card->company
+                : '/assets/images/profile-placeholder.png',
+            'url' => request()->fullUrl(),
+        ];
+
 
         return inertia('Cards/Show', [
             'pageType' => 'card',
             'company' => $company,
             'selectedCard' => $card,
             'isSubscriptionActive' => $card->company->owner->hasActiveSubscription(),
-        ]);
+        ])->withViewData(['meta' => $meta]);
     }
 
     public function cardUpdate(Request $request, Card $card)

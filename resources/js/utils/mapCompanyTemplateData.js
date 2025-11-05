@@ -38,6 +38,38 @@ export function mapCompanyTemplateData(
             ? `/storage/${template.banner_image}`
             : null,
 
+        // Wallet QR
+        wallet_logo_image: null,
+        wallet_logo_image_url: template?.wallet_logo_image
+            ? `/storage/${template.wallet_logo_image}`
+            : null,
+        wallet_text_color: template?.wallet_text_color ?? "#000000",
+        wallet_bg_color: template?.wallet_bg_color ?? "#c4f1c8",
+        wallet_label_1: template?.wallet_label_1 ?? "Name",
+        wallet_label_2: template?.wallet_label_2 ?? "Firmenname",
+        wallet_label_3: template?.wallet_label_3 ?? "Titel",
+        wallet_qr_caption: template?.wallet_qr_caption ?? "QR-Code scannen",
+        wallet_title: template?.wallet_title ?? "Pass Name",
+
+        wallet_name:
+            template?.wallet_name ??
+            `${
+                template?.salutation && template.salutation.trim() !== ""
+                    ? template.salutation
+                    : "Mr."
+            } ${
+                template?.first_name && template.first_name.trim() !== ""
+                    ? template.first_name
+                    : "John"
+            } ${
+                template?.last_name && template.last_name.trim() !== ""
+                    ? template.last_name
+                    : "Doe"
+            }`,
+        wallet_company_name: template?.company_name ?? "Firmenname",
+        wallet_position: template?.position ?? "Position",
+        wallet_qr_string: "Hello there!",
+
         // Conditionally add selectedCard fields only if it exists
         ...(selectedCard
             ? {
@@ -53,6 +85,28 @@ export function mapCompanyTemplateData(
                       ? `/storage/${selectedCard.profile_image}`
                       : "/assets/images/profile-placeholder.png",
                   profile_image: null,
+                  wallet_qr_string:
+                      selectedCard?.cardWallet?.wallet_qr_string ??
+                      "Hello there!",
+                  wallet_name:
+                      template?.wallet_name ??
+                      `${
+                          selectedCard?.salutation &&
+                          selectedCard.salutation.trim() !== ""
+                              ? selectedCard.salutation
+                              : "Mr."
+                      } ${
+                          selectedCard?.first_name &&
+                          selectedCard.first_name.trim() !== ""
+                              ? selectedCard.first_name
+                              : "John"
+                      } ${
+                          selectedCard?.last_name &&
+                          selectedCard.last_name.trim() !== ""
+                              ? selectedCard.last_name
+                              : "Doe"
+                      }`,
+                  wallet_position: selectedCard?.position ?? "Position",
               }
             : {}),
 

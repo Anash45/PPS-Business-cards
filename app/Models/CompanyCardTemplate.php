@@ -29,6 +29,14 @@ class CompanyCardTemplate extends Model
         'website_text_color',
         'vcard_btn_text_color',
         'vcard_btn_bg_color',
+        
+        'wallet_text_color',
+        'wallet_bg_color',
+        'wallet_label_1',
+        'wallet_label_2',
+        'wallet_label_3',
+        'wallet_qr_caption',
+        'wallet_logo_image',
     ];
 
     public function company()

@@ -6,7 +6,7 @@ export default function CardImageUploader({
     name,
     value,
     onChange,
-    label,
+    message = "",
     maxSizeMB = 5,
 }) {
     const [preview, setPreview] = useState(null);
@@ -100,7 +100,7 @@ export default function CardImageUploader({
                         drag and drop
                     </p>
                     <p className="text-slate600 text-xs">
-                        File size should be less than {maxSizeMB}MB
+                        {message ? message : `File size should be less than ${maxSizeMB}MB`}
                     </p>
                 </div>
             </div>
