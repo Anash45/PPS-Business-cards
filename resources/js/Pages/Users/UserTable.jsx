@@ -114,7 +114,19 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                 <span className="text-sm text-gray-800">
                                     {user.role !== "admin" && (
                                         <div className="flex gap-1 items-center flex-wrap mt-1">
-                                            <p className="text-sm">
+                                            <p
+                                                className="text-sm border-b border-b-gray-800 cursor-pointer"
+                                                onClick={() =>
+                                                    user.role == "admin" &&
+                                                    openModal(
+                                                        "ManageCompanyModal",
+                                                        {
+                                                            company:
+                                                                user.company,
+                                                        }
+                                                    )
+                                                }
+                                            >
                                                 {user.company?.name
                                                     .charAt(0)
                                                     .toUpperCase() +
@@ -181,14 +193,7 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                             : "bg-gray-100 text-gray-700"
                                     }`}
                                 >
-                                    {user.role
-                                        .split("_")
-                                        .map(
-                                            (word) =>
-                                                word.charAt(0).toUpperCase() +
-                                                word.slice(1)
-                                        )
-                                        .join(" ")}
+                                    {user.role_name}
                                 </span>
                             </div>
 
@@ -211,7 +216,7 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                             <span>Edit</span>
                                         </div>
                                     </DropdownItem>
-                                    {user.role == "company" ? (
+                                    {user.role == "company" && authUser.role == "admin" ? (
                                         <DropdownItem
                                             onClick={() =>
                                                 openModal(

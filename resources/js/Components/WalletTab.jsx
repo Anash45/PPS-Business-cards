@@ -5,11 +5,23 @@ import WalletPreview from "./WalletPreview";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { mapCompanyTemplateData } from "@/utils/mapCompanyTemplateData";
+import { router, usePage } from "@inertiajs/react";
+import WalletStatusPill from "./WalletStatusPill";
 
 export default function WalletTab() {
     const [isSaving, setIsSaving] = useState(false);
-    const { cardFormData, selectedCard = null, setCardFormData, isTemplate, setIsChanged, isChanged } =
-        useGlobal(GlobalProvider);
+    const {
+        cardFormData,
+        setCardFormData,
+        isTemplate,
+        setIsChanged,
+        isChanged,
+    } = useGlobal(GlobalProvider);
+    const {
+        company,
+        selectedCard = null,
+        wallet_status = null,
+    } = usePage().props;
 
     const handleSaveWallet = async () => {
         setIsSaving(true);
@@ -22,42 +34,45 @@ export default function WalletTab() {
         // Note: Only append fields that the backend expects for template update (from validation rules)
         if (isTemplate) {
             formData.append("company_name", cardFormData.company_name);
-            formData.append("wallet_text_color", cardFormData.wallet_text_color);
+            formData.append(
+                "wallet_text_color",
+                cardFormData.wallet_text_color
+            );
             formData.append("wallet_bg_color", cardFormData.wallet_bg_color);
             formData.append("wallet_title", cardFormData.wallet_title);
             formData.append("wallet_label_1", cardFormData.wallet_label_1);
             formData.append("wallet_label_2", cardFormData.wallet_label_2);
             formData.append("wallet_label_3", cardFormData.wallet_label_3);
-            formData.append("wallet_qr_caption", cardFormData.wallet_qr_caption);
+            formData.append(
+                "wallet_qr_caption",
+                cardFormData.wallet_qr_caption
+            );
             // Append the file if it exists
             if (cardFormData.wallet_logo_image) {
-                formData.append("wallet_logo_image", cardFormData.wallet_logo_image);
+                formData.append(
+                    "wallet_logo_image",
+                    cardFormData.wallet_logo_image
+                );
             }
             if (cardFormData.wallet_logo_image_url == null) {
                 formData.append("wallet_logo_removed", true);
             }
-
         }
 
-        console.log("Checking:", !isTemplate && selectedCard);
+        console.log("Checking:", isTemplate, selectedCard);
 
-        // if (!isTemplate && selectedCard) {
-        //     formData.append("salutation", cardFormData.salutation);
-        //     formData.append("title", cardFormData.title);
-        //     formData.append("first_name", cardFormData.first_name);
-        //     formData.append("last_name", cardFormData.last_name);
-        //     formData.append("position", cardFormData.position);
-        //     formData.append("degree", cardFormData.degree);
-        //     formData.append("department", cardFormData.department);
+        if (!isTemplate && selectedCard) {
+            formData.append("wallet_name", cardFormData.wallet_name);
+            formData.append("wallet_position", cardFormData.position);
 
-        //     // Append the file if it exists
-        //     if (cardFormData.profile_image) {
-        //         formData.append("profile_image", cardFormData.profile_image);
-        //     }
-        //     if (cardFormData.profile_image_url == null) {
-        //         formData.append("profile_removed", true);
-        //     }
-        // }
+            // Append the file if it exists
+            if (cardFormData.profile_image) {
+                formData.append("profile_image", cardFormData.profile_image);
+            }
+            if (cardFormData.profile_image_url == null) {
+                formData.append("profile_removed", true);
+            }
+        }
 
         try {
             // 2. Send data using Axios
@@ -79,15 +94,15 @@ export default function WalletTab() {
                     }
                 );
             } else if (!isTemplate && selectedCard) {
-                // response = await axios.post(
-                //     `/company/cards/card_wallet/${selectedCard.id}/update`,
-                //     formData,
-                //     {
-                //         headers: {
-                //             "Content-Type": "multipart/form-data", // Important for file uploads
-                //         },
-                //     }
-                // );
+                response = await axios.post(
+                    `/company/cards/card_wallet/${selectedCard.id}/update`,
+                    formData,
+                    {
+                        headers: {
+                            "Content-Type": "multipart/form-data", // Important for file uploads
+                        },
+                    }
+                );
             } else {
                 throw new Error(
                     "Invalid state: isTemplate and selectedCard mismatch."
@@ -99,24 +114,26 @@ export default function WalletTab() {
                 toast.success(
                     response.data.message || "Template saved successfully!"
                 );
-                // You can update state here with the new template data if needed:
-                // ✅ Get the updated company from backend
-                const companyDetails = response.data.company;
-                const cardDetails = response.data.selectedCard;
 
-                // ✅ Map it and set form data
-                const mappedData1 = mapCompanyTemplateData(
-                    companyDetails,
-                    cardDetails
-                );
-                setCardFormData((prev) => ({
-                    ...prev,
-                    ...mappedData1,
-                }));
+                router.reload({
+                    only: ["wallet_status", "company", "selectedCard"],
+                    onSuccess: (page) => {
+                        const newCompany = page.props.company;
+                        const newCard = page.props.selectedCard;
 
-                setTimeout(() => {
-                    setIsChanged(false);
-                }, 500);
+                        const mappedData = mapCompanyTemplateData(
+                            newCompany,
+                            newCard
+                        );
+
+                        setCardFormData((prev) => ({
+                            ...prev,
+                            ...mappedData,
+                        }));
+
+                        setIsChanged(false);
+                    },
+                });
             } else {
                 // Should generally not be hit if status is 2xx, but good for custom success:false responses
                 toast.error(
@@ -180,10 +197,11 @@ export default function WalletTab() {
 
             <div className="2xl:col-span-4 col-span-1  lg:order-2 order-1">
                 <div className="bg-white rounded-2xl shadow-box border border-[#EAECF0] sticky top-3">
-                    <div className="p-5 border-b border-b-[#EAECF0]">
+                    <div className="p-5 border-b border-b-[#EAECF0] flex items-center justify-between gap-3 flex-wrap">
                         <h4 className="text-xl leading-tight font-semibold">
                             Live Wallet Preview
                         </h4>
+                        <WalletStatusPill status={wallet_status?.status} />
                     </div>
                     <div className="px-5 pb-5 pt-4">
                         <WalletPreview />

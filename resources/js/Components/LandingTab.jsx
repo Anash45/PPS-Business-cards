@@ -352,6 +352,7 @@ export default function LandingTab() {
                     ...prev,
                     ...mappedData1,
                 }));
+                router.reload({ only: ["wallet_status"] });
                 
                 setTimeout(() => {
                     setIsChanged(false);

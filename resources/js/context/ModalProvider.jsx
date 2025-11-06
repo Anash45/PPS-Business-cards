@@ -4,6 +4,7 @@ import { router } from "@inertiajs/react";
 import ManageSubscriptionModal from "@/Components/ManageSubscriptionModal";
 import ManageUserModal from "@/Components/ManageUserModal";
 import UpdateCsvRecordModal from "@/Components/UpdateCsvRecordModal";
+import ManageCompanyModal from "@/Components/ManageCompanyModal";
 
 const ModalContext = createContext();
 
@@ -60,6 +61,15 @@ export function ModalProvider({ children }) {
                     {modal?.name === "UpdateCsvRecordModal" && (
                         <UpdateCsvRecordModal
                             {...modal.props}
+                            onClose={closeModal}
+                        />
+                    )}
+                    {modal?.name === "ManageCompanyModal" && (
+                        <ManageCompanyModal
+                            {...modal.props}
+                            onSuccess={() => {
+                                router.reload({ only: ["users","selectedCard"] });
+                            }}
                             onClose={closeModal}
                         />
                     )}

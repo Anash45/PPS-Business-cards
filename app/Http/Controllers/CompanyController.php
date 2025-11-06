@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\CompanyCardOrder;
 use App\Models\Plan;
 use App\Models\Subscription;
@@ -11,7 +12,7 @@ use Validator;
 
 class CompanyController extends Controller
 {
-    public function index(Request $request)
+    public function settings(Request $request)
     {
         $user = $request->user();
 
@@ -43,7 +44,8 @@ class CompanyController extends Controller
         $user = auth()->user();
         $company = $user->company;
 
-        if (!$company) {
+        // ✅ Allow if user is Admin OR has a company
+        if (!$company && !$user->isAdmin()) {
             return response()->json([
                 'success' => false,
                 'message' => 'No company record found for this user.',
@@ -66,6 +68,18 @@ class CompanyController extends Controller
                 'message' => 'Validation errors occurred.',
                 'errors' => $validator->errors(),
             ], 422);
+        }
+
+        // ✅ If admin and no company, allow selecting which company to update
+        if ($user->isAdmin() && $request->has('company_id')) {
+            $company = Company::find($request->company_id);
+
+            if (!$company) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Company not found.',
+                ], 404);
+            }
         }
 
         $company->update($validator->validated());

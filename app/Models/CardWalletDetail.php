@@ -12,6 +12,7 @@ class CardWalletDetail extends Model
     protected $fillable = [
         'card_id',
         'template_id',
+        'pass_id',
         'company_logo',
         'user_image',
         'company_logo_string',
@@ -27,6 +28,7 @@ class CardWalletDetail extends Model
         'label_3',
         'label_3_value',
         'wallet_title',
+        'download_link',
     ];
 
     // ✅ Relationship

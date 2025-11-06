@@ -21,19 +21,18 @@ class UserController extends Controller
         // Base query with eager loading
         $query = User::with(['company', 'subscription']);
 
+        $companies = null;
+
         // 🔹 If logged in user is a company, only show its team members and editors (not himself)
-        if ($user->isCompany()) {
-            $company = $user->companyProfile;
+        if ($user->isCompany() || in_array($user->role, ['editor', 'template_editor'])) {
+            $company = $user->isCompany() ? $user->companyProfile : $user->company;
 
             if ($company) {
                 $teamMemberIds = $company->teamMembers()->pluck('id')->toArray();
-                $editorIds = $company->editors()->pluck('id')->toArray();
 
-                $visibleUserIds = array_merge($teamMemberIds, $editorIds);
 
                 // ✅ Exclude the company owner (himself) explicitly
-                $query->whereIn('id', $visibleUserIds)
-                    ->where('id', '!=', $user->id);
+                $query->whereIn('id', $teamMemberIds);
             } else {
                 // No company profile means no members
                 $query->whereNull('id'); // return empty result
@@ -272,7 +271,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        // Prevent deleting self
+        // ✅ Prevent deleting self
         if ($user->id === auth()->id()) {
             return response()->json([
                 'success' => false,
@@ -280,8 +279,16 @@ class UserController extends Controller
             ], 403);
         }
 
+        // ✅ Prevent deleting company owner
+        if ($user->companyProfile !== null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Company owner accounts cannot be deleted.',
+            ], 403);
+        }
+
         try {
-            $user->delete(); // soft delete
+            $user->delete(); // Soft delete
 
             return response()->json([
                 'success' => true,

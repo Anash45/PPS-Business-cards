@@ -63,8 +63,25 @@ const editorMenuGroups = [
 
 const templateEditorMenuGroups = [
     {
+        groupName: "Overview",
+        items: [
+            { name: "Team", icon: Users2, route: "users.index" },
+        ],
+    },
+    {
         groupName: "Design",
         items: [{ name: "Template", icon: Palette, route: "design.index" }],
+    },
+    {
+        groupName: "Business Cards",
+        items: [
+            { name: "Cards", icon: IdCardIcon, route: "company.cards" },
+            {
+                name: "Bulk Import",
+                icon: UploadCloud,
+                route: "csv.index",
+            },
+        ],
     },
 ];
 

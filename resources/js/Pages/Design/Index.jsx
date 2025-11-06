@@ -13,6 +13,7 @@ export default function Design() {
         company,
         isSubscriptionActive,
         selectedCard = null,
+        wallet_status = null,
         pageType,
     } = usePage().props;
     const {
@@ -56,7 +57,7 @@ export default function Design() {
         };
     }, [isChanged, setIsChanged]);
 
-    console.log("isChanged:", isChanged);
+    console.log("wallet_status:", wallet_status);
 
     useEffect(() => {
         if (pageType === "template") {

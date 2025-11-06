@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+use App\Helpers\RoleHelper;
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -22,6 +24,14 @@ class User extends Authenticatable
         'impersonated_by',
         'status',
     ];
+
+    protected $appends = ['role_name'];
+
+    public function getRoleNameAttribute(): string
+    {
+        return RoleHelper::displayName($this->role);
+        // or if you used the function-based helper: return getRoleDisplayName($this->role);
+    }
 
     /** 🔹 If the user is a company owner, this links to their company */
     public function companyProfile()

@@ -32,6 +32,7 @@ class CompanyCardTemplate extends Model
         
         'wallet_text_color',
         'wallet_bg_color',
+        'wallet_title',
         'wallet_label_1',
         'wallet_label_2',
         'wallet_label_3',

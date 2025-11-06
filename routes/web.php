@@ -21,20 +21,18 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
-Route::middleware(['auth', 'company'])->group(function () {
+Route::middleware(['auth', 'role:company'])->group(function () {
     Route::get('/design', [DesignController::class, 'index'])
         ->name('design.index');
     Route::post('/design/createOrUpdate', [DesignController::class, 'createOrUpdate'])
         ->name('design.createOrUpdate');
-    Route::get('/settings', [CompanyController::class, 'index'])
+    Route::get('/settings', [CompanyController::class, 'settings'])
         ->name('settings.index');
-    Route::put('/settings/company', [CompanyController::class, 'update'])
-        ->name('settings.company.update');
 
 });
 
 
-Route::middleware(['auth', 'company_or_templateEditor'])->group(function () {
+Route::middleware(['auth', 'role:company,template_editor'])->group(function () {
 
     Route::get('/design', [DesignController::class, 'index'])
         ->name('design.index');
@@ -46,7 +44,7 @@ Route::middleware(['auth', 'company_or_templateEditor'])->group(function () {
 });
 
 
-Route::middleware(['auth', 'company_or_editor'])->group(function () {
+Route::middleware(['auth', 'role:company,editor,template_editor'])->group(function () {
     Route::get('/company/cards', [CardsController::class, 'companyCards'])
         ->name('company.cards');
     Route::put('/cards/{card}/toggle-status', [CardsController::class, 'toggleStatus']);
@@ -64,12 +62,19 @@ Route::middleware(['auth', 'company_or_editor'])->group(function () {
 
     Route::post('/cards/toggle-multiple-status', [CardsController::class, 'toggleMultipleStatus'])
         ->name('cards.toggleMultipleStatus');
+
+        
+    Route::post('/company/cards/card_wallet/{card}/update', [DesignController::class, 'cardWalletUpdate'])
+        ->name('design.cardWalletUpdate');
 });
+
+
 Route::get('/card/{code}', [DesignController::class, 'cardShow'])
     ->name('card.show');
 Route::post('/cards/increment-downloads', [CardsController::class, 'incrementDownloadsByCode']);
 
-Route::middleware(['auth', 'admin'])->group(function () {
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/users/{user}/impersonate', [UserController::class, 'impersonate'])->name('users.impersonate');
 
     Route::get('/cards/groups/{group}/download', [CardsController::class, 'downloadGroup'])
@@ -86,8 +91,14 @@ Route::middleware(['auth', 'admin'])->group(function () {
 });
 
 
-Route::middleware(['auth', 'admin_or_company'])->group(function () {
+Route::middleware(['auth', 'role:admin,company,template_editor'])->group(function () {
     Route::resource('users', UserController::class);
+});
+
+Route::middleware(['auth', 'role:admin,company'])->group(function () {
+
+    Route::put('/settings/company', [CompanyController::class, 'update'])
+        ->name('settings.company.update');
 });
 
 Route::middleware(['auth'])->group(function () {

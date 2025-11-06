@@ -76,6 +76,7 @@ export default function WalletFormInformation() {
                                 <InputLabel
                                     className="text-black text-sm font-medium"
                                     value={"Wallet BG Color"}
+                                    isDemo={!isTemplate}
                                 />
                                 <ColorInput
                                     id="wallet_bg_color"
@@ -89,6 +90,7 @@ export default function WalletFormInformation() {
                                 <InputLabel
                                     className="text-black text-sm font-medium"
                                     value={"Wallet Text Color"}
+                                    isDemo={!isTemplate}
                                 />
                                 <ColorInput
                                     id="wallet_text_color"

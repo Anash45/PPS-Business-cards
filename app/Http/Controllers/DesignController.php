@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Card;
 use App\Models\CardView;
+use App\Models\CardWalletDetail;
 use App\Models\CompanyCardTemplate;
 use App\Traits\LoadsCompanyDesignData;
+use Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -253,6 +255,7 @@ class DesignController extends Controller
         $validated = $request->validate([
             'wallet_logo_image' => 'nullable|image|max:5120',
             'company_name' => 'required|string|max:255',
+            'wallet_title' => 'nullable|string|max:100',
             'wallet_bg_color' => 'nullable|string|max:100',
             'wallet_text_color' => 'nullable|string|max:100',
             'wallet_label_1' => 'nullable|string|max:100',
@@ -306,6 +309,366 @@ class DesignController extends Controller
         ]);
     }
 
+    public function cardWalletUpdate(Card $card)
+    {
+        $user = Auth::user();
+
+        // ✅ Only allow company, editor, or template_editor
+        if (!$user->isCompany() && !in_array($user->role, ['editor', 'template_editor'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only allowed users can perform this action.',
+            ], 403);
+        }
+
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+        if (!$company) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No company associated with this user.',
+            ], 404);
+        }
+
+        try {
+            $wallet = $this->buildCardWalletFromCard($card);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Card Wallet updated successfully!',
+                'data' => ['card_wallet' => $wallet],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+
+
+    private function buildCardWalletFromCard(Card $card)
+    {
+        $card->loadMissing(['company.cardTemplate']);
+        $template = $card->company?->cardTemplate;
+
+        if (!$template) {
+            throw new \Exception('Card template not found for the associated company.');
+        }
+
+        // ✅ Validate template fields
+        $requiredTemplateFields = [
+            'company_name',
+            'wallet_bg_color',
+            'wallet_text_color',
+            'wallet_label_1',
+            'wallet_label_2',
+            'wallet_label_3',
+            'wallet_qr_caption',
+            'wallet_logo_image',
+        ];
+        foreach ($requiredTemplateFields as $field) {
+            if (empty($template->$field)) {
+                throw new \Exception("Missing required template field: {$field}");
+            }
+        }
+
+        // ✅ Validate card fields
+        $requiredCardFields = ['first_name', 'last_name', 'position', 'profile_image'];
+        foreach ($requiredCardFields as $field) {
+            if (empty($card->$field)) {
+                throw new \Exception("Missing required card field: {$field}");
+            }
+        }
+
+        // ✅ Upload images only if new or changed
+        $userImageFileId = null;
+        $companyLogoFileId = null;
+
+        // Check if CardWallet exists
+        $cardWallet = CardWalletDetail::where('card_id', $card->id)->first();
+
+        Log::info('🪪 Starting image handling for Card Wallet', [
+            'card_id' => $card->id,
+            'has_existing_wallet' => (bool) $cardWallet,
+            'profile_image' => $card->profile_image,
+            'template_logo' => $template->wallet_logo_image,
+        ]);
+
+        // ✅ Handle User Image
+        if ($cardWallet && $card->profile_image === $cardWallet->user_image) {
+            // No need to upload again
+            $userImageFileId = $cardWallet->user_image_string;
+            Log::info('✅ Reusing existing user image file ID', [
+                'card_id' => $card->id,
+                'user_image_string' => $userImageFileId,
+            ]);
+        } else {
+            Log::info('📤 Uploading new user image to PPS Wallet', [
+                'card_id' => $card->id,
+                'reason' => $cardWallet ? 'Image changed' : 'New wallet record',
+            ]);
+            $userImageBase64 = $this->imageToBase64($card->profile_image);
+            if ($userImageBase64) {
+                $userUpload = $this->uploadImageToWalletApi($userImageBase64);
+                $userImageFileId = $userUpload['file_id'] ?? null;
+                Log::info('✅ User image upload response', [
+                    'card_id' => $card->id,
+                    'api_response' => $userUpload,
+                    'file_id' => $userImageFileId,
+                ]);
+            } else {
+                Log::warning('⚠️ Failed to convert user image to Base64', [
+                    'card_id' => $card->id,
+                ]);
+            }
+        }
+
+        // ✅ Handle Company Logo Upload Optimization
+        $companyLogoFileId = null;
+
+        if ($cardWallet && $template->wallet_logo_image === $cardWallet->company_logo) {
+            $companyLogoFileId = $cardWallet->company_logo_string;
+            Log::info('✅ Reusing existing company logo file ID (same as current template)', [
+                'card_id' => $card->id,
+                'company_logo_string' => $companyLogoFileId,
+            ]);
+        } else {
+            // If not, check if another card from the same company already has it uploaded
+            $existingLogoWallet = CardWalletDetail::whereIn('card_id', function ($query) use ($template) {
+                $query->select('id')
+                    ->from('cards')
+                    ->where('company_id', $template->company_id);
+            })
+                ->where('company_logo', $template->wallet_logo_image)
+                ->whereNotNull('company_logo_string')
+                ->first();
+
+            if ($existingLogoWallet) {
+                $companyLogoFileId = $existingLogoWallet->company_logo_string;
+                Log::info('♻️ Reusing company logo from another card', [
+                    'card_id' => $card->id,
+                    'source_card_id' => $existingLogoWallet->card_id,
+                    'company_logo_string' => $companyLogoFileId,
+                ]);
+            } else {
+                Log::info('📤 Uploading new company logo to PPS Wallet', [
+                    'card_id' => $card->id,
+                    'company_id' => $template->company_id,
+                ]);
+                $companyLogoBase64 = $this->imageToBase64($template->wallet_logo_image);
+                if ($companyLogoBase64) {
+                    $logoUpload = $this->uploadImageToWalletApi($companyLogoBase64);
+                    $companyLogoFileId = $logoUpload['file_id'] ?? null;
+                    Log::info('✅ Company logo upload response', [
+                        'card_id' => $card->id,
+                        'api_response' => $logoUpload,
+                        'file_id' => $companyLogoFileId,
+                    ]);
+                } else {
+                    Log::warning('⚠️ Failed to convert company logo to Base64', [
+                        'card_id' => $card->id,
+                    ]);
+                }
+            }
+        }
+
+        // ✅ Get or create local card wallet record
+        $cardWallet = CardWalletDetail::firstOrNew(['card_id' => $card->id]);
+
+        // ✅ Prepare vars for pass creation
+        $vars = [
+            'var1' => env('LINK_URL') . '/card/' . $card->code,
+            'var2' => $template->wallet_qr_caption,
+            'var3' => $template->wallet_label_1,
+            'var4' => trim(implode(' ', array_filter([$card->salutation, $card->title, $card->first_name, $card->last_name]))),
+            'var5' => $template->wallet_label_2,
+            'var6' => $template->company_name,
+            'var7' => $template->wallet_label_3,
+            'var8' => $card->position,
+            'var9' => $template->wallet_title,
+        ];
+
+        // ✅ Prepare payload
+        $payload = [
+            'template_id' => 88260,
+            'google_pass' => [
+                'img_hero' => $userImageFileId,
+                'img_logo' => $companyLogoFileId,
+                'background_color' => $template->wallet_bg_color,
+            ],
+            'apple_pass' => [
+                'img_hero' => $userImageFileId,
+                'img_logo' => $companyLogoFileId,
+                'img_thumbnail' => $userImageFileId,
+                'background_color' => $template->wallet_bg_color,
+                'foreground_color' => $template->wallet_text_color,
+                'label_color' => $template->wallet_text_color,
+            ],
+            'vars' => $vars,
+        ];
+
+        $isUpdate = !empty($cardWallet->pass_id);
+        $apiUrl = $isUpdate ? 'https://api.ppswallet.de/pass/update' : 'https://api.ppswallet.de/pass/create';
+
+        $response = Http::withHeaders([
+                    'api-key-id' => env('PPS_API_KEY_ID'),
+                    'api-key-secret' => env('PPS_API_KEY_SECRET'),
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                ])->{$isUpdate ? 'post' : 'post'}($apiUrl, $isUpdate ? array_merge($payload, ['id' => $cardWallet->pass_id]) : $payload);
+
+        Log::info('Wallet Pass API Response', [
+            'card_id' => $card->id,
+            'is_update' => $isUpdate,
+            'payload' => $payload,
+            'response' => $response->body(),
+        ]);
+
+        if ($response->failed()) {
+            throw new \Exception('PPS Wallet API request failed: ' . $response->body());
+        }
+
+        $data = $response->json();
+        if (($data['message'] ?? '') !== 'success') {
+            throw new \Exception('Unexpected PPS Wallet API response: ' . json_encode($data));
+        }
+
+        Log::info($data);
+
+        // ✅ Save or update wallet record
+        $cardWallet->fill([
+            'card_id' => $card->id,
+            'pass_id' => $data['pass_id'] ?? $cardWallet->pass_id,
+            'template_id' => 88260,
+            'company_logo' => $template->wallet_logo_image,
+            'user_image' => $card->profile_image,
+            'company_logo_string' => $companyLogoFileId,
+            'user_image_string' => $userImageFileId,
+            'bg_color' => $template->wallet_bg_color,
+            'text_color' => $template->wallet_text_color,
+            'card_code' => $data['serial_number'] ?? null,
+            'qr_caption' => $vars['var2'],
+            'label_1' => $vars['var3'],
+            'label_1_value' => $vars['var4'],
+            'label_2' => $vars['var5'],
+            'label_2_value' => $vars['var6'],
+            'label_3' => $vars['var7'],
+            'label_3_value' => $vars['var8'],
+            'wallet_title' => $vars['var9'],
+            'download_link' => $data['download_link'] ?? 'Hiiiii',
+        ]);
+
+        $cardWallet->save();
+
+        return $cardWallet;
+    }
+
+
+
+    /**
+     * Convert image (local or URL) to Base64 string.
+     */
+    private function imageToBase64(?string $imagePath): ?string
+    {
+        if (empty($imagePath)) {
+            Log::warning('imageToBase64 called with empty path.');
+            return null;
+        }
+
+        try {
+            // ✅ If it's a full URL (http/https)
+            if (filter_var($imagePath, FILTER_VALIDATE_URL)) {
+                $imageData = file_get_contents($imagePath);
+            } else {
+                // ✅ Normalize and get file contents from Laravel storage
+                $normalizedPath = ltrim($imagePath, '/');
+                if (Storage::disk('public')->exists($normalizedPath)) {
+                    $imageData = Storage::disk('public')->get($normalizedPath);
+                } else {
+                    // ✅ Try full path as fallback (in case already absolute)
+                    $fullPath = storage_path('app/public/' . $normalizedPath);
+                    if (file_exists($fullPath)) {
+                        $imageData = file_get_contents($fullPath);
+                    } else {
+                        throw new \Exception("File not found in storage: {$imagePath}");
+                    }
+                }
+            }
+
+            return base64_encode($imageData);
+        } catch (\Exception $e) {
+            Log::error('Failed to convert image to Base64', [
+                'path' => $imagePath,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+
+    /**
+     * Upload Base64 image to PPS Wallet API and return file_id.
+     */
+    private function uploadImageToWalletApi($base64String)
+    {
+        if (!$base64String) {
+            return [
+                'success' => false,
+                'message' => 'Missing base64 string for image upload.',
+            ];
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'api-key-id' => env('PPS_API_KEY_ID'),
+                'api-key-secret' => env('PPS_API_KEY_SECRET'),
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ])->post('https://api.ppswallet.de/file/upload', [
+                        'base64_file' => $base64String,
+                    ]);
+
+            Log::info('Wallet File Upload Response', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            if ($response->failed()) {
+                return [
+                    'success' => false,
+                    'message' => 'Wallet upload failed.',
+                    'status' => $response->status(),
+                    'response' => $response->json(),
+                ];
+            }
+
+            $data = $response->json();
+            if (($data['message'] ?? '') !== 'success' || empty($data['file_id'])) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid API response from PPS Wallet.',
+                    'response' => $data,
+                ];
+            }
+
+            return [
+                'success' => true,
+                'file_id' => $data['file_id'],
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Error uploading to Wallet API: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Error uploading to Wallet API: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+
+
+
 
     public function cardEdit(Card $card)
     {
@@ -322,7 +685,7 @@ class DesignController extends Controller
         // ✅ Now safe comparison
         if (
             !$user->isCompany() && (
-                !$user->isEditor() || (int) $card->company_id !== (int) $companyId
+                !in_array($user->role, ['editor', 'template_editor']) || (int) $card->company_id !== (int) $companyId
             )
         ) {
             return response()->json([
@@ -333,7 +696,6 @@ class DesignController extends Controller
 
         // ✅ Determine correct company reference
         $companyRef = $user->isCompany() ? $user->companyProfile : $user->company;
-        Log::info("CompanyRef: {$companyRef}");
 
         // ✅ Load company with related data
         $company = $companyRef->newQuery()
@@ -369,12 +731,15 @@ class DesignController extends Controller
         if (!$company) {
             return response()->json(['message' => 'No company associated with this user'], 404);
         }
-        Log::info("CompanyDetails: {$company}");
+
+        $walletStatus = $card->wallet_status;
+        $card->load(['cardWallet']);
 
         return inertia('Design/Index', [
             'pageType' => 'card',
             'company' => $company,
             'selectedCard' => $card,
+            'wallet_status' => $walletStatus,
             'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
         ]);
     }
@@ -477,7 +842,7 @@ class DesignController extends Controller
         // ✅ Now safe comparison
         if (
             !$user->isCompany() && (
-                !$user->isEditor() || (int) $card->company_id !== (int) $companyId
+                !in_array($user->role, ['editor', 'template_editor']) || (int) $card->company_id !== (int) $companyId
             )
         ) {
             return response()->json([
@@ -688,7 +1053,7 @@ class DesignController extends Controller
         // ✅ Now safe comparison
         if (
             !$user->isCompany() && (
-                !$user->isEditor()
+                !in_array($user->role, ['editor', 'template_editor'])
             )
         ) {
             return response()->json([

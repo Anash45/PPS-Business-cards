@@ -86,7 +86,7 @@ export function mapCompanyTemplateData(
                       : "/assets/images/profile-placeholder.png",
                   profile_image: null,
                   wallet_qr_string:
-                      selectedCard?.cardWallet?.wallet_qr_string ??
+                      selectedCard?.card_wallet?.download_link ??
                       "Hello there!",
                   wallet_name:
                       template?.wallet_name ??

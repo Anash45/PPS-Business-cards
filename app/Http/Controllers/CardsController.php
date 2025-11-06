@@ -240,14 +240,6 @@ class CardsController extends Controller
         // Determine correct company reference
         $company = $user->isCompany() ? $user->companyProfile : $user->company;
 
-        // ✅ Allow both company and editor
-        if (!$user->isCompany() && !$user->isEditor()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized: Only company or editor users can perform this action.',
-            ], 403);
-        }
-
         // Get all cards for this company
         $cards = Card::where('company_id', $user->company->id)->get();
 
@@ -272,7 +264,7 @@ class CardsController extends Controller
         // ✅ Now safe comparison
         if (
             !$user->isCompany() && (
-                !$user->isEditor() || (int) $card->company_id !== (int) $companyId
+                !in_array($user->role, ['editor', 'template_editor'])
             )
         ) {
             return response()->json([
@@ -317,7 +309,7 @@ class CardsController extends Controller
             ->where('company_id', $companyId);
 
         // ✅ Additional security: editors can only affect their own company’s cards
-        if (!$user->isCompany() && !$user->isEditor()) {
+        if (!$user->isCompany() && !in_array($user->role, ['editor', 'template_editor'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized action.',

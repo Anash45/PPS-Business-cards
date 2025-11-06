@@ -101,8 +101,103 @@ class Card extends Model
         return $this->hasMany(CardButton::class);
     }
 
+    public function cardWallet()
+    {
+        return $this->hasOne(CardWalletDetail::class);
+    }
+
     public function views()
     {
         return $this->hasMany(CardView::class);
     }
+
+    public function getWalletStatusAttribute()
+    {
+        $wallet = $this->cardWallet;
+
+        // 🟥 If wallet record doesn't exist
+        if (!$wallet) {
+            return [
+                'status' => 'missing',
+                'message' => 'No wallet pass found for this card.',
+            ];
+        }
+
+        $template = optional(optional($this->company)->cardTemplate);
+
+        // 🟦 Define field pairs (expected vs actual)
+        $fields = [
+            'label_1_value' => [
+                'expected' => trim(implode(' ', array_filter([
+                    $this->salutation,
+                    $this->title,
+                    $this->first_name,
+                    $this->last_name,
+                ]))),
+                'actual' => trim($wallet->label_1_value),
+            ],
+            'user_image' => [
+                'expected' => $this->profile_image,
+                'actual' => $wallet->user_image,
+            ],
+            'label_3_value' => [
+                'expected' => $this->position,
+                'actual' => $wallet->label_3_value,
+            ],
+
+            // 🏢 Company Template fields
+            'label_2_value' => [
+                'expected' => $template?->company_name,
+                'actual' => $wallet->label_2_value,
+            ],
+            'bg_color' => [
+                'expected' => $template?->wallet_bg_color,
+                'actual' => $wallet->bg_color,
+            ],
+            'text_color' => [
+                'expected' => $template?->wallet_text_color,
+                'actual' => $wallet->text_color,
+            ],
+            'label_1' => [
+                'expected' => $template?->wallet_label_1,
+                'actual' => $wallet->label_1,
+            ],
+            'label_2' => [
+                'expected' => $template?->wallet_label_2,
+                'actual' => $wallet->label_2,
+            ],
+            'label_3' => [
+                'expected' => $template?->wallet_label_3,
+                'actual' => $wallet->label_3,
+            ],
+            'qr_caption' => [
+                'expected' => $template?->wallet_qr_caption,
+                'actual' => $wallet->qr_caption,
+            ],
+            'company_logo' => [
+                'expected' => $template?->wallet_logo_image,
+                'actual' => $wallet->company_logo,
+            ],
+        ];
+
+        // 🧩 Compare and collect mismatches
+        $mismatched = [];
+        foreach ($fields as $key => $pair) {
+            if ($pair['expected'] !== $pair['actual']) {
+                $mismatched[$key] = [
+                    'expected' => $pair['expected'],
+                    'actual' => $pair['actual'],
+                ];
+            }
+        }
+
+        // 🟩 Determine status
+        $status = empty($mismatched) ? 'synced' : 'out_of_sync';
+
+        return [
+            'status' => $status,
+            'mismatched_fields' => $mismatched,
+        ];
+    }
+
 }

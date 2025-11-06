@@ -78,25 +78,22 @@ export default function ManageUserModal({
 
     // ✅ Determine role-based permissions
     const isAdmin = authUser?.role === "admin";
-    const isCompany = authUser?.role === "company";
 
     // ✅ Role options (based on who is editing)
     const roleOptions = isAdmin
         ? [
-              { value: "admin", label: "Admin" },
+              { value: "admin", label: "Super Admin" },
               // Only allow creating company if this is a new user (not editing)
               ...(!user ? [{ value: "company", label: "Company Owner" }] : []),
-              { value: "editor", label: "Editor" },
-              { value: "template_editor", label: "Template Editor" },
+              { value: "editor", label: "Card Editor" },
+              { value: "template_editor", label: "Card + Template Editor" },
               //   { value: "team", label: "Team Member" },
           ]
-        : isCompany
-        ? [
-              { value: "editor", label: "Editor" },
-              { value: "template_editor", label: "Template Editor" },
+        : [
+              { value: "editor", label: "Card Editor" },
+              { value: "template_editor", label: "Card + Template Editor" },
               //   { value: "team", label: "Team Member" },
-          ]
-        : [];
+          ];
 
     console.log("User Modal:", authUser?.role);
 

@@ -14,7 +14,7 @@ class CsvController extends Controller
         // ✅ Now safe comparison
         if (
             !$user->isCompany() && (
-                !$user->isEditor()
+                !in_array($user->role, ['editor', 'template_editor'])
             )
         ) {
             return response()->json([
