@@ -117,7 +117,7 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                             <p
                                                 className="text-sm border-b border-b-gray-800 cursor-pointer"
                                                 onClick={() =>
-                                                    user.role == "admin" &&
+                                                    authUser.role == "admin" &&
                                                     openModal(
                                                         "ManageCompanyModal",
                                                         {
@@ -216,7 +216,8 @@ export default function UserTable({ users, plans, companies, authUser }) {
                                             <span>Edit</span>
                                         </div>
                                     </DropdownItem>
-                                    {user.role == "company" && authUser.role == "admin" ? (
+                                    {user.role == "company" &&
+                                    authUser.role == "admin" ? (
                                         <DropdownItem
                                             onClick={() =>
                                                 openModal(
