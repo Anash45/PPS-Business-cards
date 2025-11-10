@@ -1,5 +1,6 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { Phone } from "lucide-react";
+import AutoTranslate from "./AutoTranslate";
 
 export default function CardPreviewPhones({ cardPhones }) {
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
@@ -42,7 +43,7 @@ export default function CardPreviewPhones({ cardPhones }) {
                     <span className="shrink-0 text-xl">📞</span>
                     <span>
                         {phone.label ? (
-                            <span>{phone.label}: </span>
+                            <span>{<AutoTranslate text={phone.label} />}: </span>
                         ) : null}{" "}
                         {phone.phone_number}
                     </span>

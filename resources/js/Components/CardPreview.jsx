@@ -3,6 +3,7 @@ import CardPreviewSocials from "./CardPreviewSocials";
 import CardPreviewVCard from "./CardPreviewVCard";
 import CardPreviewSections from "./CardPreviewSections";
 import { useEffect, useRef, useState } from "react";
+import AutoTranslate from "./AutoTranslate";
 
 export default function CardPreview({ isReal = false }) {
     const { cardFormData } = useGlobal(GlobalProvider);
@@ -77,7 +78,7 @@ export default function CardPreview({ isReal = false }) {
                             cardFormData.first_name ||
                             cardFormData.last_name
                                 ? `${cardFormData?.title} ${cardFormData?.first_name} ${cardFormData?.last_name}`
-                                : "Mr. John Doe"}
+                                : "Dr. John Doe"}
                         </h2>
                         {cardFormData.degree ? (
                             <p
@@ -88,7 +89,7 @@ export default function CardPreview({ isReal = false }) {
                                         "#000000",
                                 }}
                             >
-                                {cardFormData.degree}
+                                {<AutoTranslate text={cardFormData.degree} />}
                             </p>
                         ) : null}
                         {cardFormData.position ||
@@ -107,7 +108,7 @@ export default function CardPreview({ isReal = false }) {
                                     <p className="text-sm font-medium flex items-center justify-center flex-wrap gap-1.5 text-center">
                                         {cardFormData?.position && (
                                             <span ref={positionRef}>
-                                                {cardFormData.position}
+                                                {<AutoTranslate text={cardFormData.position} />}
                                             </span>
                                         )}
 
@@ -126,7 +127,7 @@ export default function CardPreview({ isReal = false }) {
 
                                         {cardFormData?.department && (
                                             <span ref={departmentRef}>
-                                                {cardFormData.department}
+                                                {<AutoTranslate text={cardFormData.department} />}
                                             </span>
                                         )}
                                     </p>

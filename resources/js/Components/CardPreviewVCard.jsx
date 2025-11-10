@@ -3,6 +3,7 @@ import { getDomain } from "@/utils/viteConfig";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import AutoTranslate from "./AutoTranslate";
 
 export default function CardPreviewVCard() {
     const { cardFormData } = useGlobal(GlobalProvider);
@@ -222,7 +223,7 @@ ROLE:${cardFormData.department || ""}
                 }}
                 className="px-4 py-2.5 rounded-[10px] text-sm font-medium leading-tight w-fit"
             >
-                {cardFormData.contact_btn_text}
+                {<AutoTranslate text={cardFormData.contact_btn_text} />}
             </button>
         </div>
     );

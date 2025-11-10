@@ -1,5 +1,6 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { MapPin } from "lucide-react";
+import AutoTranslate from "./AutoTranslate";
 
 export default function CardPreviewAdresses({ cardAddresses }) {
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
@@ -42,7 +43,7 @@ export default function CardPreviewAdresses({ cardAddresses }) {
                         <span className="shrink-0 text-xl">📍</span>
                         <span>
                             {address.label ? (
-                                <span>{address.label}</span>
+                                <span>{<AutoTranslate text={address.label} />}</span>
                             ) : (
                                 <span>
                                     {[address.street, address.house_number]

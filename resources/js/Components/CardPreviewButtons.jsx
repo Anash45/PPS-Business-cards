@@ -1,5 +1,6 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { MapPin, Smile } from "lucide-react";
+import AutoTranslate from "./AutoTranslate";
 
 export default function CardPreviewButtons({ cardButtons }) {
     const { cardFormData } =
@@ -28,7 +29,7 @@ export default function CardPreviewButtons({ cardButtons }) {
                                     <Smile className="h-7 w-7" />
                                 )}
                             </span>
-                            <span>{button.button_text}</span>
+                            <span>{<AutoTranslate text={button.button_text} />}</span>
                         </a>
                     )
             )}

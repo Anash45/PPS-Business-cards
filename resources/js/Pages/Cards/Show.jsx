@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import CardPreview from "@/Components/CardPreview";
 import CardLayout from "@/Layouts/CardLayout";
 import { mapCompanyTemplateData } from "@/utils/mapCompanyTemplateData";
+import AutoTranslate from "@/Components/AutoTranslate";
 
 export default function Company() {
     const {
@@ -88,15 +89,18 @@ export default function Company() {
             <div className="py-4 md:px-6 px-4 flex flex-col gap-6">
                 {!isSubscriptionActive ? (
                     <div className="p-4 text-center bg-red-100 text-red-700 rounded-md">
-                        You can only access this page with a valid subscription.
-                        Contact administrator for more information.
+                        <AutoTranslate
+                            text={`You can only access this page with a valid subscription. Contact administrator for more information.`}
+                        />
                     </div>
                 ) : selectedCard?.status === "active" ? (
                     <CardPreview isReal={true} />
                 ) : (
                     <div className="p-4 text-center bg-orange-100 text-orange-700 rounded-md">
-                        This card is currently inactive. Please contact the
-                        administrator for more information.
+                        <AutoTranslate
+                            text={`This card is currently inactive. Please contact the
+                        administrator for more information.`}
+                        />
                     </div>
                 )}
             </div>

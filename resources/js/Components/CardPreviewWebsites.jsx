@@ -1,5 +1,6 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { Globe } from "lucide-react";
+import AutoTranslate from "./AutoTranslate";
 
 export default function CardPreviewWebsites({ cardWebsites }) {
     const { cardFormData } = useGlobal(GlobalProvider);
@@ -42,7 +43,7 @@ export default function CardPreviewWebsites({ cardWebsites }) {
 
                     <span className="truncate">
                         {site.label ? (
-                            <span>{site.label}</span>
+                            <span>{<AutoTranslate text={site.label} />}</span>
                         ) : (
                             site.url
                         )}

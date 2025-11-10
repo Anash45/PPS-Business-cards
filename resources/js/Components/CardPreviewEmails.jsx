@@ -1,5 +1,6 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { Mail } from "lucide-react";
+import AutoTranslate from "./AutoTranslate";
 
 export default function CardPreviewEmails({ cardEmails }) {
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
@@ -40,7 +41,7 @@ export default function CardPreviewEmails({ cardEmails }) {
                     <span className="shrink-0 text-xl">✉️</span>
                     <span>
                         {email.label ? (
-                            <span>{email.label}: </span>
+                            <span>{<AutoTranslate text={email.label} />}: </span>
                         ) : null}
                         {email.email}
                     </span>
