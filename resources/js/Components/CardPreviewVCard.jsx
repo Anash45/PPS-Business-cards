@@ -4,9 +4,12 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import AutoTranslate from "./AutoTranslate";
+import { useAutoTranslate } from "@/context/AutoTranslateProvider";
 
 export default function CardPreviewVCard() {
     const { cardFormData } = useGlobal(GlobalProvider);
+    const context = useAutoTranslate();
+    const isDE = context?.isDE || null;
 
     const [linkDomain, setLinkDomain] = useState(
         "https://app.ppsbusinesscards.de"
@@ -102,8 +105,7 @@ ROLE:${cardFormData.department || ""}
 
                 // vCard ADR structure:
                 // ADR;TYPE=WORK:;;Street House_number;City;;ZIP;Country
-                const streetPart = [a.street, a.house_number]
-                    .join(" ");
+                const streetPart = [a.street, a.house_number].join(" ");
                 const cityPart = a.city || "";
                 const zipPart = a.zip || "";
                 const countryPart = a.country || "";
@@ -133,12 +135,9 @@ ROLE:${cardFormData.department || ""}
 
         // ✅ Increment downloads on server
         try {
-            const response = await axios.post(
-                "/cards/increment-downloads",
-                {
-                    code: cardFormData.code,
-                }
-            );
+            const response = await axios.post("/cards/increment-downloads", {
+                code: cardFormData.code,
+            });
 
             if (response.data.success) {
                 console.log("Downloads updated:", response.data.downloads);
@@ -223,7 +222,9 @@ ROLE:${cardFormData.department || ""}
                 }}
                 className="px-4 py-2.5 rounded-[10px] text-sm font-medium leading-tight w-fit"
             >
-                {<AutoTranslate text={cardFormData.contact_btn_text} />}
+                {isDE && cardFormData.contact_btn_text_de
+                    ? cardFormData.contact_btn_text_de
+                    : cardFormData.contact_btn_text}
             </button>
         </div>
     );

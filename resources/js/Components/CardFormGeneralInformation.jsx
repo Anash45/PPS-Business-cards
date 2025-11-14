@@ -267,7 +267,7 @@ export default function CardFormGeneralInformation() {
                                     />
                                 </div>
                             </div>
-                            <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
+                            <div className="p-3 rounded-lg grid sm:grid-cols-2 gap-4 border border-[#EAECF0]">
                                 <div className="space-y-1">
                                     <InputLabel
                                         className="text-black text-sm font-medium"
@@ -279,6 +279,20 @@ export default function CardFormGeneralInformation() {
                                         value={cardFormData.contact_btn_text}
                                         onChange={(e) => handleCardChange(e)}
                                         name="contact_btn_text"
+                                        className="w-full"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        className="text-black text-sm font-medium"
+                                        value={"Contact Button Text in german"}
+                                        htmlFor="contact_btn_text_de"
+                                    />
+                                    <TextInput
+                                        id="contact_btn_text_de"
+                                        value={cardFormData.contact_btn_text_de}
+                                        onChange={(e) => handleCardChange(e)}
+                                        name="contact_btn_text_de"
                                         className="w-full"
                                     />
                                 </div>
