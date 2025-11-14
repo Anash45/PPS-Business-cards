@@ -17,6 +17,7 @@ export default function CardPreviewPhones({ cardPhones }) {
             ? visiblePhones
             : [
                   {
+                      icon: "📞",
                       label: "Sample",
                       phone_number: "+44 1234 567890",
                       is_hidden: false,
@@ -53,7 +54,7 @@ export default function CardPreviewPhones({ cardPhones }) {
                             }px`,
                         }}
                     >
-                        📞
+                        {phone?.icon ?? "📞"}
                     </span>
                     <span>
                         {phone.label || phone.label_de ? (

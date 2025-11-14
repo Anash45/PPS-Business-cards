@@ -244,6 +244,10 @@ export default function CardFormGeneralInformation() {
                                         placeholder="Select status"
                                         options={[
                                             {
+                                                value: "12",
+                                                label: "12px",
+                                            },
+                                            {
                                                 value: "14",
                                                 label: "14px",
                                             },
