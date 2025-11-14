@@ -12,7 +12,9 @@ class CardPhoneNumber extends Model
     protected $fillable = [
         'company_id',
         'card_id',
+        'icon',
         'label',
+        'label_de',
         'type',
         'phone_number',
         'is_hidden',

@@ -1,8 +1,11 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { Phone } from "lucide-react";
 import AutoTranslate from "./AutoTranslate";
+import { useAutoTranslate } from "@/context/AutoTranslateProvider";
 
 export default function CardPreviewPhones({ cardPhones }) {
+    const context = useAutoTranslate();
+    const isDE = context?.isDE || null;
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
 
     // ✅ Filter visible phone numbers
@@ -37,13 +40,28 @@ export default function CardPreviewPhones({ cardPhones }) {
                         borderColor:
                             cardFormData?.phone_bg_color ??
                             cardFormData?.btn_bg_color,
+
+                        fontSize: `${cardFormData.buttons_size}px`,
                     }}
-                    className="flex relative border text-sm leading-tight items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn w-full"
+                    className="flex relative border leading-tight items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn w-full"
                 >
-                    <span className="shrink-0 text-xl">📞</span>
+                    <span
+                        className="shrink-0"
+                        style={{
+                            fontSize: `${
+                                Number(cardFormData.buttons_size) + 4
+                            }px`,
+                        }}
+                    >
+                        📞
+                    </span>
                     <span>
-                        {phone.label ? (
-                            <span>{<AutoTranslate text={phone.label} />}: </span>
+                        {phone.label || phone.label_de ? (
+                            <span>
+                                {isDE && phone.label_de
+                                    ? phone.label_de
+                                    : phone.label}
+                            </span>
                         ) : null}{" "}
                         {phone.phone_number}
                     </span>

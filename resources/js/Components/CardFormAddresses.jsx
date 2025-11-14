@@ -138,6 +138,23 @@ export default function CardFormAddresses() {
                                     readOnly={isReadOnly}
                                 />
                             </div>
+                            {/* Label Field */}
+                            <div className="w-full sm:flex-1 md:w-full">
+                                <TextInput
+                                    className="w-full"
+                                    placeholder="Label in german (z. B. Büro, Hauptsitz)"
+                                    value={item.label_de || ""}
+                                    onChange={(e) => {
+                                        if (isReadOnly) return;
+                                        updateAddressField(
+                                            index,
+                                            "label_de",
+                                            e.target.value
+                                        );
+                                    }}
+                                    readOnly={isReadOnly}
+                                />
+                            </div>
                         </div>
                         {/* ✅ First Row: Type + Label + Street + House Number */}
                         <div className="flex flex-col md:flex-row md:items-center gap-3">

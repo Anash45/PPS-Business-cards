@@ -94,8 +94,8 @@ export default function CardFormWebsites() {
                         className="space-y-3 border-b border-gray-100 pb-3"
                     >
                         {/* Row Container */}
-                        <div className="flex flex-col md:flex-row md:items-center gap-3">
-                            <div className="flex flex-wrap items-center gap-3 grow">
+                        <div className="flex flex-col lg:flex-row md:items-center gap-3">
+                            <div className="flex items-center gap-3 grow w-full">
                                 {/* Emoji Selector */}
                                 <div className="relative">
                                     <Button
@@ -132,7 +132,7 @@ export default function CardFormWebsites() {
                                 </div>
 
                                 {/* Label */}
-                                <div className="w-full sm:w-[200px]">
+                                <div className="w-full">
                                     <TextInput
                                         className="w-full"
                                         placeholder="Label (e.g. Company Site)"
@@ -148,18 +148,17 @@ export default function CardFormWebsites() {
                                         readOnly={isReadOnly}
                                     />
                                 </div>
-
-                                {/* URL */}
-                                <div className="w-full flex-1 min-w-[200px]">
+                                {/* Label */}
+                                <div className="w-full">
                                     <TextInput
                                         className="w-full"
-                                        placeholder="Enter website URL"
-                                        value={item.url || ""}
+                                        placeholder="Label in german (z. B. Unternehmensseite)"
+                                        value={item.label_de || ""}
                                         onChange={(e) => {
                                             if (isReadOnly) return;
                                             updateWebsiteField(
                                                 index,
-                                                "url",
+                                                "label_de",
                                                 e.target.value
                                             );
                                         }}
@@ -168,39 +167,59 @@ export default function CardFormWebsites() {
                                 </div>
                             </div>
 
-                            {/* Hidden Checkbox */}
-                            <label className="flex items-center gap-2 shrink-0">
-                                <input
-                                    type="checkbox"
-                                    checked={item.is_hidden || false}
+                            {/* URL */}
+                            <div className="w-full">
+                                <TextInput
+                                    className="w-full"
+                                    placeholder="Enter website URL"
+                                    value={item.url || ""}
                                     onChange={(e) => {
                                         if (isReadOnly) return;
                                         updateWebsiteField(
                                             index,
-                                            "is_hidden",
-                                            e.target.checked
+                                            "url",
+                                            e.target.value
                                         );
                                     }}
-                                    disabled={isReadOnly}
+                                    readOnly={isReadOnly}
                                 />
-                                <span className="text-sm text-[#71717A]">
-                                    Hidden
-                                </span>
-                            </label>
+                            </div>
 
-                            {/* Delete Button */}
-                            {(!item.company_id ||
-                                (item.company_id && isTemplate) ||
-                                item.card_id) && (
-                                <Button
-                                    variant="danger-outline"
-                                    className="w-fit shrink-0"
-                                    onClick={() => removeWebsite(index)}
-                                    disabled={isReadOnly}
-                                >
-                                    <Trash2 className="h-5 w-5" />
-                                </Button>
-                            )}
+                            <div className="flex gap-2 ml-auto">
+                                {/* Hidden Checkbox */}
+                                <label className="flex items-center gap-2 shrink-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={item.is_hidden || false}
+                                        onChange={(e) => {
+                                            if (isReadOnly) return;
+                                            updateWebsiteField(
+                                                index,
+                                                "is_hidden",
+                                                e.target.checked
+                                            );
+                                        }}
+                                        disabled={isReadOnly}
+                                    />
+                                    <span className="text-sm text-[#71717A]">
+                                        Hidden
+                                    </span>
+                                </label>
+
+                                {/* Delete Button */}
+                                {(!item.company_id ||
+                                    (item.company_id && isTemplate) ||
+                                    item.card_id) && (
+                                    <Button
+                                        variant="danger-outline"
+                                        className="w-fit shrink-0"
+                                        onClick={() => removeWebsite(index)}
+                                        disabled={isReadOnly}
+                                    >
+                                        <Trash2 className="h-5 w-5" />
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 );

@@ -83,7 +83,8 @@ export default function CardFormEmails() {
             </div>
 
             {(cardFormData.card_emails || []).map((item, index) => {
-                const isReadOnly = item.company_id && !item.card_id && !isTemplate;
+                const isReadOnly =
+                    item.company_id && !item.card_id && !isTemplate;
 
                 return (
                     <div
@@ -91,15 +92,17 @@ export default function CardFormEmails() {
                         className="space-y-3 border-b border-gray-100 pb-3"
                     >
                         {/* Row Container */}
-                        <div className="flex flex-col md:flex-row md:items-center gap-3">
+                        <div className="flex flex-col gap-3">
                             {/* ✅ Inputs Group */}
-                            <div className="flex flex-wrap items-center gap-3 grow">
+                            <div className="flex sm:flex-nowrap flex-wrap items-center gap-3 grow">
                                 <span className="shrink-0 text-xl">✉️</span>
 
                                 {/* Type Selector */}
                                 <div className="w-full sm:w-[120px] shrink-0">
                                     <SelectInput
-                                        value={item?.type?.toLowerCase() || "work"}
+                                        value={
+                                            item?.type?.toLowerCase() || "work"
+                                        }
                                         onChange={(e) => {
                                             if (isReadOnly) return;
                                             const newType = e.target
@@ -122,7 +125,7 @@ export default function CardFormEmails() {
                                 </div>
 
                                 {/* Label Field */}
-                                <div className="w-full sm:flex-1 md:w-[200px]">
+                                <div className="w-full">
                                     <TextInput
                                         className="w-full"
                                         placeholder="Label (e.g. Office, Personal)"
@@ -138,9 +141,28 @@ export default function CardFormEmails() {
                                         readOnly={isReadOnly}
                                     />
                                 </div>
+                                {/* Label Field */}
+                                <div className="w-full">
+                                    <TextInput
+                                        className="w-full"
+                                        placeholder="Label in german (z. B. Büro, Privat)"
+                                        value={item.label_de || ""}
+                                        onChange={(e) => {
+                                            if (isReadOnly) return;
+                                            updateEmailField(
+                                                index,
+                                                "label_de",
+                                                e.target.value
+                                            );
+                                        }}
+                                        readOnly={isReadOnly}
+                                    />
+                                </div>
+                            </div>
 
+                            <div className="flex gap-3 ml-auto w-full">
                                 {/* Email Field */}
-                                <div className="w-full flex-1 min-w-[200px]">
+                                <div className="w-full sm:flex-1 md:w-[200px]">
                                     <TextInput
                                         className="w-full"
                                         placeholder="Enter email address"
@@ -156,41 +178,40 @@ export default function CardFormEmails() {
                                         readOnly={isReadOnly}
                                     />
                                 </div>
+                                {/* Hidden Checkbox */}
+                                <label className="flex items-center gap-2 shrink-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={item.is_hidden || false}
+                                        onChange={(e) => {
+                                            if (isReadOnly) return;
+                                            updateEmailField(
+                                                index,
+                                                "is_hidden",
+                                                e.target.checked
+                                            );
+                                        }}
+                                        disabled={isReadOnly}
+                                    />
+                                    <span className="text-sm text-[#71717A]">
+                                        Hidden
+                                    </span>
+                                </label>
+
+                                {/* Delete Button */}
+                                {(!item.company_id ||
+                                    (item.company_id && isTemplate) ||
+                                    item.card_id) && (
+                                    <Button
+                                        variant="danger-outline"
+                                        className="w-fit shrink-0"
+                                        onClick={() => removeEmail(index)}
+                                        disabled={isReadOnly}
+                                    >
+                                        <Trash2 className="h-5 w-5" />
+                                    </Button>
+                                )}
                             </div>
-
-                            {/* Hidden Checkbox */}
-                            <label className="flex items-center gap-2 shrink-0">
-                                <input
-                                    type="checkbox"
-                                    checked={item.is_hidden || false}
-                                    onChange={(e) => {
-                                        if (isReadOnly) return;
-                                        updateEmailField(
-                                            index,
-                                            "is_hidden",
-                                            e.target.checked
-                                        );
-                                    }}
-                                    disabled={isReadOnly}
-                                />
-                                <span className="text-sm text-[#71717A]">
-                                    Hidden
-                                </span>
-                            </label>
-
-                            {/* Delete Button */}
-                            {(!item.company_id ||
-                                (item.company_id && isTemplate) ||
-                                item.card_id) && (
-                                <Button
-                                    variant="danger-outline"
-                                    className="w-fit shrink-0"
-                                    onClick={() => removeEmail(index)}
-                                    disabled={isReadOnly}
-                                >
-                                    <Trash2 className="h-5 w-5" />
-                                </Button>
-                            )}
                         </div>
                     </div>
                 );

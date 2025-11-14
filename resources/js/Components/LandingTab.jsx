@@ -69,6 +69,7 @@ export default function LandingTab() {
             formData.append("email_bg_color", cardFormData.email_bg_color);
             formData.append("email_text_color", cardFormData.email_text_color);
             formData.append("website_bg_color", cardFormData.website_bg_color);
+            formData.append("buttons_size", cardFormData.buttons_size);
             formData.append(
                 "website_text_color",
                 cardFormData.website_text_color
@@ -98,6 +99,9 @@ export default function LandingTab() {
             formData.append("position", cardFormData.position);
             formData.append("degree", cardFormData.degree);
             formData.append("department", cardFormData.department);
+            formData.append("position_de", cardFormData.position_de);
+            formData.append("degree_de", cardFormData.degree_de);
+            formData.append("department_de", cardFormData.department_de);
 
             // Append the file if it exists
             if (cardFormData.profile_image) {
@@ -140,12 +144,20 @@ export default function LandingTab() {
                     phone.id || ""
                 );
                 formData.append(
+                    `card_phone_numbers[${index}][icon]`,
+                    phone.icon || ""
+                );
+                formData.append(
                     `card_phone_numbers[${index}][phone_number]`,
                     phone.phone_number || ""
                 );
                 formData.append(
                     `card_phone_numbers[${index}][label]`,
                     phone.label || ""
+                );
+                formData.append(
+                    `card_phone_numbers[${index}][label_de]`,
+                    phone.label_de || ""
                 );
                 formData.append(
                     `card_phone_numbers[${index}][is_hidden]`,
@@ -176,6 +188,10 @@ export default function LandingTab() {
                 formData.append(
                     `card_emails[${index}][label]`,
                     email.label || ""
+                );
+                formData.append(
+                    `card_emails[${index}][label_de]`,
+                    email.label_de || ""
                 );
                 formData.append(
                     `card_emails[${index}][is_hidden]`,
@@ -211,6 +227,10 @@ export default function LandingTab() {
                     website.label || ""
                 );
                 formData.append(
+                    `card_websites[${index}][label_de]`,
+                    website.label_de || ""
+                );
+                formData.append(
                     `card_websites[${index}][icon]`,
                     website.icon || ""
                 );
@@ -235,6 +255,10 @@ export default function LandingTab() {
                 formData.append(
                     `card_addresses[${index}][label]`,
                     addr.label || ""
+                );
+                formData.append(
+                    `card_addresses[${index}][label_de]`,
+                    addr.label_de || ""
                 );
                 formData.append(
                     `card_addresses[${index}][street]`,
@@ -281,6 +305,10 @@ export default function LandingTab() {
                 formData.append(
                     `card_buttons[${index}][button_text]`,
                     btn.button_text || ""
+                );
+                formData.append(
+                    `card_buttons[${index}][button_text_de]`,
+                    btn.button_text_de || ""
                 );
                 formData.append(
                     `card_buttons[${index}][button_link]`,
@@ -353,7 +381,7 @@ export default function LandingTab() {
                     ...mappedData1,
                 }));
                 router.reload({ only: ["wallet_status"] });
-                
+
                 setTimeout(() => {
                     setIsChanged(false);
                 }, 500);
@@ -398,8 +426,8 @@ export default function LandingTab() {
     };
 
     return (
-        <div className="grid lg:grid-cols-11 grid-cols-1 gap-5 relative">
-            <div className="lg:col-span-7 col-span-1 bg-white lg:p-6 p-5 rounded-[20px] shadow-box space-y-4 lg:order-1 order-2">
+        <div className="grid 2xl:grid-cols-11 grid-cols-1 gap-5 relative">
+            <div className="2xl:col-span-7 col-span-1 bg-white lg:p-6 md:p-5 p-0 rounded-[20px] shadow-box space-y-4 2xl:order-1 order-2">
                 {isTemplate && <CardFormBanner />}
                 <CardFormProfile />
                 <CardFormGeneralInformation />
@@ -423,8 +451,8 @@ export default function LandingTab() {
                 </div>
             </div>
 
-            <div className="lg:col-span-4 col-span-1  lg:order-2 order-1">
-                <div className="bg-white rounded-2xl shadow-box border border-[#EAECF0] sticky top-3">
+            <div className="2xl:col-span-4 col-span-1 2xl:order-2 order-1">
+                <div className="bg-white rounded-2xl shadow-box border border-[#EAECF0] 2xl:sticky top-3">
                     <div className="p-5 border-b border-b-[#EAECF0]">
                         <h4 className="text-xl leading-tight font-semibold">
                             Live Preview

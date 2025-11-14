@@ -1,8 +1,11 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { Mail } from "lucide-react";
 import AutoTranslate from "./AutoTranslate";
+import { useAutoTranslate } from "@/context/AutoTranslateProvider";
 
 export default function CardPreviewEmails({ cardEmails }) {
+    const context = useAutoTranslate();
+    const isDE = context?.isDE || null;
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
     const visibleEmails = cardEmails?.filter((email) => !email.is_hidden);
 
@@ -35,13 +38,27 @@ export default function CardPreviewEmails({ cardEmails }) {
                         borderColor:
                             cardFormData?.email_bg_color ??
                             cardFormData?.btn_bg_color,
+                        fontSize: `${cardFormData.buttons_size}px`,
                     }}
-                    className="flex border text-sm leading-tight relative items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn"
+                    className="flex border leading-tight relative items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn"
                 >
-                    <span className="shrink-0 text-xl">✉️</span>
+                    <span
+                        className="shrink-0"
+                        style={{
+                            fontSize: `${
+                                Number(cardFormData.buttons_size) + 4
+                            }px`,
+                        }}
+                    >
+                        ✉️
+                    </span>
                     <span>
-                        {email.label ? (
-                            <span>{<AutoTranslate text={email.label} />}: </span>
+                        {email.label || email.label_de ? (
+                            <span>
+                                {isDE && email.label_de
+                                    ? email.label_de
+                                    : email.label}
+                            </span>
                         ) : null}
                         {email.email}
                     </span>

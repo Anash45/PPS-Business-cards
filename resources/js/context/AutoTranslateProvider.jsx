@@ -14,6 +14,7 @@ export function AutoTranslateProvider({ children }) {
     ];
 
     const currentLang = languages.find((l) => l.code === lang) || languages[0];
+    const isDE = lang === "de";
 
     const handleSelect = (code) => {
         setLang(code);
@@ -33,7 +34,7 @@ export function AutoTranslateProvider({ children }) {
     }, []);
 
     return (
-        <AutoTranslateContext.Provider value={{ lang, setLang }}>
+        <AutoTranslateContext.Provider value={{ lang, setLang, isDE }}>
             {children}
 
             {/* Floating dropdown */}

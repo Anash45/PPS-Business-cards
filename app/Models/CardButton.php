@@ -14,6 +14,7 @@ class CardButton extends Model
         'card_id',
         'icon',
         'button_text',
+        'button_text_de',
         'button_link',
         'text_color',
         'bg_color',

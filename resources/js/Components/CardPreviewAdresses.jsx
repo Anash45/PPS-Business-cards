@@ -1,9 +1,12 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { MapPin } from "lucide-react";
 import AutoTranslate from "./AutoTranslate";
+import { useAutoTranslate } from "@/context/AutoTranslateProvider";
 
 export default function CardPreviewAdresses({ cardAddresses }) {
     const { isCardReal, cardFormData } = useGlobal(GlobalProvider);
+    const context = useAutoTranslate();
+    const isDE = context?.isDE || null;
 
     const visibleAddresses = cardAddresses?.filter(
         (address) => !address.is_hidden
@@ -37,13 +40,27 @@ export default function CardPreviewAdresses({ cardAddresses }) {
                             borderColor:
                                 cardFormData?.address_bg_color ??
                                 cardFormData?.btn_bg_color,
+                            fontSize: `${cardFormData.buttons_size}px`,
                         }}
-                        className="flex border text-sm leading-tight relative items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn"
+                        className="flex border leading-tight relative items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn"
                     >
-                        <span className="shrink-0 text-xl">📍</span>
+                        <span
+                            className="shrink-0"
+                            style={{
+                                fontSize: `${
+                                    Number(cardFormData.buttons_size) + 4
+                                }px`,
+                            }}
+                        >
+                            📍
+                        </span>
                         <span>
-                            {address.label ? (
-                                <span>{<AutoTranslate text={address.label} />}</span>
+                            {address.label || address.label_de ? (
+                                <span>
+                                    {isDE && address.label_de
+                                        ? address.label_de
+                                        : address.label}
+                                </span>
                             ) : (
                                 <span>
                                     {[address.street, address.house_number]

@@ -48,6 +48,7 @@ export default function CardFormButtons() {
         }
 
         const newButton = {
+            button_text_de: "",
             button_text: "",
             button_link: "",
             icon: "",
@@ -180,20 +181,34 @@ export default function CardFormButtons() {
                                         }
                                     />
 
-                                    {/* Button Link */}
+                                    {/* Button Text */}
                                     <TextInput
                                         className="w-full"
-                                        placeholder="Button URL"
-                                        value={item.button_link || ""}
+                                        placeholder="Button Text in german"
+                                        value={item.button_text_de || ""}
                                         onChange={(e) =>
                                             updateButtonField(
                                                 index,
-                                                "button_link",
+                                                "button_text_de",
                                                 e.target.value
                                             )
                                         }
                                     />
                                 </div>
+
+                                {/* Button Link */}
+                                <TextInput
+                                    className="md:w-[40%] w-full"
+                                    placeholder="Button URL"
+                                    value={item.button_link || ""}
+                                    onChange={(e) =>
+                                        updateButtonField(
+                                            index,
+                                            "button_link",
+                                            e.target.value
+                                        )
+                                    }
+                                />
 
                                 {/* Delete Button */}
                                 {(!item.company_id ||

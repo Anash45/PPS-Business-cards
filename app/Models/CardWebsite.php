@@ -14,6 +14,7 @@ class CardWebsite extends Model
         'card_id',
         'icon',
         'label',
+        'label_de',
         'url',
         'is_hidden',
     ];

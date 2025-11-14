@@ -1,8 +1,11 @@
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { Globe } from "lucide-react";
 import AutoTranslate from "./AutoTranslate";
+import { useAutoTranslate } from "@/context/AutoTranslateProvider";
 
 export default function CardPreviewWebsites({ cardWebsites }) {
+    const context = useAutoTranslate();
+    const isDE = context?.isDE || null;
     const { cardFormData } = useGlobal(GlobalProvider);
 
     const visibleWebsites = cardWebsites?.filter((site) => !site.is_hidden);
@@ -31,19 +34,28 @@ export default function CardPreviewWebsites({ cardWebsites }) {
                         borderColor:
                             cardFormData?.website_bg_color ??
                             cardFormData?.btn_bg_color,
+                        fontSize: `${cardFormData.buttons_size}px`,
                     }}
-                    className="flex border text-sm leading-tight relative items-center gap-3 justify-start rounded-lg px-4 py-2.5 font-medium preview-btn"
+                    className="flex border leading-tight relative items-center gap-3 justify-start rounded-lg px-4 py-2.5 font-medium preview-btn"
                 >
-                    <span className="shrink-0 text-xl">
-                        {site.icon ? (
-                            <span>{site.icon}</span>
-                        ) : (
-                            <span>🌐</span>
-                        )}</span>
+                    <span
+                        className="shrink-0"
+                        style={{
+                            fontSize: `${
+                                Number(cardFormData.buttons_size) + 4
+                            }px`,
+                        }}
+                    >
+                        {site.icon ? <span>{site.icon}</span> : <span>🌐</span>}
+                    </span>
 
                     <span className="truncate">
-                        {site.label ? (
-                            <span>{<AutoTranslate text={site.label} />}</span>
+                        {site.label || site.label_de ? (
+                            <span>
+                                {isDE && site.label_de
+                                    ? site.label_de
+                                    : site.label}
+                            </span>
                         ) : (
                             site.url
                         )}

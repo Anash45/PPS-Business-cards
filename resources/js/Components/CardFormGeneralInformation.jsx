@@ -67,110 +67,130 @@ export default function CardFormGeneralInformation() {
             <AccordionBody className="overflow-visible p-0">
                 <div className="p-5 space-y-4">
                     <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Salutation"}
-                                isDemo={isTemplate}
-                            />
-                            <SelectInput
-                                id="salutation"
-                                name="salutation"
-                                value={cardFormData.salutation}
-                                onChange={(e) => handleCardChange(e)}
-                                className="w-full block"
-                                placeholder="Select status"
-                                options={[
-                                    {
-                                        value: "Mr.",
-                                        label: "Mr.",
-                                    },
-                                    {
-                                        value: "Ms.",
-                                        label: "Ms.",
-                                    },
-                                    {
-                                        value: "Mrs.",
-                                        label: "Mrs.",
-                                    },
-                                ]}
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Title"}
-                                isDemo={isTemplate}
-                            />
-                            <TextInput
-                                id="title"
-                                value={cardFormData.title}
-                                onChange={(e) => handleCardChange(e)}
-                                name="title"
-                                className="w-full"
-                            />
-                        </div>
-                        {isTemplate && (
+                        <div className={`grid gap-4 ${isTemplate ? 'md:grid-cols-2':'sm:grid-cols-2'} md:col-span-3 sm:col-span-2 col-span-1`}>
                             <div className="space-y-1">
                                 <InputLabel
                                     className="text-black text-sm font-medium"
-                                    value={"Name Color"}
+                                    value={"Salutation"}
+                                    isDemo={isTemplate}
                                 />
-                                <ColorInput
-                                    id="name_text_color"
-                                    value={cardFormData.name_text_color}
+                                <SelectInput
+                                    id="salutation"
+                                    name="salutation"
+                                    value={cardFormData.salutation}
                                     onChange={(e) => handleCardChange(e)}
-                                    name="name_text_color"
+                                    className="w-full block"
+                                    placeholder="Select status"
+                                    options={[
+                                        {
+                                            value: "Mr.",
+                                            label: "Mr.",
+                                        },
+                                        {
+                                            value: "Ms.",
+                                            label: "Ms.",
+                                        },
+                                        {
+                                            value: "Mrs.",
+                                            label: "Mrs.",
+                                        },
+                                    ]}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Title"}
+                                    isDemo={isTemplate}
+                                />
+                                <TextInput
+                                    id="title"
+                                    value={cardFormData.title}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="title"
                                     className="w-full"
                                 />
                             </div>
-                        )}
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"First name"}
-                                isDemo={isTemplate}
-                            />
-                            <TextInput
-                                id="first_name"
-                                value={cardFormData.first_name}
-                                onChange={(e) => handleCardChange(e)}
-                                name="first_name"
-                                className="w-full"
-                            />
+                            {isTemplate && (
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        className="text-black text-sm font-medium"
+                                        value={"Name Color"}
+                                    />
+                                    <ColorInput
+                                        id="name_text_color"
+                                        value={cardFormData.name_text_color}
+                                        onChange={(e) => handleCardChange(e)}
+                                        name="name_text_color"
+                                        className="w-full"
+                                    />
+                                </div>
+                            )}
                         </div>
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Last name"}
-                                isDemo={isTemplate}
-                            />
-                            <TextInput
-                                id="last_name"
-                                value={cardFormData.last_name}
-                                onChange={(e) => handleCardChange(e)}
-                                name="last_name"
-                                className="w-full"
-                            />
+                        <div className="grid sm:grid-cols-2 gap-4 md:col-span-3 sm:col-span-2 col-span-1">
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"First name"}
+                                    isDemo={isTemplate}
+                                />
+                                <TextInput
+                                    id="first_name"
+                                    value={cardFormData.first_name}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="first_name"
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Last name"}
+                                    isDemo={isTemplate}
+                                />
+                                <TextInput
+                                    id="last_name"
+                                    value={cardFormData.last_name}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="last_name"
+                                    className="w-full"
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-1">
-                            <InputLabel
-                                className="text-black text-sm font-medium"
-                                value={"Degree"}
-                                isDemo={isTemplate}
-                            />
-                            <TextInput
-                                id="degree"
-                                value={cardFormData.degree}
-                                onChange={(e) => handleCardChange(e)}
-                                name="degree"
-                                className="w-full"
-                            />
+                        <div className="grid sm:grid-cols-2 gap-4 md:col-span-3 sm:col-span-2 col-span-1">
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Degree"}
+                                    isDemo={isTemplate}
+                                />
+                                <TextInput
+                                    id="degree"
+                                    value={cardFormData.degree}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="degree"
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Degree in german"}
+                                    isDemo={isTemplate}
+                                />
+                                <TextInput
+                                    id="degree_de"
+                                    value={cardFormData.degree_de}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="degree_de"
+                                    className="w-full"
+                                />
+                            </div>
                         </div>
                     </div>
                     {isTemplate && (
                         <>
-                            <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
+                            <div className="p-3 rounded-lg grid sm:grid-cols-2 gap-4 border border-[#EAECF0]">
                                 <div className="space-y-1">
                                     <InputLabel
                                         className="text-black text-sm font-medium"
@@ -210,6 +230,38 @@ export default function CardFormGeneralInformation() {
                                         className="w-full"
                                     />
                                 </div>
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        className="text-black text-sm font-medium"
+                                        value={"Button text size"}
+                                    />
+                                    <SelectInput
+                                        id="buttons_size"
+                                        name="buttons_size"
+                                        value={cardFormData.buttons_size}
+                                        onChange={(e) => handleCardChange(e)}
+                                        className="w-full block"
+                                        placeholder="Select status"
+                                        options={[
+                                            {
+                                                value: "14",
+                                                label: "14px",
+                                            },
+                                            {
+                                                value: "16",
+                                                label: "16px",
+                                            },
+                                            {
+                                                value: "18",
+                                                label: "18px",
+                                            },
+                                            {
+                                                value: "20",
+                                                label: "20px",
+                                            },
+                                        ]}
+                                    />
+                                </div>
                             </div>
                             <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
                                 <div className="space-y-1">
@@ -236,7 +288,8 @@ export default function CardFormGeneralInformation() {
                                         id="vcard_btn_bg_color"
                                         value={
                                             cardFormData?.vcard_btn_bg_color ||
-                                            cardFormData.btn_bg_color || "#87B88C"
+                                            cardFormData.btn_bg_color ||
+                                            "#87B88C"
                                         }
                                         onChange={(e) => handleCardChange(e)}
                                         name="vcard_btn_bg_color"
@@ -253,7 +306,8 @@ export default function CardFormGeneralInformation() {
                                         id="vcard_btn_text_color"
                                         value={
                                             cardFormData?.vcard_btn_text_color ||
-                                            cardFormData.btn_text_color || "#ffffff"
+                                            cardFormData.btn_text_color ||
+                                            "#ffffff"
                                         }
                                         onChange={(e) => handleCardChange(e)}
                                         name="vcard_btn_text_color"
@@ -265,13 +319,14 @@ export default function CardFormGeneralInformation() {
                     )}
                     <div className="p-3 rounded-lg grid sm:grid-cols-2 gap-4 border border-[#EAECF0]">
                         {isTemplate && (
-                            <div className="space-y-1">
+                            <div className="space-y-1 sm:col-span-2">
                                 <InputLabel
                                     className="text-black text-sm font-medium"
                                     value={"Company name"}
                                 />
                                 <TextInput
                                     id="company_name"
+                                    type="textarea"
                                     value={cardFormData.company_name}
                                     onChange={(e) => handleCardChange(e)}
                                     name="company_name"
@@ -296,6 +351,20 @@ export default function CardFormGeneralInformation() {
                         <div className="space-y-1">
                             <InputLabel
                                 className="text-black text-sm font-medium"
+                                value={"Department in german"}
+                                isDemo={isTemplate}
+                            />
+                            <TextInput
+                                id="department_de"
+                                value={cardFormData.department_de}
+                                onChange={(e) => handleCardChange(e)}
+                                name="department_de"
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <InputLabel
+                                className="text-black text-sm font-medium"
                                 value={"Position"}
                                 isDemo={isTemplate}
                             />
@@ -304,6 +373,20 @@ export default function CardFormGeneralInformation() {
                                 value={cardFormData.position}
                                 onChange={(e) => handleCardChange(e)}
                                 name="position"
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <InputLabel
+                                className="text-black text-sm font-medium"
+                                value={"Position in german"}
+                                isDemo={isTemplate}
+                            />
+                            <TextInput
+                                id="position_de"
+                                value={cardFormData.position_de}
+                                onChange={(e) => handleCardChange(e)}
+                                name="position_de"
                                 className="w-full"
                             />
                         </div>
@@ -323,8 +406,6 @@ export default function CardFormGeneralInformation() {
                             </div>
                         ) : null}
                     </div>
-
-                    
                 </div>
             </AccordionBody>
         </Accordion>

@@ -93,6 +93,7 @@ class DesignController extends Controller
             'address_text_color' => 'nullable|string|max:100',
             'website_bg_color' => 'nullable|string|max:100',
             'website_text_color' => 'nullable|string|max:100',
+            'buttons_size' => 'nullable|string|max:2',
 
             // Social Media Links
             'card_social_links' => 'nullable|array',
@@ -103,7 +104,9 @@ class DesignController extends Controller
             // Phone numbers
             'card_phone_numbers' => 'nullable|array',
             'card_phone_numbers.*.id' => 'nullable|integer',
+            'card_phone_numbers.*.icon' => 'nullable|string|max:255',
             'card_phone_numbers.*.label' => 'nullable|string|max:255',
+            'card_phone_numbers.*.label_de' => 'nullable|string|max:255',
             'card_phone_numbers.*.phone_number' => 'required_with:card_phone_numbers|string|max:20',
             'card_phone_numbers.*.is_hidden' => 'nullable|boolean',
             'card_phone_numbers.*.type' => 'nullable|string|max:10',
@@ -112,6 +115,7 @@ class DesignController extends Controller
             'card_emails' => 'nullable|array',
             'card_emails.*.id' => 'nullable|integer',
             'card_emails.*.label' => 'nullable|string|max:255',
+            'card_emails.*.label_de' => 'nullable|string|max:255',
             'card_emails.*.email' => 'required_with:card_emails|email|max:255',
             'card_emails.*.is_hidden' => 'nullable|boolean',
             'card_emails.*.type' => 'nullable|string|max:10',
@@ -121,6 +125,7 @@ class DesignController extends Controller
             'card_websites.*.icon' => 'nullable|string|max:50',
             'card_websites.*.id' => 'nullable|integer',
             'card_websites.*.label' => 'nullable|string|max:255',
+            'card_websites.*.label_de' => 'nullable|string|max:255',
             'card_websites.*.url' => 'required_with:card_websites|url|max:255',
             'card_websites.*.is_hidden' => 'nullable|boolean',
 
@@ -128,6 +133,7 @@ class DesignController extends Controller
             'card_addresses' => 'nullable|array',
             'card_addresses.*.id' => 'nullable|integer',
             'card_addresses.*.label' => 'nullable|string|max:255',
+            'card_addresses.*.label_de' => 'nullable|string|max:255',
             'card_addresses.*.street' => 'required_with:card_addresses|string|max:255',
             'card_addresses.*.house_number' => 'nullable|string|max:50',
             'card_addresses.*.zip' => 'nullable|string|max:20',
@@ -140,6 +146,7 @@ class DesignController extends Controller
             'card_buttons' => 'nullable|array',
             'card_buttons.*.id' => 'nullable|integer',
             'card_buttons.*.button_text' => 'required_with:card_buttons|string|max:255',
+            'card_buttons.*.button_text_de' => 'required_with:card_buttons|string|max:255',
             'card_buttons.*.button_link' => 'required_with:card_buttons|url|max:1000',
             'card_buttons.*.icon' => 'nullable|string|max:50',
         ]);
@@ -857,9 +864,12 @@ class DesignController extends Controller
             'title' => 'nullable|string|max:100',
             'first_name' => 'nullable|string|max:100',
             'last_name' => 'nullable|string|max:100',
-            'position' => 'nullable|string|max:100',
-            'degree' => 'nullable|string|max:100',
-            'department' => 'nullable|string|max:100',
+            'position' => 'nullable|string|max:255',
+            'degree' => 'nullable|string|max:255',
+            'department' => 'nullable|string|max:255',
+            'position_de' => 'nullable|string|max:255',
+            'degree_de' => 'nullable|string|max:255',
+            'department_de' => 'nullable|string|max:255',
 
             // Social Media Links
             'card_social_links' => 'nullable|array',
@@ -870,7 +880,9 @@ class DesignController extends Controller
             // Phone numbers
             'card_phone_numbers' => 'nullable|array',
             'card_phone_numbers.*.id' => 'nullable|integer',
+            'card_phone_numbers.*.icon' => 'nullable|string|max:255',
             'card_phone_numbers.*.label' => 'nullable|string|max:255',
+            'card_phone_numbers.*.label_de' => 'nullable|string|max:255',
             'card_phone_numbers.*.phone_number' => 'required_with:card_phone_numbers|string|max:20',
             'card_phone_numbers.*.is_hidden' => 'nullable|boolean',
             'card_phone_numbers.*.type' => 'nullable|string|max:10',
@@ -879,6 +891,7 @@ class DesignController extends Controller
             'card_emails' => 'nullable|array',
             'card_emails.*.id' => 'nullable|integer',
             'card_emails.*.label' => 'nullable|string|max:255',
+            'card_emails.*.label_de' => 'nullable|string|max:255',
             'card_emails.*.email' => 'required_with:card_emails|email|max:255',
             'card_emails.*.is_hidden' => 'nullable|boolean',
             'card_emails.*.type' => 'nullable|string|max:10',
@@ -888,6 +901,7 @@ class DesignController extends Controller
             'card_websites.*.icon' => 'nullable|string|max:50',
             'card_websites.*.id' => 'nullable|integer',
             'card_websites.*.label' => 'nullable|string|max:255',
+            'card_websites.*.label_de' => 'nullable|string|max:255',
             'card_websites.*.url' => 'required_with:card_websites|url|max:255',
             'card_websites.*.is_hidden' => 'nullable|boolean',
 
@@ -895,6 +909,7 @@ class DesignController extends Controller
             'card_addresses' => 'nullable|array',
             'card_addresses.*.id' => 'nullable|integer',
             'card_addresses.*.label' => 'nullable|string|max:255',
+            'card_addresses.*.label_de' => 'nullable|string|max:255',
             'card_addresses.*.street' => 'required_with:card_addresses|string|max:255',
             'card_addresses.*.house_number' => 'nullable|string|max:50',
             'card_addresses.*.zip' => 'nullable|string|max:20',
@@ -907,6 +922,7 @@ class DesignController extends Controller
             'card_buttons' => 'nullable|array',
             'card_buttons.*.id' => 'nullable|integer',
             'card_buttons.*.button_text' => 'required_with:card_buttons|string|max:255',
+            'card_buttons.*.button_text_de' => 'required_with:card_buttons|string|max:255',
             'card_buttons.*.button_link' => 'required_with:card_buttons|url|max:1000',
             'card_buttons.*.icon' => 'nullable|string|max:50',
         ]);
@@ -1288,8 +1304,6 @@ class DesignController extends Controller
     {
         $incomingNumbers = collect($incomingNumbers);
 
-
-
         $existingNumbers = $company->cardPhoneNumbers()
             ->where('company_id', $company->id)
             ->when($cardId !== null, fn($q) => $q->where('card_id', $cardId), fn($q) => $q->whereNull('card_id'))
@@ -1301,7 +1315,9 @@ class DesignController extends Controller
                 $existingNumber = $existingNumbers->firstWhere('id', $numberData['id']);
                 if ($existingNumber) {
                     $existingNumber->update([
+                        'icon' => $numberData['icon'] ?? '',
                         'label' => $numberData['label'] ?? '',
+                        'label_de' => $numberData['label_de'] ?? '',
                         'phone_number' => $numberData['phone_number'] ?? '',
                         'type' => $numberData['type'] ?? "Work",
                         'is_hidden' => $numberData['is_hidden'] ?? false,
@@ -1309,7 +1325,9 @@ class DesignController extends Controller
                 }
             } else {
                 $company->cardPhoneNumbers()->create([
+                    'icon' => $numberData['icon'] ?? '',
                     'label' => $numberData['label'] ?? '',
+                    'label_de' => $numberData['label_de'] ?? '',
                     'phone_number' => $numberData['phone_number'] ?? '',
                     'type' => $numberData['type'] ?? "Work",
                     'is_hidden' => $numberData['is_hidden'] ?? false,
@@ -1317,7 +1335,6 @@ class DesignController extends Controller
                     'card_id' => $cardId,
                 ]);
             }
-            Log::info($numberData['type']);
         }
 
         // --- DELETE ---
@@ -1343,6 +1360,7 @@ class DesignController extends Controller
                 if ($existingEmail) {
                     $existingEmail->update([
                         'label' => $emailData['label'] ?? '',
+                        'label_de' => $emailData['label_de'] ?? '',
                         'email' => $emailData['email'] ?? '',
                         'type' => $emailData['type'] ?? "Work",
                         'is_hidden' => $emailData['is_hidden'] ?? false,
@@ -1351,6 +1369,7 @@ class DesignController extends Controller
             } else {
                 $company->cardEmails()->create([
                     'label' => $emailData['label'] ?? '',
+                    'label_de' => $emailData['label_de'] ?? '',
                     'email' => $emailData['email'] ?? '',
                     'type' => $emailData['type'] ?? "Work",
                     'is_hidden' => $emailData['is_hidden'] ?? false,
@@ -1382,6 +1401,7 @@ class DesignController extends Controller
                 if ($existingWebsite) {
                     $existingWebsite->update([
                         'label' => $websiteData['label'] ?? '',
+                        'label_de' => $websiteData['label_de'] ?? '',
                         'icon' => $websiteData['icon'] ?? '',
                         'url' => $websiteData['url'] ?? '',
                         'is_hidden' => $websiteData['is_hidden'] ?? false,
@@ -1390,6 +1410,7 @@ class DesignController extends Controller
             } else {
                 $company->cardWebsites()->create([
                     'label' => $websiteData['label'] ?? '',
+                    'label_de' => $websiteData['label_de'] ?? '',
                     'icon' => $websiteData['icon'] ?? '',
                     'url' => $websiteData['url'] ?? '',
                     'is_hidden' => $websiteData['is_hidden'] ?? false,
@@ -1425,6 +1446,7 @@ class DesignController extends Controller
                 if ($existingAddress) {
                     $existingAddress->update([
                         'label' => $addressData['label'] ?? '',
+                        'label_de' => $addressData['label_de'] ?? '',
                         'street' => $addressData['street'] ?? '',
                         'house_number' => $addressData['house_number'] ?? '',
                         'zip' => $addressData['zip'] ?? '',
@@ -1437,6 +1459,7 @@ class DesignController extends Controller
             } else {
                 $company->cardAddresses()->create([
                     'label' => $addressData['label'] ?? '',
+                    'label_de' => $addressData['label_de'] ?? '',
                     'street' => $addressData['street'] ?? '',
                     'house_number' => $addressData['house_number'] ?? '',
                     'zip' => $addressData['zip'] ?? '',
@@ -1476,6 +1499,7 @@ class DesignController extends Controller
                 if ($existingButton) {
                     $existingButton->update([
                         'button_text' => $buttonData['button_text'] ?? '',
+                        'button_text_de' => $buttonData['button_text_de'] ?? '',
                         'button_link' => $buttonData['button_link'] ?? '',
                         'icon' => $buttonData['icon'] ?? null,
                         'text_color' => $buttonData['text_color'] ?? null,
@@ -1485,6 +1509,7 @@ class DesignController extends Controller
             } else {
                 $company->cardButtons()->create([
                     'button_text' => $buttonData['button_text'] ?? '',
+                    'button_text_de' => $buttonData['button_text_de'] ?? '',
                     'button_link' => $buttonData['button_link'] ?? '',
                     'icon' => $buttonData['icon'] ?? null,
                     'text_color' => $buttonData['text_color'] ?? null,

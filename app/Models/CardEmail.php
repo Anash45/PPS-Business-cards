@@ -13,6 +13,7 @@ class CardEmail extends Model
         'company_id',
         'card_id',
         'label',
+        'label_de',
         'type',
         'email',
         'is_hidden',

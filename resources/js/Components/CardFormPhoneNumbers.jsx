@@ -4,8 +4,9 @@ import {
     AccordionBody,
 } from "@material-tailwind/react";
 import { useEffect, useState } from "react";
-import { ChevronDown, Phone, Trash2 } from "lucide-react";
+import { ChevronDown, Phone, Smile, Trash2 } from "lucide-react";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
+import Picker from "emoji-picker-react";
 import TextInput from "./TextInput";
 import Button from "./Button";
 import ColorInput from "./ColorInput";
@@ -16,6 +17,7 @@ import SelectInput from "./SelectInput";
 export default function CardFormPhoneNumbers() {
     const { cardFormData, setCardFormData, handleCardChange, isTemplate } =
         useGlobal(GlobalProvider);
+    const [showPickerIndex, setShowPickerIndex] = useState(null);
 
     // ✅ Add new phone number
     const addPhoneNumber = () => {
@@ -31,6 +33,7 @@ export default function CardFormPhoneNumbers() {
 
         const newPhone = {
             type: "Work",
+            icon: "",
             phone_number: "",
             is_hidden: false,
             text_color: cardFormData.btn_text_color || "#000000",
@@ -72,11 +75,7 @@ export default function CardFormPhoneNumbers() {
             card_phone_numbers: updated,
         }));
     };
-    console.log(
-        "Colors: ",
-        cardFormData?.phone_text_color,
-        cardFormData?.btn_text_color
-    );
+    console.log("Colors: ", cardFormData?.card_phone_numbers);
 
     return (
         <div className="p-3 rounded-lg border border-[#EAECF0] space-y-3 bg-white">
@@ -94,22 +93,60 @@ export default function CardFormPhoneNumbers() {
                 </Button>
             </div>
             {(cardFormData.card_phone_numbers || []).map((item, index) => {
-                const isReadOnly = item.company_id && !isTemplate && item.card_id == null;
+                const isReadOnly =
+                    item.company_id && !isTemplate && item.card_id == null;
 
                 return (
                     <div
                         key={index}
                         className="space-y-3 border-b border-gray-100 pb-3"
                     >
-                        <div className="flex flex-col md:flex-row md:items-center gap-3">
+                        <div className="flex flex-col gap-3">
                             {/* ✅ Input Group */}
                             <div className="flex flex-wrap items-center gap-3 grow">
-                                <span className="shrink-0 text-xl w-9">📞</span>
+                                {/* Emoji Selector */}
+                                <div className="relative">
+                                    <Button
+                                        variant="secondary"
+                                        type="button"
+                                        onClick={() =>
+                                            setShowPickerIndex(
+                                                showPickerIndex === index
+                                                    ? null
+                                                    : index
+                                            )
+                                        }
+                                        className="w-10 h-10 flex items-center justify-center p-0 text-2xl"
+                                    >
+                                        <span className="text-xl">
+                                            {item.icon || (
+                                                <Smile className="h-8 w-8 shrink-0" />
+                                            )}
+                                        </span>
+                                    </Button>
+                                    {showPickerIndex === index && (
+                                        <div className="absolute z-50 mt-2">
+                                            <Picker
+                                                onEmojiClick={(emojiData) => {
+                                                    updatePhoneField(
+                                                        index,
+                                                        "icon",
+                                                        emojiData.emoji
+                                                    );
+                                                    setShowPickerIndex(null);
+                                                }}
+                                                theme="light"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Type Selector */}
                                 <div className="w-full sm:w-[120px] shrink-0">
                                     <SelectInput
-                                        value={item?.type?.toLowerCase() || "work"}
+                                        value={
+                                            item?.type?.toLowerCase() || "work"
+                                        }
                                         onChange={(e) => {
                                             if (isReadOnly) return;
                                             const newType = e.target
@@ -149,7 +186,26 @@ export default function CardFormPhoneNumbers() {
                                         readOnly={isReadOnly}
                                     />
                                 </div>
+                                {/* Label Field */}
+                                <div className="w-full sm:flex-1 md:w-[200px]">
+                                    <TextInput
+                                        className="w-full"
+                                        placeholder="Label in german (z. B. Büro, Privat)"
+                                        value={item.label_de || ""}
+                                        onChange={(e) => {
+                                            if (isReadOnly) return;
+                                            updatePhoneField(
+                                                index,
+                                                "label_de",
+                                                e.target.value
+                                            );
+                                        }}
+                                        readOnly={isReadOnly}
+                                    />
+                                </div>
+                            </div>
 
+                            <div className="flex gap-3 flex-wrap">
                                 {/* Phone Number Field */}
                                 <div className="w-full flex-1 min-w-[200px]">
                                     <TextInput
@@ -167,44 +223,44 @@ export default function CardFormPhoneNumbers() {
                                         readOnly={isReadOnly}
                                     />
                                 </div>
+
+                                {/* Hidden Checkbox */}
+                                <label className="flex items-center gap-2 shrink-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={item.is_hidden || false}
+                                        onChange={(e) => {
+                                            if (isReadOnly) return;
+                                            updatePhoneField(
+                                                index,
+                                                "is_hidden",
+                                                e.target.checked
+                                            );
+                                        }}
+                                        disabled={isReadOnly}
+                                    />
+                                    <span className="text-sm text-[#71717A]">
+                                        Hidden
+                                    </span>
+                                </label>
+
+                                {/* Delete Button */}
+                                {(!item.company_id ||
+                                    (item.company_id && isTemplate) ||
+                                    item.card_id) && (
+                                    <Button
+                                        variant="danger-outline"
+                                        className="w-fit shrink-0 ml-auto"
+                                        onClick={() => {
+                                            if (isReadOnly) return;
+                                            removePhoneNumber(index);
+                                        }}
+                                        disabled={isReadOnly}
+                                    >
+                                        <Trash2 className="h-5 w-5" />
+                                    </Button>
+                                )}
                             </div>
-
-                            {/* Hidden Checkbox */}
-                            <label className="flex items-center gap-2 shrink-0">
-                                <input
-                                    type="checkbox"
-                                    checked={item.is_hidden || false}
-                                    onChange={(e) => {
-                                        if (isReadOnly) return;
-                                        updatePhoneField(
-                                            index,
-                                            "is_hidden",
-                                            e.target.checked
-                                        );
-                                    }}
-                                    disabled={isReadOnly}
-                                />
-                                <span className="text-sm text-[#71717A]">
-                                    Hidden
-                                </span>
-                            </label>
-
-                            {/* Delete Button */}
-                            {(!item.company_id ||
-                                (item.company_id && isTemplate) ||
-                                item.card_id) && (
-                                <Button
-                                    variant="danger-outline"
-                                    className="w-fit shrink-0"
-                                    onClick={() => {
-                                        if (isReadOnly) return;
-                                        removePhoneNumber(index);
-                                    }}
-                                    disabled={isReadOnly}
-                                >
-                                    <Trash2 className="h-5 w-5" />
-                                </Button>
-                            )}
                         </div>
                     </div>
                 );

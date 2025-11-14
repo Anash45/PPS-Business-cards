@@ -33,6 +33,7 @@ export function mapCompanyTemplateData(
         contact_btn_text: template?.contact_btn_text ?? "Save card",
         vcard_btn_bg_color: template?.vcard_btn_bg_color ?? "#87B88C",
         vcard_btn_text_color: template?.vcard_btn_text_color ?? "#ffffff",
+        buttons_size: template?.buttons_size ?? "14",
         banner_image: null,
         banner_image_url: template?.banner_image
             ? `/storage/${template.banner_image}`
@@ -79,8 +80,11 @@ export function mapCompanyTemplateData(
                   first_name: selectedCard.first_name ?? "",
                   last_name: selectedCard.last_name ?? "",
                   degree: selectedCard.degree ?? "",
+                  degree_de: selectedCard.degree_de ?? "",
                   position: selectedCard.position ?? "",
+                  position_de: selectedCard.position_de ?? "",
                   department: selectedCard.department ?? "",
+                  department_de: selectedCard.department_de ?? "",
                   profile_image_url: selectedCard?.profile_image
                       ? `/storage/${selectedCard.profile_image}`
                       : "/assets/images/profile-placeholder.png",
@@ -125,12 +129,14 @@ export function mapCompanyTemplateData(
         card_phone_numbers: Array.isArray(selectedCompany?.card_phone_numbers)
             ? selectedCompany.card_phone_numbers.map((phone) => ({
                   id: phone.id || null,
+                  icon: phone.icon || "",
                   phone_number: phone.phone_number || "",
                   is_hidden: phone.is_hidden ?? false,
                   type: phone.type ?? "Work",
                   company_id: phone.company_id || null,
                   card_id: phone.card_id || null,
                   label: phone.label || "",
+                  label_de: phone.label_de || "",
               }))
             : [],
 
@@ -144,6 +150,7 @@ export function mapCompanyTemplateData(
                   company_id: email.company_id || null,
                   card_id: email.card_id || null,
                   label: email.label || "",
+                  label_de: email.label_de || "",
               }))
             : [],
 
@@ -161,6 +168,7 @@ export function mapCompanyTemplateData(
                   company_id: addr.company_id || null,
                   card_id: addr.card_id || null,
                   label: addr.label || "",
+                  label_de: addr.label_de || "",
               }))
             : [],
 
@@ -169,6 +177,7 @@ export function mapCompanyTemplateData(
             ? selectedCompany.card_buttons.map((btn) => ({
                   id: btn.id || null,
                   button_text: btn.button_text || "",
+                  button_text_de: btn.button_text_de || "",
                   button_link: btn.button_link || "",
                   icon: btn.icon || "",
                   company_id: btn.company_id || null,
@@ -186,6 +195,7 @@ export function mapCompanyTemplateData(
                   company_id: website.company_id || null,
                   card_id: website.card_id || null,
                   label: website.label || "",
+                  label_de: website.label_de || "",
               }))
             : [],
     };

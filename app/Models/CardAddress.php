@@ -13,6 +13,7 @@ class CardAddress extends Model
         'company_id',
         'card_id',
         'label',
+        'label_de',
         'type',
         'street',
         'house_number',

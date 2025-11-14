@@ -28,7 +28,7 @@ export default forwardRef(function TextInput(
         }
     }, [isFocused]);
 
-    // 🔹 Custom input renderer to keep your styles
+    // 🔹 Custom input for date picker
     const CustomInput = forwardRef(({ value, onClick }, ref) => (
         <div className="relative w-full">
             <input
@@ -38,7 +38,7 @@ export default forwardRef(function TextInput(
                 value={value}
                 readOnly
                 className={
-                    "w-full rounded-lg placeholder:text-[#64748B] text-grey900 text-sm leading-none px-[14px] py-[13px] border border-[#9CAADE] focus:outline-0 focus:border-primary hover:border-primary focus:shadow-none " +
+                    "w-full rounded-lg placeholder:text-[#64748B] text-grey900 text-sm leading-none px-[14px] py-[13px] border border-[#9CAADE] focus:outline-0 focus:border-primary hover:border-primary " +
                     className
                 }
                 {...props}
@@ -50,26 +50,45 @@ export default forwardRef(function TextInput(
         </div>
     ));
 
+    // 🔹 If type is "date" → Use datepicker
     if (type === "date") {
         return (
-            <ReactDatePicker className="w-full"
+            <ReactDatePicker
+                className="w-full"
                 selected={value ? new Date(value) : null}
                 onChange={(date) =>
                     onChange({
                         target: {
-                            name: props.name,          // 🔹 include the name
-                            value: date ? format(date, "yyyy-MM-dd") : "", // 🔹 format for backend
+                            name: props.name,
+                            value: date ? format(date, "yyyy-MM-dd") : "",
                         },
                     })
                 }
-
-                dateFormat="dd.MM.yyyy" // German format
+                dateFormat="dd.MM.yyyy"
                 locale={de}
                 customInput={<CustomInput ref={localRef} />}
             />
         );
     }
 
+    // 🔹 If type is "textarea" → Render textarea
+    if (type === "textarea") {
+        return (
+            <textarea
+            rows={3}
+                {...props}
+                ref={localRef}
+                value={value}
+                onChange={onChange}
+                className={
+                    "rounded-lg placeholder:text-[#64748B] text-grey900 text-sm leading-none px-[14px] py-[11.5px] border border-[#9CAADE] focus:outline-0 focus:border-primary focus:shadow-none " +
+                    className
+                }
+            />
+        );
+    }
+
+    // 🔹 Default → Render normal input
     return (
         <input
             {...props}

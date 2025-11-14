@@ -3,9 +3,11 @@ import CardPreviewSocials from "./CardPreviewSocials";
 import CardPreviewVCard from "./CardPreviewVCard";
 import CardPreviewSections from "./CardPreviewSections";
 import { useEffect, useRef, useState } from "react";
-import AutoTranslate from "./AutoTranslate";
+import { useAutoTranslate } from "@/context/AutoTranslateProvider";
 
 export default function CardPreview({ isReal = false }) {
+    const context = useAutoTranslate();
+    const isDE = context?.isDE || null;
     const { cardFormData } = useGlobal(GlobalProvider);
 
     const positionRef = useRef(null);
@@ -80,7 +82,7 @@ export default function CardPreview({ isReal = false }) {
                                 ? `${cardFormData?.title} ${cardFormData?.first_name} ${cardFormData?.last_name}`
                                 : "Dr. John Doe"}
                         </h2>
-                        {cardFormData.degree ? (
+                        {cardFormData.degree || cardFormData.degree_de ? (
                             <p
                                 className="text-sm italic leading-tight font-bold"
                                 style={{
@@ -89,12 +91,14 @@ export default function CardPreview({ isReal = false }) {
                                         "#000000",
                                 }}
                             >
-                                {<AutoTranslate text={cardFormData.degree} />}
+                                {isDE && cardFormData.degree_de
+                                    ? cardFormData.degree_de
+                                    : cardFormData.degree}
                             </p>
                         ) : null}
-                        {cardFormData.position ||
-                        cardFormData.department ||
-                        cardFormData.company_name ? (
+                        {(cardFormData.position ||
+                            cardFormData.department ||
+                            cardFormData.company_name) && (
                             <div
                                 className="space-y-1"
                                 style={{
@@ -103,42 +107,63 @@ export default function CardPreview({ isReal = false }) {
                                         "#000000",
                                 }}
                             >
-                                {cardFormData.position ||
-                                cardFormData.department ? (
+                                {(cardFormData.position ||
+                                    cardFormData.department) && (
                                     <p className="text-sm font-medium flex items-center justify-center flex-wrap gap-1.5 text-center">
-                                        {cardFormData?.position && (
+                                        {/* Position */}
+                                        {(isDE && cardFormData.position_de) ||
+                                        cardFormData.position ? (
                                             <span ref={positionRef}>
-                                                {<AutoTranslate text={cardFormData.position} />}
+                                                {isDE &&
+                                                cardFormData.position_de
+                                                    ? cardFormData.position_de
+                                                    : cardFormData.position}
                                             </span>
-                                        )}
+                                        ) : null}
 
-                                        {cardFormData?.position &&
-                                            cardFormData?.department &&
-                                            sameLine && (
-                                                <span
-                                                    className="inline-block h-1 w-1 rounded-full opacity-40"
-                                                    style={{
-                                                        backgroundColor:
-                                                            cardFormData?.company_text_color ||
-                                                            "#000",
-                                                    }}
-                                                ></span>
-                                            )}
+                                        {/* Dot between position and department if both exist AND same line */}
+                                        {((isDE && cardFormData.position_de) ||
+                                            cardFormData.position) &&
+                                        ((isDE && cardFormData.department_de) ||
+                                            cardFormData.department) &&
+                                        sameLine ? (
+                                            <span
+                                                className="inline-block h-1 w-1 rounded-full opacity-40"
+                                                style={{
+                                                    backgroundColor:
+                                                        cardFormData?.company_text_color ||
+                                                        "#000",
+                                                }}
+                                            ></span>
+                                        ) : null}
 
-                                        {cardFormData?.department && (
+                                        {/* Department */}
+                                        {(isDE && cardFormData.department_de) ||
+                                        cardFormData.department ? (
                                             <span ref={departmentRef}>
-                                                {<AutoTranslate text={cardFormData.department} />}
+                                                {isDE &&
+                                                cardFormData.department_de
+                                                    ? cardFormData.department_de
+                                                    : cardFormData.department}
                                             </span>
-                                        )}
+                                        ) : null}
                                     </p>
-                                ) : null}
-                                {cardFormData.company_name ? (
-                                    <p className="text-base leading-tight font-bold">
-                                        {cardFormData.company_name}
-                                    </p>
-                                ) : null}
+                                )}
+
+                                {/* Company name */}
+                                {cardFormData.company_name && (
+                                    <p
+                                        className="text-base leading-tight font-bold"
+                                        dangerouslySetInnerHTML={{
+                                            __html: cardFormData.company_name.replace(
+                                                /\r?\n/g,
+                                                "<br>"
+                                            ),
+                                        }}
+                                    />
+                                )}
                             </div>
-                        ) : null}
+                        )}
                     </div>
                 </div>
                 <CardPreviewVCard />

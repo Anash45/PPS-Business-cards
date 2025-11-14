@@ -29,6 +29,7 @@ class CompanyCardTemplate extends Model
         'website_text_color',
         'vcard_btn_text_color',
         'vcard_btn_bg_color',
+        'buttons_size',
         
         'wallet_text_color',
         'wallet_bg_color',
