@@ -67,7 +67,7 @@ export default function CardFormGeneralInformation() {
             <AccordionBody className="overflow-visible p-0">
                 <div className="p-5 space-y-4">
                     <div className="p-3 rounded-lg grid md:grid-cols-3 sm:grid-cols-2 gap-4 border border-[#EAECF0]">
-                        <div className={`grid gap-4 ${isTemplate ? 'md:grid-cols-2':'sm:grid-cols-2'} md:col-span-3 sm:col-span-2 col-span-1`}>
+                        <div className={`grid gap-4 ${isTemplate ? 'md:grid-cols-3':'sm:grid-cols-2'} md:col-span-3 sm:col-span-2 col-span-1`}>
                             <div className="space-y-1">
                                 <InputLabel
                                     className="text-black text-sm font-medium"
