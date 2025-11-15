@@ -502,7 +502,12 @@
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/employees/{id}": {
@@ -745,7 +750,12 @@
                     "404": {
                         "description": "Employee not found"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/employees": {
@@ -943,7 +953,12 @@
                     "422": {
                         "description": "Validation error"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/employees/createBulkEmployees": {
@@ -1143,7 +1158,22 @@
                     "422": {
                         "description": "Validation error"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Enter your bearer token in the format **Bearer &lt;token>**",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
             }
         }
     },

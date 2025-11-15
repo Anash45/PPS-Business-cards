@@ -9,6 +9,14 @@ namespace App\Http\Controllers\Api;
  *     description="API documentation for PPS Business Cards"
  * )
  * @OA\Server(url="/", description="Local server")
+ *
+ * @OA\SecurityScheme(
+ *     securityScheme="bearerAuth",
+ *     type="http",
+ *     scheme="bearer",
+ *     bearerFormat="JWT",
+ *     description="Enter your bearer token in the format **Bearer &lt;token>**"
+ * )
  */
 class OpenApiInfo
 {

@@ -21,6 +21,7 @@ use Validator;
  *     path="/v1/employees",
  *     tags={"Employees"},
  *     summary="Get list of employees for the authenticated company",
+ *     security={{"bearerAuth":{}}},
  *     description="Returns company information along with a list of employees and their related card details.",
  *
  *     @OA\Response(
@@ -195,6 +196,7 @@ use Validator;
  *     path="/api/employees/{id}",
  *     summary="Get a single employee by ID",
  *     tags={"Employees"},
+ *     security={{"bearerAuth":{}}},
  *
  *     @OA\Parameter(
  *         name="id",
@@ -303,6 +305,7 @@ use Validator;
  *     path="/api/employees",
  *     summary="Create a new employee card",
  *     tags={"Employees"},
+ *     security={{"bearerAuth":{}}},
  *
  *     @OA\RequestBody(
  *         required=true,
@@ -394,6 +397,7 @@ use Validator;
  *     path="/api/employees/createBulkEmployees",
  *     summary="Create multiple employee cards",
  *     tags={"Employees"},
+ *     security={{"bearerAuth":{}}},
  *
  *     @OA\RequestBody(
  *         required=true,
