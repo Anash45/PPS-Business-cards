@@ -3,11 +3,6 @@ export function mapCompanyTemplateData(
     selectedCard,
     options = {}
 ) {
-    console.log(
-        "Mapping company template data for:",
-        selectedCompany,
-        selectedCard
-    );
 
     if (!selectedCompany) return {};
 

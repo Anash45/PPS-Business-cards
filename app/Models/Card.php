@@ -50,15 +50,17 @@ class Card extends Model
     public static function generateCode()
     {
         $allowedChars = 'ABCDEFGHJKMNPQRSTUVWX2346789';
-        $code = '';
-        for ($i = 0; $i < 8; $i++) {
-            $code .= $allowedChars[random_int(0, strlen($allowedChars) - 1)];
-        }
+        $length = 8;
 
-        // Ensure uniqueness
-        if (self::where('code', $code)->exists()) {
-            return self::generateCode();
-        }
+        do {
+            $code = '';
+            for ($i = 0; $i < $length; $i++) {
+                $code .= $allowedChars[random_int(0, strlen($allowedChars) - 1)];
+            }
+            // Check uniqueness across both cards and nfc_cards
+            $existsInCards = self::where('code', $code)->exists();
+            $existsInNfc = NfcCard::where('qr_code', $code)->exists();
+        } while ($existsInCards || $existsInNfc);
 
         return $code;
     }

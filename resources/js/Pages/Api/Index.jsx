@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, usePage, router } from "@inertiajs/react";
+import { Head, usePage, router, Link } from "@inertiajs/react";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -86,9 +86,7 @@ export default function Settings() {
                                     apiKey
                                 ) : (
                                     <>
-                                        <span>
-                                            pps_key_
-                                        </span>
+                                        <span>pps_key_</span>
                                         {Array.from({ length: 45 }).map(
                                             (_, i) => (
                                                 <span key={i}>•</span>
@@ -116,7 +114,7 @@ export default function Settings() {
                                 className="px-3 py-2 flex items-center gap-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
                                 disabled={loading}
                             >
-                                {loading ? "Regenerating..." : "Regenerate"}
+                                {apiKey ? (loading ? "Regenerating..." : "Regenerate") : (loading ? "Generating..." : "Generate")}
                             </button>
                         </div>
 
@@ -127,8 +125,17 @@ export default function Settings() {
                 </div>
                 <div className="border border-[#EAECF0] bg-white rounded-xl mt-6">
                     <div className="px-5 py-4 flex items-center justify-between border-b border-[#EAECF0]">
-                        <h2 className="text-xl font-semibold text-black">API Documentation</h2>
+                        <h2 className="text-xl font-semibold text-black">
+                            API Documentation
+                        </h2>
                         <div className="flex items-center gap-2">
+                            <a
+                                href={`/api-docs/full`}
+                                target="_blank"
+                                className="px-3 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                            >
+                                Full Screen
+                            </a>
                             <button
                                 onClick={() => setShowDocs(!showDocs)}
                                 className="px-3 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -143,7 +150,10 @@ export default function Settings() {
                                 <SwaggerUI url="/swagger.json" />
                             </div>
                         ) : (
-                            <p className="text-sm text-[#667085]">Click "View Docs" to open the interactive API documentation (powered by Swagger UI).</p>
+                            <p className="text-sm text-[#667085]">
+                                Click "View Docs" to open the interactive API
+                                documentation (powered by Swagger UI).
+                            </p>
                         )}
                     </div>
                 </div>

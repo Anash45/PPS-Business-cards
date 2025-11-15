@@ -11,6 +11,7 @@ export default function Company() {
     const {
         selectedCard,
         company,
+        nfcCard,
         isSubscriptionActive,
         pageType = "card",
     } = usePage().props;
@@ -40,6 +41,8 @@ export default function Company() {
     useEffect(() => {
         setIsCardReal(true);
     });
+
+    console.log("Card F Data: ", cardFormData);
 
     return (
         <CardLayout>
@@ -93,7 +96,7 @@ export default function Company() {
                             text={`You can only access this page with a valid subscription. Contact administrator for more information.`}
                         />
                     </div>
-                ) : selectedCard?.status === "active" ? (
+                ) : (nfcCard === null && selectedCard?.status === "active") || (nfcCard !== null && nfcCard?.status === "active" && selectedCard?.status === "active") ? (
                     <CardPreview isReal={true} />
                 ) : (
                     <div className="p-4 text-center bg-orange-100 text-orange-700 rounded-md">
