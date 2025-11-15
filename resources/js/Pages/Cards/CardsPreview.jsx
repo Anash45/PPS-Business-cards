@@ -41,7 +41,7 @@ export default function CardsPreview({ previewCards, domain }) {
                                             href={`${domain}/card/${c.code}`}
                                             className="underline break-all"
                                         >
-                                            {domain}/card/{c.code}
+                                            {domain}/card/{c.qr_code}
                                         </a>
                                     </span>
                                 </div>

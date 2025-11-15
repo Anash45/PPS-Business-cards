@@ -6,6 +6,7 @@ use App\Models\Card;
 use App\Models\CardView;
 use App\Models\CardWalletDetail;
 use App\Models\CompanyCardTemplate;
+use App\Models\NfcCard;
 use App\Traits\LoadsCompanyDesignData;
 use Http;
 use Illuminate\Http\Request;
@@ -752,90 +753,99 @@ class DesignController extends Controller
         ]);
     }
 
-    public function cardShow($code, Request $request)
+    public function cardShow($qrCode, Request $request)
     {
-        $card = Card::where('code', $code)->firstOrFail();
+        $nfcCard = NfcCard::where('qr_code', $qrCode)
+            ->with('card') // Load associated normal card if any
+            ->firstOrFail();
 
-        $company = $card->company()->with([
+        $company = $nfcCard->company()->with([
             'cardTemplate',
-            'cardSocialLinks' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+            'cardSocialLinks' => fn($q) => $q->where('company_id', $nfcCard->company_id)
+                ->where(function ($query) use ($nfcCard) {
+                    $query->whereNull('card_id')->orWhere('card_id', $nfcCard->card_id);
                 }),
-            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+            'cardPhoneNumbers' => fn($q) => $q->where('company_id', $nfcCard->company_id)
+                ->where(function ($query) use ($nfcCard) {
+                    $query->whereNull('card_id')->orWhere('card_id', $nfcCard->card_id);
                 }),
-            'cardEmails' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+            'cardEmails' => fn($q) => $q->where('company_id', $nfcCard->company_id)
+                ->where(function ($query) use ($nfcCard) {
+                    $query->whereNull('card_id')->orWhere('card_id', $nfcCard->card_id);
                 }),
-            'cardAddresses' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+            'cardAddresses' => fn($q) => $q->where('company_id', $nfcCard->company_id)
+                ->where(function ($query) use ($nfcCard) {
+                    $query->whereNull('card_id')->orWhere('card_id', $nfcCard->card_id);
                 }),
-            'cardWebsites' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+            'cardWebsites' => fn($q) => $q->where('company_id', $nfcCard->company_id)
+                ->where(function ($query) use ($nfcCard) {
+                    $query->whereNull('card_id')->orWhere('card_id', $nfcCard->card_id);
                 }),
-            'cardButtons' => fn($q) => $q->where('company_id', $card->company_id)
-                ->where(function ($query) use ($card) {
-                    $query->whereNull('card_id')->orWhere('card_id', $card->id);
+            'cardButtons' => fn($q) => $q->where('company_id', $nfcCard->company_id)
+                ->where(function ($query) use ($nfcCard) {
+                    $query->whereNull('card_id')->orWhere('card_id', $nfcCard->card_id);
                 }),
         ])->first();
 
         if (!$company) {
-            return response()->json(['message' => 'No company associated with this user'], 404);
+            return response()->json(['message' => 'No company associated with this NFC card'], 404);
         }
+
+        $associatedCard = $nfcCard->card;
 
         $ip = $request->ip();
         $userAgent = $request->header('User-Agent');
 
-        // Check if already viewed by this IP (for unique view)
-        $existingView = CardView::where('card_id', $card->id)
-            ->where('ip_address', $ip)
-            ->first();
+        // Increment NFC card views
+        $nfcCard->increment('views');
 
-        // Log total view
-        CardView::create([
-            'card_id' => $card->id,
-            'ip_address' => $ip,
-            'user_agent' => $userAgent,
-            'user_id' => auth()->id(),
-        ]);
+        // Log CardView only if a normal card is assigned
+        if ($associatedCard) {
+            CardView::create([
+                'card_id' => $associatedCard->id,
+                'ip_address' => $ip,
+                'user_agent' => $userAgent,
+                'user_id' => auth()->id(),
+            ]);
+        }
 
-        // ✅ Prepare meta info
+        // If NFC card is active, don't show associated card
+        $selectedCard = $nfcCard->status === 'active' ? $associatedCard : null;
+
+        // Prepare meta info
         $meta = [
-            'title' => ($card->title || $card->first_name || $card->last_name)
+            'title' => ($selectedCard?->title || $selectedCard?->first_name || $selectedCard?->last_name)
                 ? trim(implode(' ', array_filter([
-                    $card->title,
-                    $card->first_name,
-                    $card->last_name,
+                    $selectedCard->title ?? null,
+                    $selectedCard->first_name ?? null,
+                    $selectedCard->last_name ?? null,
                 ])))
                 : 'Great Guy to Know',
-            'description' => ($card->position || $card->department)
+            'description' => ($selectedCard?->position || $selectedCard?->department)
                 ? trim(strip_tags(
-                    $card->position .
-                    (($card->position && $card->department) ? ' - ' : '') .
-                    $card->department
+                    $selectedCard->position .
+                    (($selectedCard->position && $selectedCard->department) ? ' - ' : '') .
+                    $selectedCard->department
                 ))
                 : 'Get in touch via my digital business card.',
-            'image' => $card->profile_image
-                ? '/storage/' . $card->profile_image
-                : ($card->company
-                    ? '/storage/' . $card->company
+            'image' => $selectedCard?->profile_image
+                ? '/storage/' . $selectedCard->profile_image
+                : ($company
+                    ? '/storage/' . ($company->profile_image ?? 'profile-placeholder.png')
                     : '/assets/images/profile-placeholder.png'),
             'url' => request()->fullUrl(),
         ];
 
-
         return inertia('Cards/Show', [
             'pageType' => 'card',
             'company' => $company,
-            'selectedCard' => $card,
-            'isSubscriptionActive' => $card->company->owner->hasActiveSubscription(),
+            'selectedCard' => $selectedCard,
+            'nfcCard' => $nfcCard,
+            'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
         ])->withViewData(['meta' => $meta]);
     }
+
+
 
     public function cardUpdate(Request $request, Card $card)
     {

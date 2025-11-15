@@ -37,7 +37,7 @@ export default function Company() {
     }, []);
 
     useEffect(() => {
-        setHeaderTitle("Cards Management");
+        setHeaderTitle("Employees Management");
         setHeaderText("");
     }, []);
 

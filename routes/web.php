@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ApiController;
 use App\Http\Controllers\CardsController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CsvController;
@@ -47,7 +48,9 @@ Route::middleware(['auth', 'role:company,template_editor'])->group(function () {
 Route::middleware(['auth', 'role:company,editor,template_editor'])->group(function () {
     Route::get('/company/cards', [CardsController::class, 'companyCards'])
         ->name('company.cards');
-    Route::put('/cards/{card}/toggle-status', [CardsController::class, 'toggleStatus']);
+
+    Route::get('/company/nfc-cards', [CardsController::class, 'companyNfcCards'])
+        ->name('company.nfc_cards');
 
     Route::get('/company/cards/{card}/edit', [DesignController::class, 'cardEdit'])
         ->name('card.edit');
@@ -62,8 +65,18 @@ Route::middleware(['auth', 'role:company,editor,template_editor'])->group(functi
 
     Route::post('/cards/toggle-multiple-status', [CardsController::class, 'toggleMultipleStatus'])
         ->name('cards.toggleMultipleStatus');
+    Route::put('/cards/{card}/toggle-status', [CardsController::class, 'toggleStatus']);
 
-        
+    Route::post('/nfc-cards/toggle-multiple-status', [CardsController::class, 'toggleMultipleNfcStatus'])
+        ->name('cards.toggleMultipleStatus');
+    Route::put('/nfc-cards/{nfcCard}/toggle-status', [CardsController::class, 'toggleNfcStatus']);
+
+    Route::post('/nfc-cards/assign', [CardsController::class, 'assignToEmployee'])
+        ->name('nfc-cards.assign');
+    Route::post('/nfc-cards/unassign', [CardsController::class, 'unassignFromEmployee'])
+        ->name('nfc-cards.unassign');
+
+
     Route::post('/company/cards/card_wallet/{card}/update', [DesignController::class, 'cardWalletUpdate'])
         ->name('design.cardWalletUpdate');
 });
@@ -82,6 +95,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('cards', CardsController::class);
     Route::delete('/cards/groups/{group}', [CardsController::class, 'destroyGroup'])
         ->name('cards.groups.destroy');
+    Route::delete('/cards-group/{group}/delete-cards', [CardsController::class, 'deleteCards'])
+        ->name('cards.group.deleteCards');
+
+    Route::delete('/cards-group/{group}/delete-nfc-cards', [CardsController::class, 'deleteNfcCards'])
+        ->name('cards.group.deleteNfcCards');
 
 
     Route::resource('plans', PlanController::class);
@@ -96,6 +114,10 @@ Route::middleware(['auth', 'role:admin,company,template_editor'])->group(functio
 });
 
 Route::middleware(['auth', 'role:admin,company'])->group(function () {
+    Route::get('/api-docs', [ApiController::class, 'index'])
+        ->name('api.documentation');
+    Route::post('/api-key/regenerate', [ApiController::class, 'regenerate'])
+        ->name('api.regenerateKey');
 
     Route::put('/settings/company', [CompanyController::class, 'update'])
         ->name('settings.company.update');
@@ -120,6 +142,8 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/', function () {
     return redirect()->route('dashboard');
 })->middleware(['auth', 'verified'])->name('home');
+Route::get('/api-docs/full', [ApiController::class, 'full'])
+    ->name('api.documentation.full');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

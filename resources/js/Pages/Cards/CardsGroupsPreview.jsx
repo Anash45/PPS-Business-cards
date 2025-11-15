@@ -1,17 +1,20 @@
-import { Link, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import axios from "axios";
 import dayjs from "dayjs";
 import { Download, Eye, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
+import DataTable from "datatables.net-react";
+import DT from "datatables.net-dt";
+import { createRoot } from "react-dom/client";
+import "datatables.net-dt/css/dataTables.dataTables.css";
 
-export default function CardsGroupsPreview({
-    previewGroups,
-    domain,
-    setPreviewCards,
-}) {
-    console.log(previewGroups);
+// Bind DataTables
+DataTable.use(DT);
+
+export default function CardsGroupsPreview({ previewGroups, setPreviewCards }) {
+    // console.log("previewGroups: ", previewGroups);
+    // Preview cards
     const handlePreviewCards = (cards, company) => {
-        // Map each card to include company details
         const cardsWithCompany = cards.map((card) => ({
             ...card,
             company: {
@@ -20,10 +23,10 @@ export default function CardsGroupsPreview({
                 billing_email: company.billing_email,
             },
         }));
-
-        console.log(cardsWithCompany);
         setPreviewCards(cardsWithCompany);
     };
+
+    // Delete entire group
     const handleDeleteGroup = async (groupId) => {
         if (
             !confirm(
@@ -36,11 +39,9 @@ export default function CardsGroupsPreview({
             const response = await axios.delete(
                 route("cards.groups.destroy", groupId)
             );
-
             if (response.data.success) {
                 toast.success(response.data.message);
-                // Reload only cardsGroups from Inertia
-                router.reload({ only: ["cardsGroups"] });
+                router.reload({ only: ["cardsGroups", "companies"] });
             } else {
                 toast.error(response.data.message || "Failed to delete group.");
             }
@@ -51,108 +52,202 @@ export default function CardsGroupsPreview({
         }
     };
 
-    return (
-        <div>
-            <div className="overflow-auto w-full max-h-[730px]">
-                <div className="xl:w-max min-w-full space-y-3">
-                    {/* Header */}
-                    <div className="hidden lg:flex border-b gap-4 border-gray-200 pb-2 px-4 text-xs font-semibold text-[#263238]">
-                        <div className="w-28 shrink-0">Created at</div>
-                        <div className="flex-1 min-w-[120px] shrink-0">
-                            Company
-                        </div>
-                        <div className="w-14">Number</div>
-                        <div className="w-20 text-center shrink-0">Action</div>
-                    </div>
+    // Delete only normal cards
+    const handleDeleteCards = async (groupId) => {
+        if (
+            !confirm(
+                "Are you sure? This will delete all normal cards in this group."
+            )
+        )
+            return;
+        try {
+            const response = await axios.delete(
+                route("cards.group.deleteCards", groupId)
+            );
+            if (response.data.success) {
+                toast.success(response.data.message);
+                router.reload({ only: ["cardsGroups", "companies"] });
+            } else {
+                toast.error(
+                    response.data.message || "Failed to delete normal cards."
+                );
+            }
+        } catch (err) {
+            toast.error(
+                err.response?.data?.message || "Failed to delete normal cards."
+            );
+        }
+    };
 
-                    {/* Rows */}
-                    {previewGroups.map((cg, idx) => (
-                        <div
-                            key={idx}
-                            className="border border-gray-400 rounded-lg py-2 px-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between hover:bg-gray-50 transition"
-                        >
-                            <div className="flex flex-col lg:flex-row lg:items-center lg:flex-1 lg:gap-4 w-full">
-                                <div className="lg:w-28 shrink-0">
-                                    <span className="lg:hidden text-[10px] text-gray-500">
-                                        Created at:{" "}
-                                    </span>
-                                    <span className="text-xs text-body">
-                                        <span>
-                                            {dayjs(cg.created_at).format(
-                                                "DD.MM.YYYY, HH:mm"
-                                            )}
-                                        </span>
-                                    </span>
-                                </div>
-                                <div className="flex-1 min-w-[120px] shrink-0">
-                                    <span className="lg:hidden text-[10px] text-gray-500">
-                                        Company:{" "}
-                                    </span>
-                                    <span className="text-xs text-body">
-                                        <span>{cg.company.name}</span>
-                                    </span>
-                                </div>
-                                <div className="lg:w-14 shrink-0">
-                                    <span className="lg:hidden text-[10px] text-gray-500">
-                                        Number:{" "}
-                                    </span>
-                                    <span className="text-xs text-body">
-                                        <span>{cg.cards_count}</span>
-                                    </span>
-                                </div>
-                                <div className="lg:w-20 flex items-center gap-2 shrink-0">
-                                    <span className="lg:hidden text-[10px] text-gray-500">
-                                        Action:{" "}
-                                    </span>
-                                    <span className="text-xs text-body flex gap-1.5">
-                                        <a
-                                            target="_blank"
-                                            href={route(
-                                                "cards.group.download",
-                                                cg.id
-                                            )}
-                                            className="text-center"
-                                        >
-                                            <Download
-                                                size={16}
-                                                className="text-body mx-auto"
-                                                strokeWidth={2}
-                                            />
-                                        </a>
-                                        <a
-                                            onClick={() =>
-                                                handlePreviewCards(
-                                                    cg.cards,
-                                                    cg.company
-                                                )
-                                            }
-                                            className="text-center cursor-pointer"
-                                        >
-                                            <Eye
-                                                size={16}
-                                                className="text-blue-600 mx-auto"
-                                                strokeWidth={2}
-                                            />
-                                        </a>
-                                        <a
-                                            onClick={() =>
-                                                handleDeleteGroup(cg.id)
-                                            }
-                                            className="text-center cursor-pointer"
-                                        >
-                                            <Trash2
-                                                size={16}
-                                                className="text-red-600 mx-auto"
-                                                strokeWidth={2}
-                                            />
-                                        </a>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+    // Delete only NFC cards
+    const handleDeleteNfcCards = async (groupId) => {
+        if (
+            !confirm(
+                "Are you sure? This will delete all NFC cards in this group."
+            )
+        )
+            return;
+        try {
+            const response = await axios.delete(
+                route("cards.group.deleteNfcCards", groupId)
+            );
+            if (response.data.success) {
+                toast.success(response.data.message);
+                router.reload({ only: ["cardsGroups", "companies"] });
+            } else {
+                toast.error(
+                    response.data.message || "Failed to delete NFC cards."
+                );
+            }
+        } catch (err) {
+            toast.error(
+                err.response?.data?.message || "Failed to delete NFC cards."
+            );
+        }
+    };
+
+    // Render cards with delete button
+    const renderCardsColumn = (data, type, row) => {
+        const container = document.createElement("div");
+        container.className = "flex items-center gap-2 justify-center";
+
+        setTimeout(() => {
+            const root = createRoot(container);
+            root.render(
+                <>
+                    <span>{row.cards_count}</span>
+                    <button
+                        onClick={() => handleDeleteCards(row.id)}
+                        className="text-red-600"
+                        title="Delete normal cards"
+                    >
+                        <Trash2 size={16} strokeWidth={2} />
+                    </button>
+                </>
+            );
+        }, 0);
+
+        return container;
+    };
+
+    // Render NFC cards with delete button
+    const renderNfcCardsColumn = (data, type, row) => {
+        const container = document.createElement("div");
+        container.className = "flex items-center gap-2 justify-center";
+
+        setTimeout(() => {
+            const root = createRoot(container);
+            root.render(
+                <>
+                    <span>{row.nfc_cards_count}</span>
+                    <button
+                        onClick={() => handleDeleteNfcCards(row.id)}
+                        className="text-red-600"
+                        title="Delete NFC cards"
+                    >
+                        <Trash2 size={16} strokeWidth={2} />
+                    </button>
+                </>
+            );
+        }, 0);
+
+        return container;
+    };
+
+    // Actions column (Download + Preview + Delete group)
+    const renderActionsColumn = (data, type, row) => {
+        const container = document.createElement("div");
+        container.className = "flex gap-2 justify-center";
+
+        setTimeout(() => {
+            const root = createRoot(container);
+            root.render(
+                <>
+                    <a
+                        target="_blank"
+                        href={route("cards.group.download", row.id)}
+                    >
+                        <Download
+                            size={16}
+                            className="text-body"
+                            strokeWidth={2}
+                        />
+                    </a>
+                    <button
+                        onClick={() =>
+                            handlePreviewCards(row.nfc_cards, row.company)
+                        }
+                        disabled={!row.nfc_cards || row.nfc_cards.length === 0}
+                        className={`text-blue-600 ${
+                            !row.nfc_cards || row.nfc_cards.length === 0
+                                ? "opacity-40 cursor-not-allowed"
+                                : ""
+                        }`}
+                    >
+                        <Eye size={16} strokeWidth={2} />
+                    </button>
+                    <button
+                        onClick={() => handleDeleteGroup(row.id)}
+                        className="text-red-600"
+                    >
+                        <Trash2 size={16} strokeWidth={2} />
+                    </button>
+                </>
+            );
+        }, 0);
+
+        return container;
+    };
+
+    const columns = [
+        {
+            title: "Created At",
+            data: "created_at",
+            render: (data) => dayjs(data).format("DD.MM.YYYY, HH:mm"),
+        },
+        { title: "Company", data: "company.name" },
+        {
+            title: "Cards",
+            data: null,
+            orderable: false,
+            searchable: false,
+            render: renderCardsColumn,
+        },
+        {
+            title: "NFC Cards",
+            data: null,
+            orderable: false,
+            searchable: false,
+            render: renderNfcCardsColumn,
+        },
+        {
+            title: "Actions",
+            data: null,
+            orderable: false,
+            searchable: false,
+            render: renderActionsColumn,
+        },
+    ];
+
+    return (
+        <div className="overflow-auto w-full max-h-[730px]">
+            <DataTable
+                data={previewGroups}
+                columns={columns}
+                paging={true}
+                searching={false}
+                ordering={true}
+                options={{
+                    responsive: true,
+                    pageLength: 10,
+                    dom:
+                        "<'flex justify-between items-center mb-3 sd-top'<'flex items-center gap-2'l><'flex items-center gap-2'f>>" +
+                        "rt" +
+                        "<'flex justify-center mt-3 sd-bottom'p>",
+                }}
+                defaultOrder={[0, "desc"]}
+                className="display site-datatable text-xs"
+            />
         </div>
     );
 }

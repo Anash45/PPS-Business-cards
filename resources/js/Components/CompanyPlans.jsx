@@ -47,10 +47,19 @@ export default function CompanyPlans({ plans = [], subscription = null }) {
 
                                 <div>
                                     <p className="text-sm text-gray-500">
-                                        Cards Included:
+                                        Employees Included:
                                     </p>
                                     <p className="font-medium">
                                         {plan.cards_included}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p className="text-sm text-gray-500">
+                                        NFC Cards Included:
+                                    </p>
+                                    <p className="font-medium">
+                                        {plan.nfc_cards_included}
                                     </p>
                                 </div>
 

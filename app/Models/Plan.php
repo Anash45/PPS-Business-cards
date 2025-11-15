@@ -12,6 +12,7 @@ class Plan extends Model
     protected $fillable = [
         'name',
         'cards_included',
+        'nfc_cards_included',
         'price_monthly',
         'price_annual',
         'is_custom',

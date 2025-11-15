@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Card;
 use App\Models\CardsGroup;
 use App\Models\Company;
+use App\Models\NfcCard;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,26 +18,40 @@ class CardsController extends Controller
 {
     public function index()
     {
-        // Load companies with their owner → subscription → plan relationships
-        $companies = Company::with(['owner.subscription.plan', 'cards'])->get();
+        // Load companies with owner → subscription → plan
+        $companies = Company::with(['owner.subscription.plan', 'cards', 'nfcCards'])->get();
 
-        // Append total and remaining cards for each company
         $companies = $companies->map(function ($company) {
             $plan = $company->owner?->subscription?->plan;
+
+            // ------------------------
+            // Normal Cards
+            // ------------------------
             $totalCards = $plan?->cards_included ?? 0;
-            $usedCards = $company->cards->count();
+            $usedCards = $company->cards()->count(); // only used normal cards
             $remainingCards = max(0, $totalCards - $usedCards);
 
             $company->total_cards_allowed = $totalCards;
             $company->used_cards = $usedCards;
             $company->remaining_cards = $remainingCards;
 
+            // ------------------------
+            // NFC Cards
+            // ------------------------
+            $totalNfcCards = $plan?->nfc_cards_included ?? 0;
+            $nfcUsed = $company->nfcCards()->count(); // only used NFC cards
+            $nfcRemaining = max(0, $totalNfcCards - $nfcUsed);
+
+            $company->total_nfc_cards = $totalNfcCards;
+            $company->nfc_used = $nfcUsed;
+            $company->nfc_remaining = $nfcRemaining;
+
             return $company;
         });
 
-        // Load card groups with counts
-        $cardsGroups = CardsGroup::with(['company', 'cards'])
-            ->withCount('cards')
+        // Load card groups with normal cards and NFC cards counts
+        $cardsGroups = CardsGroup::with(['company', 'cards', 'nfcCards'])
+            ->withCount(['cards', 'nfcCards'])
             ->orderByDesc('created_at')
             ->get();
 
@@ -47,25 +62,32 @@ class CardsController extends Controller
     }
 
 
+
     /**
      * Create cards for a company in a new group
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'company_id' => 'required|exists:companies,id',
-            'quantity' => 'required|integer|min:1|max:10000',
+            'quantity' => 'required|integer|min:0|max:10000',
+            'nfc_quantity' => 'required|integer|min:0|max:10000',
         ]);
+
+        // At least one quantity must be > 0
+        if ($validated['quantity'] == 0 && $validated['nfc_quantity'] == 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You must create at least one normal card or one NFC card.',
+            ], 422);
+        }
 
         DB::beginTransaction();
 
         try {
-            // Fetch company
             $company = Company::findOrFail($request->company_id);
-
-            // ✅ Check subscription limits
-            $owner = $company->owner; // assuming hasOne relation like company->owner()
-            $subscription = $owner?->subscription; // assuming hasOne relation user->subscription
+            $owner = $company->owner;
+            $subscription = $owner?->subscription;
             $plan = $subscription?->plan;
 
             if (!$plan) {
@@ -75,33 +97,39 @@ class CardsController extends Controller
                 ], 403);
             }
 
-            // Total allowed cards by plan
+            // -------------------
+            // Normal Cards Limit
+            // -------------------
             $maxCards = $plan->cards_included ?? 0;
-
-            // Count existing company cards
             $usedCards = $company->cards()->count();
-
-            // Remaining allowed cards
             $remainingCards = max(0, $maxCards - $usedCards);
-
-            // ✅ Validate remaining capacity
-            if ($remainingCards <= 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You have reached your card limit. Upgrade your plan to create more cards.',
-                    'remaining' => 0,
-                ], 403);
-            }
 
             if ($request->quantity > $remainingCards) {
                 return response()->json([
                     'success' => false,
-                    'message' => "You can only create {$remainingCards} more card(s) under your current plan.",
+                    'message' => "You can only create {$remainingCards} more employee(s) under your current plan.",
                     'remaining' => $remainingCards,
                 ], 403);
             }
 
-            // ✅ Create a new group
+            // -------------------
+            // NFC Cards Limit
+            // -------------------
+            $maxNfcCards = $plan->nfc_cards_included ?? 0;
+            $usedNfc = $company->nfcCards()->count();
+            $remainingNfc = max(0, $maxNfcCards - $usedNfc);
+
+            if ($request->nfc_quantity > $remainingNfc) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "You can only create {$remainingNfc} more NFC card(s) under your current plan.",
+                    'remaining_nfc' => $remainingNfc,
+                ], 403);
+            }
+
+            // -------------------
+            // Create Card Group
+            // -------------------
             $group = CardsGroup::create([
                 'company_id' => $company->id,
                 'uuid' => Str::uuid(),
@@ -109,37 +137,72 @@ class CardsController extends Controller
 
             $cards = [];
             $createdCards = [];
+            $nfcCards = [];
+            $createdNfcCards = [];
             $now = now();
 
-            for ($i = 0; $i < $request->quantity; $i++) {
-                $code = Card::generateCode();
+            // Create normal cards
+            if ($request->quantity > 0) {
+                for ($i = 0; $i < $request->quantity; $i++) {
+                    $code = Card::generateCode();
 
-                $cardData = [
-                    'company_id' => $company->id,
-                    'cards_group_id' => $group->id,
-                    'code' => $code,
-                    'status' => 'inactive',
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
+                    $cards[] = [
+                        'company_id' => $company->id,
+                        'cards_group_id' => $group->id,
+                        'code' => $code,
+                        'status' => 'inactive',
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
 
-                $cards[] = $cardData;
-
-                $createdCards[] = [
-                    'code' => $code,
-                    'status' => 'inactive',
-                    'company' => [
-                        'id' => $company->id,
-                        'name' => $company->name,
-                        'billing_email' => $company->billing_email,
-                    ],
-                    'group_id' => $group->id,
-                    'created_at' => $now->toDateTimeString(),
-                    'updated_at' => $now->toDateTimeString(),
-                ];
+                    $createdCards[] = [
+                        'code' => $code,
+                        'status' => 'inactive',
+                        'company' => [
+                            'id' => $company->id,
+                            'name' => $company->name,
+                            'billing_email' => $company->billing_email,
+                        ],
+                        'group_id' => $group->id,
+                        'created_at' => $now->toDateTimeString(),
+                        'updated_at' => $now->toDateTimeString(),
+                    ];
+                }
+                Card::insert($cards);
             }
 
-            Card::insert($cards);
+            // Create NFC cards
+            if ($request->nfc_quantity > 0) {
+                for ($i = 0; $i < $request->nfc_quantity; $i++) {
+                    $qr = Card::generateCode();
+
+                    $nfcCards[] = [
+                        'company_id' => $company->id,
+                        'card_id' => null,
+                        'qr_code' => $qr,
+                        'cards_group_id' => $group->id,
+                        'status' => 'inactive',
+                        'views' => 0,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+
+                    $createdNfcCards[] = [
+                        'qr_code' => $qr,
+                        'status' => 'inactive',
+                        'company' => [
+                            'id' => $company->id,
+                            'name' => $company->name,
+                            'billing_email' => $company->billing_email,
+                        ],
+                        'group_id' => $group->id,
+                        'views' => 0,
+                        'created_at' => $now->toDateTimeString(),
+                        'updated_at' => $now->toDateTimeString(),
+                    ];
+                }
+                NfcCard::insert($nfcCards);
+            }
 
             DB::commit();
 
@@ -147,17 +210,23 @@ class CardsController extends Controller
                 'success' => true,
                 'group_id' => $group->id,
                 'cards_created' => $request->quantity,
+                'nfc_cards_created' => $request->nfc_quantity,
                 'remaining_after_creation' => $remainingCards - $request->quantity,
+                'remaining_nfc_after_creation' => $remainingNfc - $request->nfc_quantity,
                 'createdCards' => $createdCards,
+                'createdNfcCards' => $createdNfcCards,
             ]);
+
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
+
 
 
 
@@ -178,23 +247,88 @@ class CardsController extends Controller
      */
     public function destroyGroup($groupId)
     {
-        $group = CardsGroup::with('cards')->findOrFail($groupId);
+        $group = CardsGroup::with(['cards', 'nfcCards'])->findOrFail($groupId);
 
-        // Check if any card in the group is active
-        $hasActiveCards = $group->cards->where('status', 'active')->count() > 0;
+        // Check if any NFC card is active
+        $hasActiveNfc = $group->nfcCards->where('status', 'active')->isNotEmpty();
 
-        if ($hasActiveCards) {
+        if ($hasActiveNfc) {
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot delete group. Some cards are still active.'
+                'message' => 'Cannot delete group. Some NFC cards are still active.'
             ], 400);
         }
 
-        // Safe to delete if no active cards
+        // Check if any normal card is associated with NFC cards
+        $cardsLinkedToNfc = $group->cards->pluck('id')->intersect(
+            $group->nfcCards->pluck('card_id')->filter()
+        );
+
+        if ($cardsLinkedToNfc->isNotEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete group. Some employees are linked to NFC cards.'
+            ], 400);
+        }
+
+        // Safe to delete the group
         $group->delete();
 
-        return response()->json(['success' => true, 'message' => 'Group deleted successfully.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Group deleted successfully.'
+        ]);
     }
+
+    public function deleteCards($groupId)
+    {
+        $group = CardsGroup::with('cards', 'nfcCards')->findOrFail($groupId);
+
+        // Check if any normal card is linked to NFC cards
+        $cardsLinkedToNfc = $group->cards->pluck('id')->intersect(
+            $group->nfcCards->pluck('card_id')->filter()
+        );
+
+        if ($cardsLinkedToNfc->isNotEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete normal cards. Some employees are linked to NFC cards.'
+            ], 400);
+        }
+
+        // Safe to delete all normal cards
+        $group->cards()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All normal cards in this group were deleted successfully.'
+        ]);
+    }
+
+    // Delete only NFC cards
+    public function deleteNfcCards($groupId)
+    {
+        $group = CardsGroup::with('nfcCards')->findOrFail($groupId);
+
+        // Check if any NFC card is active
+        $hasActiveNfc = $group->nfcCards->where('status', 'active')->isNotEmpty();
+
+        if ($hasActiveNfc) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete NFC cards. Some NFC cards are still active.'
+            ], 400);
+        }
+
+        // Safe to delete all NFC cards
+        $group->nfcCards()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All NFC cards in this group were deleted successfully.'
+        ]);
+    }
+
 
     public function downloadGroup($groupId)
     {
@@ -214,15 +348,15 @@ class CardsController extends Controller
             fputcsv($file, ['Sr#', 'Card id', 'Company', 'URL', 'Code', 'Created']);
 
             // Add rows
-            foreach ($group->cards as $index => $card) {
+            foreach ($group->nfcCards as $index => $card) {
                 $createdAt = Carbon::parse($card->created_at)->format('d.m.Y H:i');
 
                 fputcsv($file, [
                     $index + 1,
                     $card->id,
                     $group->company->name ?? '',
-                    env('LINK_URL') . '/card/' . $card->code, // URL format
-                    $card->code,
+                    env('LINK_URL') . '/card/' . $card->qr_code, // URL format
+                    $card->qr_code,
                     $createdAt,
                 ]);
             }
@@ -246,6 +380,30 @@ class CardsController extends Controller
         // Pass to Inertia
         return Inertia::render('Cards/Company', [
             'cards' => $cards,
+            'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
+        ]);
+    }
+
+
+    public function companyNfcCards()
+    {
+        $user = Auth::user();
+
+        // Determine the correct company reference
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+
+        // Get all normal cards for this company
+        $normalCards = $company->cards()->get();
+
+        // Get all NFC cards for this company, including their associated normal card
+        $nfcCards = NfcCard::where('company_id', $company->id)
+            ->with('card')
+            ->get();
+
+        // Pass to Inertia
+        return Inertia::render('Cards/Nfc', [
+            'employeeCards' => $normalCards,   // all company cards
+            'nfcCards' => $nfcCards,         // NFC cards with their associated card
             'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
         ]);
     }
@@ -288,6 +446,44 @@ class CardsController extends Controller
         ]);
     }
 
+    public function toggleNfcStatus(Request $request, NfcCard $nfcCard)
+    {
+        $user = Auth::user();
+
+
+        // ✅ Normalize company id for any user type
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id   // if user is a company
+            : $user->company_id;           // if user belongs to a company
+
+
+        // ✅ Now safe comparison
+        if (
+            !$user->isCompany() && (
+                !in_array($user->role, ['editor', 'template_editor'])
+            )
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        // Validate incoming status
+        $request->validate([
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        $nfcCard->status = $request->status;
+        $nfcCard->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Card status updated successfully.',
+            'card' => $nfcCard,
+        ]);
+    }
+
     public function toggleMultipleStatus(Request $request)
     {
         $user = Auth::user();
@@ -324,6 +520,153 @@ class CardsController extends Controller
             'updated_count' => $updatedCount,
         ]);
     }
+
+    public function toggleMultipleNfcStatus(Request $request)
+    {
+        $user = Auth::user();
+
+        // ✅ Validate input
+        $data = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:nfc_cards,id',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        // ✅ Normalize company id for any user type
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id   // if user is a company
+            : $user->company_id;           // if user belongs to a company
+
+        // ✅ Fetch cards belonging to this company
+        $cardsQuery = NfcCard::whereIn('id', $data['ids'])
+            ->where('company_id', $companyId);
+
+        // ✅ Additional security: editors can only affect their own company’s cards
+        if (!$user->isCompany() && !in_array($user->role, ['editor', 'template_editor'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        $updatedCount = $cardsQuery->update(['status' => $data['status']]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$updatedCount} card(s) updated successfully.",
+            'updated_count' => $updatedCount,
+        ]);
+    }
+
+    public function assignToEmployee(Request $request)
+    {
+        $user = Auth::user();
+
+        // ✅ Validate input
+        $data = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:nfc_cards,id',
+            'employee' => 'required|integer|exists:cards,id',
+        ]);
+
+        // ✅ Determine company
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id
+            : $user->company_id;
+
+        // ✅ Additional security for editors
+        if (!$user->isCompany() && !in_array($user->role, ['editor', 'template_editor'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        // ✅ Check that all NFC cards belong to this company
+        $nfcCards = NfcCard::whereIn('id', $data['ids'])
+            ->where('company_id', $companyId)
+            ->get();
+
+        if ($nfcCards->count() !== count($data['ids'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Some NFC cards do not belong to your company.',
+            ], 403);
+        }
+
+        // ✅ Check that selected employee belongs to the same company
+        $employee = Card::where('id', $data['employee'])
+            ->where('company_id', $companyId)
+            ->first();
+
+        if (!$employee) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Selected employee does not belong to your company.',
+            ], 403);
+        }
+
+        // ✅ Assign NFC cards to employee
+        foreach ($nfcCards as $nfc) {
+            $nfc->card_id = $employee->id;
+            $nfc->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$nfcCards->count()} NFC card(s) assigned to employee successfully.",
+        ]);
+    }
+
+    public function unassignFromEmployee(Request $request)
+    {
+        $user = Auth::user();
+
+        // ✅ Validate input
+        $data = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:nfc_cards,id',
+        ]);
+
+        // ✅ Determine company
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id
+            : $user->company_id;
+
+        // ✅ Additional security for editors
+        if (!$user->isCompany() && !in_array($user->role, ['editor', 'template_editor'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        // ✅ Fetch NFC cards belonging to this company
+        $nfcCards = NfcCard::whereIn('id', $data['ids'])
+            ->where('company_id', $companyId)
+            ->get();
+
+        if ($nfcCards->count() !== count($data['ids'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Some NFC cards do not belong to your company.',
+            ], 403);
+        }
+
+        // ✅ Unassign NFC cards (clear card_id)
+        foreach ($nfcCards as $nfc) {
+            $nfc->card_id = null;
+            $nfc->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$nfcCards->count()} NFC card(s) unassigned successfully.",
+        ]);
+    }
+
+
+
     public function incrementDownloadsByCode(Request $request)
     {
         $code = $request->input('code');

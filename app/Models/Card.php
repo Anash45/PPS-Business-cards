@@ -39,6 +39,11 @@ class Card extends Model
         return $this->belongsTo(CardsGroup::class);
     }
 
+    public function nfcCards()
+    {
+        return $this->hasMany(NfcCard::class);
+    }
+
     /**
      * Generate a unique 8-character code
      */

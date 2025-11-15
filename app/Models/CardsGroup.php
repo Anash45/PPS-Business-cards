@@ -20,4 +20,9 @@ class CardsGroup extends Model
     {
         return $this->hasMany(Card::class);
     }
+
+    public function nfcCards()
+    {
+        return $this->hasMany(NfcCard::class);
+    }
 }

@@ -10,6 +10,7 @@ import {
     Users2,
     LayoutDashboard,
     Crown,
+    ScanQrCodeIcon,
 } from "lucide-react";
 import React from "react";
 
@@ -29,7 +30,8 @@ const companyMenuGroups = [
     {
         groupName: "Business Cards",
         items: [
-            { name: "Cards", icon: IdCardIcon, route: "company.cards" },
+            { name: "NFC Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
+            { name: "Employees", icon: IdCardIcon, route: "company.cards" },
             {
                 name: "Bulk Import",
                 icon: UploadCloud,
@@ -41,7 +43,7 @@ const companyMenuGroups = [
         groupName: "System",
         items: [
             { name: "Setting", icon: SettingsIcon, route: "settings.index" },
-            { name: "API Documentation", icon: Book, route: "profile.edit" },
+            { name: "API Documentation", icon: Book, route: "api.documentation" },
         ],
     },
 ];
@@ -51,7 +53,8 @@ const editorMenuGroups = [
     {
         groupName: "Business Cards",
         items: [
-            { name: "Cards", icon: IdCardIcon, route: "company.cards" },
+            { name: "NFC Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
+            { name: "Employees", icon: IdCardIcon, route: "company.cards" },
             {
                 name: "Bulk Import",
                 icon: UploadCloud,
@@ -75,7 +78,8 @@ const templateEditorMenuGroups = [
     {
         groupName: "Business Cards",
         items: [
-            { name: "Cards", icon: IdCardIcon, route: "company.cards" },
+            { name: "NFC Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
+            { name: "Employees", icon: IdCardIcon, route: "company.cards" },
             {
                 name: "Bulk Import",
                 icon: UploadCloud,

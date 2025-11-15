@@ -39,6 +39,12 @@ class PlanController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:plans,name'],
             'cards_included' => ['required', 'integer', 'min:1'],
+            'nfc_cards_included' => [
+                'required',
+                'integer',
+                'min:1',
+                'gte:cards_included',
+            ],
             'price_monthly' => ['required', 'numeric', 'min:0'],
             'price_annual' => ['required', 'numeric', 'min:0'],
             'is_custom' => ['boolean'],
@@ -84,6 +90,12 @@ class PlanController extends Controller
                 Rule::unique('plans')->ignore($plan->id),
             ],
             'cards_included' => ['required', 'integer', 'min:1'],
+            'nfc_cards_included' => [
+                'required',
+                'integer',
+                'min:1',
+                'gte:cards_included',
+            ],
             'price_monthly' => ['required', 'numeric', 'min:0'],
             'price_annual' => ['required', 'numeric', 'min:0'],
             'is_custom' => ['boolean'],

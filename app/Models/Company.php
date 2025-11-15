@@ -20,6 +20,7 @@ class Company extends Model
         'country',
         'vat_id',
         'user_id',
+        'api_key'
     ];
 
     protected static function boot()
@@ -57,6 +58,12 @@ class Company extends Model
         return $this->hasMany(Card::class, 'company_id');
     }
 
+    /** 🔹 NFC cards */
+    public function nfcCards()
+    {
+        return $this->hasMany(NfcCard::class, 'company_id');
+    }
+
     public function cardTemplate()
     {
         return $this->hasOne(CompanyCardTemplate::class);
@@ -82,8 +89,22 @@ class Company extends Model
     {
         return $this->hasMany(CardAddress::class);
     }
+
     public function cardButtons()
     {
         return $this->hasMany(CardButton::class);
+    }
+
+    public function generateApiKey()
+    {
+        do {
+            $randomHash = hash('sha256', Str::random(40));
+            $apiKey = 'pps_key_' . $randomHash;
+        } while (self::where('api_key', $apiKey)->exists());
+
+        $this->api_key = $apiKey;
+        $this->save();
+
+        return $this->api_key;
     }
 }

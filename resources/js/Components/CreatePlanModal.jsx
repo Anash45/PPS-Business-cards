@@ -29,6 +29,7 @@ export default function CreatePlanModal({
     const [formData, setFormData] = useState({
         name: existingPlan?.name || "",
         cards_included: existingPlan?.cards_included || "",
+        nfc_cards_included: existingPlan?.nfc_cards_included || "",
         price_monthly: existingPlan?.price_monthly || "",
         price_annual: existingPlan?.price_annual || "",
         is_custom: existingPlan?.is_custom || false,
@@ -157,7 +158,7 @@ export default function CreatePlanModal({
                         <div className="space-y-1">
                             <InputLabel
                                 htmlFor="cards_included"
-                                value="Cards Included"
+                                value="Employees Included"
                                 className="text-[#475569] text-xs font-medium"
                             />
                             <TextInput
@@ -171,9 +172,25 @@ export default function CreatePlanModal({
                             />
                             <InputError message={formErrors.cards_included} />
                         </div>
-                    </div>
 
-                    <div className="grid sm:grid-cols-2 grid-cols-1 gap-3">
+                        <div className="space-y-1">
+                            <InputLabel
+                                htmlFor="nfc_cards_included"
+                                value="NFC Cards Included"
+                                className="text-[#475569] text-xs font-medium"
+                            />
+                            <TextInput
+                                id="nfc_cards_included"
+                                name="nfc_cards_included"
+                                type="number"
+                                value={formData.nfc_cards_included}
+                                onChange={handleChange}
+                                className="w-full block"
+                                placeholder="e.g. 150"
+                            />
+                            <InputError message={formErrors.nfc_cards_included} />
+                        </div>
+
                         <div className="space-y-1">
                             <InputLabel
                                 htmlFor="price_monthly"
@@ -211,10 +228,7 @@ export default function CreatePlanModal({
                             />
                             <InputError message={formErrors.price_annual} />
                         </div>
-                    </div>
 
-                    {/* Custom + Active */}
-                    <div className="grid sm:grid-cols-2 grid-cols-1 gap-3 mt-3">
                         {/* Active Select */}
                         <div className="space-y-1">
                             <InputLabel

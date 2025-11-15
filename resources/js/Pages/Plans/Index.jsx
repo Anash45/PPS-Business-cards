@@ -66,7 +66,8 @@ export default function Plans() {
     const columns = useMemo(
         () => [
             { title: "Name", data: "name" },
-            { title: "Cards Included", data: "cards_included" },
+            { title: "Employees", data: "cards_included" },
+            { title: "NFC Cards", data: "nfc_cards_included" },
             {
                 title: "Monthly Price",
                 data: "price_monthly",
