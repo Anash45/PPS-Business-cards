@@ -105,7 +105,7 @@ export default function Settings() {
                             <button
                                 onClick={handleCopy}
                                 className="px-3 py-2 flex items-center gap-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                            >
+                            > 
                                 <Copy className="h-4 w-4" />
                                 <span>Copy</span>
                             </button>
