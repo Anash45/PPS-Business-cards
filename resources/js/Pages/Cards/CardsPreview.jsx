@@ -3,11 +3,14 @@ import dayjs from "dayjs";
 
 export default function CardsPreview({ previewCards, domain }) {
     return (
-        <div>
-            <h3 className="text-grey900 font-semibold text-lg mb-3">
-                Preview: generated URLs
+        <div className="mt-5">
+            <h3 className="text-grey900 font-semibold text-lg">
+                Preview URLs
             </h3>
-            <div className="overflow-auto w-full max-h-[400px]">
+            <p className="text-sm leading-5 font-medium text-[#475569]">
+                Max 100 URLs are being shown.
+            </p>
+            <div className="overflow-auto w-full max-h-[400px] mt-5">
                 <div className="xl:w-max min-w-full space-y-3">
                     {/* Header */}
                     <div className="hidden lg:flex border-b gap-4 border-gray-200 pb-2 px-4 text-xs font-semibold text-[#263238]">
@@ -17,7 +20,7 @@ export default function CardsPreview({ previewCards, domain }) {
                     </div>
 
                     {/* Rows */}
-                    {previewCards.map((c, idx) => (
+                    {previewCards.slice(0, 100).map((c, idx) => (
                         <div
                             key={idx}
                             className="border border-gray-400 rounded-lg py-2 px-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between hover:bg-gray-50 transition"
@@ -28,7 +31,9 @@ export default function CardsPreview({ previewCards, domain }) {
                                         Company:{" "}
                                     </span>
                                     <span className="text-xs text-body">
-                                        {c?.company?.name ? c?.company?.name : ""}
+                                        {c?.company?.name
+                                            ? c?.company?.name
+                                            : ""}
                                     </span>
                                 </div>
                                 <div className="lg:flex-1 min-w-[180px] shrink-0">

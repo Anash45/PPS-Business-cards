@@ -208,20 +208,6 @@ export default function CardsForm({ previewCards, setPreviewCards }) {
                 </div>
             </form>
 
-            {/* Preview */}
-            {previewCards.length > 0 && (
-                <div className="flex flex-col gap-3 py-3">
-                    <p className="text-[#079E04] text-xs font-medium">
-                        {previewCards.length} URLs generated.
-                    </p>
-                    <p className="text-xs leading-5 font-medium text-[#475569]">
-                        Once generated, the URLs are immediately active. The CSV
-                        is automatically downloaded and stored in the History.
-                    </p>
-                    <Divider className="mt-3" />
-                </div>
-            )}
-
             {previewCards.length > 0 && (
                 <CardsPreview domain={linkDomain} previewCards={previewCards} />
             )}

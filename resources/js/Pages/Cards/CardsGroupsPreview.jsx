@@ -165,22 +165,43 @@ export default function CardsGroupsPreview({ previewGroups, setPreviewCards }) {
                 <>
                     <a
                         target="_blank"
-                        href={route("cards.group.download", row.id)}
-                    >
-                        <Download
-                            size={16}
-                            className="text-body"
-                            strokeWidth={2}
-                        />
-                    </a>
-                    <button
-                        onClick={() =>
-                            handlePreviewCards(row.nfc_cards, row.company)
+                        href={
+                            row.nfc_cards && row.nfc_cards.length > 0
+                                ? route("cards.group.download", row.id)
+                                : "#"
                         }
-                        disabled={!row.nfc_cards || row.nfc_cards.length === 0}
+                        onClick={(e) => {
+                            if (!row.nfc_cards || row.nfc_cards.length === 0) {
+                                e.preventDefault();
+                                toast(
+                                    "Only NFC cards are available for preview/download.",
+                                    { icon: "ℹ️" }
+                                );
+                            }
+                        }}
+                        className={`inline-flex items-center ${
+                            !row.nfc_cards || row.nfc_cards.length === 0
+                                ? "opacity-50 cursor-pointer"
+                                : "text-body hover:text-blue-600"
+                        }`}
+                    >
+                        <Download size={16} strokeWidth={2} />
+                    </a>
+
+                    <button
+                        onClick={() => {
+                            if (!row.nfc_cards || row.nfc_cards.length === 0) {
+                                toast(
+                                    "Only NFC cards are available for preview/download.",
+                                    { icon: "ℹ️" }
+                                );
+                                return;
+                            }
+                            handlePreviewCards(row.nfc_cards, row.company);
+                        }}
                         className={`text-blue-600 ${
                             !row.nfc_cards || row.nfc_cards.length === 0
-                                ? "opacity-40 cursor-not-allowed"
+                                ? "opacity-40 cursor-pointer"
                                 : ""
                         }`}
                     >
@@ -203,7 +224,14 @@ export default function CardsGroupsPreview({ previewGroups, setPreviewCards }) {
         {
             title: "Created At",
             data: "created_at",
-            render: (data) => dayjs(data).format("DD.MM.YYYY, HH:mm"),
+            render: (data, type, row) => {
+                // Use raw data for sorting/searching
+                if (type === "sort" || type === "type") {
+                    return new Date(data).getTime();
+                }
+                // Format for display
+                return dayjs(data).format("DD.MM.YYYY, HH:mm");
+            },
         },
         { title: "Company", data: "company.name" },
         {

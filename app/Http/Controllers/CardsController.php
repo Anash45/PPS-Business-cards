@@ -50,7 +50,15 @@ class CardsController extends Controller
         });
 
         // Load card groups with normal cards and NFC cards counts
-        $cardsGroups = CardsGroup::with(['company', 'cards', 'nfcCards'])
+        $cardsGroups = CardsGroup::with([
+            'company',
+            'cards' => function ($query) {
+                $query->orderByDesc('created_at')->take(100);
+            },
+            'nfcCards' => function ($query) {
+                $query->orderByDesc('created_at')->take(100);
+            },
+        ])
             ->withCount(['cards', 'nfcCards'])
             ->orderByDesc('created_at')
             ->get();
@@ -168,7 +176,12 @@ class CardsController extends Controller
                         'updated_at' => $now->toDateTimeString(),
                     ];
                 }
-                Card::insert($cards);
+                $chunkSize = 1000; // safe batch size
+                if (!empty($cards)) {
+                    foreach (array_chunk($cards, $chunkSize) as $chunk) {
+                        Card::insert($chunk);
+                    }
+                }
             }
 
             // Create NFC cards
@@ -201,7 +214,11 @@ class CardsController extends Controller
                         'updated_at' => $now->toDateTimeString(),
                     ];
                 }
-                NfcCard::insert($nfcCards);
+                if (!empty($nfcCards)) {
+                    foreach (array_chunk($nfcCards, $chunkSize) as $chunk) {
+                        NfcCard::insert($chunk);
+                    }
+                }
             }
 
             DB::commit();
