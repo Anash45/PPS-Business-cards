@@ -30,11 +30,23 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
         $user = Auth::user();
-        // ✅ Role-based redirect logic
+
+        // If the user has any 2FA enabled
+        if ($user->hasAny2FA()) {
+            // Store user id temporarily in session
+            session(['2fa:user:id' => $user->id]);
+
+            // Logout temporarily
+            Auth::logout();
+
+            // Redirect to 2FA selection page
+            return redirect()->route('2fa.select');
+        }
+
+        // ✅ Normal login redirects
         if ($user->isEditor()) {
             return redirect()->route('company.cards');
         }
@@ -43,9 +55,9 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('dashboard');
         }
 
-        // ✅ Default fallback (optional)
         return redirect()->route('profile.edit');
     }
+
 
     /**
      * Destroy an authenticated session.

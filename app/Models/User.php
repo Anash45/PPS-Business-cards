@@ -25,6 +25,28 @@ class User extends Authenticatable
         'status',
     ];
 
+    protected $casts = [
+        'two_factor_recovery_codes' => 'array',
+        'email_2fa_expires_at' => 'datetime',
+        'is_email_2fa_enabled' => 'boolean',
+        'is_totp_2fa_enabled' => 'boolean',
+    ];
+
+    public function hasAny2FA()
+    {
+        return $this->is_email_2fa_enabled || $this->is_totp_2fa_enabled;
+    }
+
+    public function isUsingEmail2FA()
+    {
+        return $this->is_email_2fa_enabled === true;
+    }
+
+    public function isUsingTOTP2FA()
+    {
+        return $this->is_totp_2fa_enabled === true;
+    }
+
     protected $appends = ['role_name'];
 
     public function getRoleNameAttribute(): string

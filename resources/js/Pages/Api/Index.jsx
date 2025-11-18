@@ -117,10 +117,6 @@ export default function Settings() {
                                 {apiKey ? (loading ? "Regenerating..." : "Regenerate") : (loading ? "Generating..." : "Generate")}
                             </button>
                         </div>
-
-                        {/* <pre className="bg-gray-100 p-4 rounded">
-                            {`curl -H "Authorization: Bearer <Your_Api_Key> ${linkDomain}/api/endpoint`}
-                        </pre> */}
                     </div>
                 </div>
                 <div className="border border-[#EAECF0] bg-white rounded-xl mt-6">

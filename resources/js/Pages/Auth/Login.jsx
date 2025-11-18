@@ -113,32 +113,6 @@ export default function Login({ status, canResetPassword }) {
                         Log in
                     </Button>
                 </div>
-                {/* <div className="flex justify-center gap-4 items-center">
-                    {canResetPassword && (
-                        <Link
-                            href={route("password.request")}
-                            className="rounded-md text-sm leading-6 text-[#475569] underline hover:text-grey900 focus:outline-none"
-                        >
-                            Forgot password
-                        </Link>
-                    )}
-                    {canResetPassword && (
-                        <Link
-                            href={route("password.request")}
-                            className="rounded-md text-sm leading-6 text-[#475569] underline hover:text-grey900 focus:outline-none"
-                        >
-                            Forgot password
-                        </Link>
-                    )}
-                    {canResetPassword && (
-                        <Link
-                            href={route("password.request")}
-                            className="rounded-md text-sm leading-6 text-[#475569] underline hover:text-grey900 focus:outline-none"
-                        >
-                            Forgot password
-                        </Link>
-                    )}
-                </div> */}
             </form>
         </GuestLayout>
     );
