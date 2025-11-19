@@ -15,6 +15,7 @@ class Card extends Model
         'title',
         'first_name',
         'last_name',
+        'primary_email',
         'profile_image',
         'position',
         'degree',
@@ -146,6 +147,10 @@ class Card extends Model
                 ]))),
                 'actual' => trim($wallet->label_1_value),
             ],
+            'wallet_email' => [
+                'expected' => $this->primary_email,
+                'actual' => $wallet->wallet_email,
+            ],
             'user_image' => [
                 'expected' => $this->profile_image,
                 'actual' => $wallet->user_image,
@@ -209,5 +214,52 @@ class Card extends Model
             'mismatched_fields' => $mismatched,
         ];
     }
+
+    public function isEligibleForSync()
+    {
+        $template = optional(optional($this->company)->cardTemplate);
+
+        // Required fields for the card
+        $requiredCardFields = [
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'position' => $this->position,
+            'profile_image' => $this->profile_image,
+        ];
+
+        // Required template fields
+        $requiredTemplateFields = [
+            'company_name' => $template?->company_name,
+            'wallet_bg_color' => $template?->wallet_bg_color,
+            'wallet_text_color' => $template?->wallet_text_color,
+            'wallet_label_1' => $template?->wallet_label_1,
+            'wallet_label_2' => $template?->wallet_label_2,
+            'wallet_label_3' => $template?->wallet_label_3,
+            'wallet_qr_caption' => $template?->wallet_qr_caption,
+            'wallet_logo_image' => $template?->wallet_logo_image,
+        ];
+
+        // Check card fields
+        $missing = [];
+
+        foreach ($requiredCardFields as $key => $value) {
+            if (is_null($value) || trim($value) === '') {
+                $missing[] = $key;
+            }
+        }
+
+        // Check template fields
+        foreach ($requiredTemplateFields as $key => $value) {
+            if (is_null($value) || trim((string) $value) === '') {
+                $missing[] = $key;
+            }
+        }
+
+        return [
+            'eligible' => empty($missing),
+            'missing_fields' => $missing,
+        ];
+    }
+
 
 }

@@ -196,6 +196,20 @@ export default function WalletFormInformation() {
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 isDemo={true}
+                                value={"Primary Email (Used to send wallet pass)"}
+                            />
+                            <TextInput
+                                id="primary_email"
+                                value={cardFormData.primary_email}
+                                onChange={(e) => handleCardChange(e)}
+                                name="primary_email"
+                                className="w-full"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <InputLabel
+                                className="text-black text-sm font-medium"
+                                isDemo={true}
                                 value={"Company Name"}
                             />
                             <TextInput

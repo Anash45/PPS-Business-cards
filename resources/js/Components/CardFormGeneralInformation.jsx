@@ -156,8 +156,20 @@ export default function CardFormGeneralInformation() {
                                     className="w-full"
                                 />
                             </div>
-                        </div>
-                        <div className="grid sm:grid-cols-2 gap-4 md:col-span-3 sm:col-span-2 col-span-1">
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
+                                    value={"Primary email"}
+                                    isDemo={isTemplate}
+                                />
+                                <TextInput
+                                    id="primary_email"
+                                    value={cardFormData.primary_email}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="primary_email"
+                                    className="w-full"
+                                />
+                            </div>
                             <div className="space-y-1">
                                 <InputLabel
                                     className="text-black text-sm font-medium"

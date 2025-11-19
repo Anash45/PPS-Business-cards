@@ -97,6 +97,7 @@ export default function LandingTab() {
             formData.append("title", cardFormData.title);
             formData.append("first_name", cardFormData.first_name);
             formData.append("last_name", cardFormData.last_name);
+            formData.append("primary_email", cardFormData.primary_email);
             formData.append("position", cardFormData.position);
             formData.append("degree", cardFormData.degree);
             formData.append("department", cardFormData.department);

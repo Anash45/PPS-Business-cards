@@ -3,7 +3,6 @@ export function mapCompanyTemplateData(
     selectedCard,
     options = {}
 ) {
-
     if (!selectedCompany) return {};
 
     const template = selectedCompany?.card_template;
@@ -13,7 +12,8 @@ export function mapCompanyTemplateData(
         name_text_color: template?.name_text_color ?? "#000000",
         company_name: template?.company_name ?? selectedCompany?.name ?? "",
         contact_btn_text: template?.contact_btn_text ?? "Save contact details",
-        contact_btn_text_de: template?.contact_btn_text_de ?? "Kontaktdaten speichern",
+        contact_btn_text_de:
+            template?.contact_btn_text_de ?? "Kontaktdaten speichern",
         company_text_color: template?.company_text_color ?? "#000000",
         card_bg_color: template?.card_bg_color ?? "#ffffff",
         btn_bg_color: template?.btn_bg_color ?? "#87B88C",
@@ -75,6 +75,7 @@ export function mapCompanyTemplateData(
                   title: selectedCard.title ?? "",
                   first_name: selectedCard.first_name ?? "",
                   last_name: selectedCard.last_name ?? "",
+                  primary_email: selectedCard?.primary_email ?? "",
                   degree: selectedCard.degree ?? "",
                   degree_de: selectedCard.degree_de ?? "",
                   position: selectedCard.position ?? "",

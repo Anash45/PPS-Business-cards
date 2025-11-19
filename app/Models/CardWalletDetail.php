@@ -21,6 +21,7 @@ class CardWalletDetail extends Model
         'text_color',
         'card_code',
         'qr_caption',
+        'wallet_email',
         'label_1',
         'label_1_value',
         'label_2',

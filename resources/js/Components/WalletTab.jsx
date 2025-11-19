@@ -34,6 +34,7 @@ export default function WalletTab() {
         // Note: Only append fields that the backend expects for template update (from validation rules)
         if (isTemplate) {
             formData.append("company_name", cardFormData.company_name);
+            formData.append("wallet_email", cardFormData.primary_email);
             formData.append(
                 "wallet_text_color",
                 cardFormData.wallet_text_color

@@ -868,6 +868,7 @@ class DesignController extends Controller
             'title' => 'nullable|string|max:100',
             'first_name' => 'nullable|string|max:100',
             'last_name' => 'nullable|string|max:100',
+            'primary_email' => 'nullable|email|max:100',
             'position' => 'nullable|string|max:255',
             'degree' => 'nullable|string|max:255',
             'department' => 'nullable|string|max:255',
@@ -930,6 +931,7 @@ class DesignController extends Controller
             'card_buttons.*.button_link' => 'required_with:card_buttons|url|max:1000',
             'card_buttons.*.icon' => 'nullable|string|max:50',
         ]);
+
 
         $company = $card->company;
 

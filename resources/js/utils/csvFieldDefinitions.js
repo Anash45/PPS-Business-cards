@@ -4,6 +4,7 @@ export const csvFieldDefinitions = [
     { name: "title", required: false },
     { name: "first_name", required: true, validate: "nonEmpty" },
     { name: "last_name", required: true, validate: "nonEmpty" },
+    { name: "primary_email", required: true, validate: "nonEmpty" },
     { name: "degree", required: false },
     { name: "position", required: true },
     { name: "department", required: true },
