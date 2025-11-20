@@ -14,6 +14,7 @@ use App\Models\NfcCard;
 use DB;
 use Illuminate\Http\Request;
 use App\Models\Card;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Schema;
 use Validator;
@@ -319,10 +320,12 @@ use Validator;
  * 
  * @OA\Post(
  *     path="/api/v1/employees",
- *     summary="Create or update multiple employees",
- *     description="Stores or updates multiple employees in a single request. All employees must belong to the company associated with the API token.",
+ *     operationId="storeEmployees",
  *     tags={"Employees"},
+ *     summary="Create or update employees with related data",
+ *     description="This endpoint updates multiple employees and their related data (social links, phone numbers, emails, websites, addresses, buttons). All operations are performed in a database transaction, so if any error occurs, changes are rolled back.",
  *     security={{"bearerAuth":{}}},
+ *
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(
@@ -331,32 +334,117 @@ use Validator;
  *             @OA\Property(
  *                 property="employees",
  *                 type="array",
- *                 description="Array of employee objects to create or update",
+ *                 description="Array of employee objects to update or create",
  *                 @OA\Items(
  *                     type="object",
  *                     required={"id","salutation","first_name","last_name","primary_email","position","department","status"},
- *                     @OA\Property(property="id", type="integer", example=25, description="Existing employee ID to update"),
- *                     @OA\Property(property="salutation", type="string", example="Mr.", description="Employee salutation"),
- *                     @OA\Property(property="title", type="string", example="Team Lead", description="Optional title"),
- *                     @OA\Property(property="first_name", type="string", example="John"),
- *                     @OA\Property(property="last_name", type="string", example="Doe"),
- *                     @OA\Property(property="primary_email", type="string", format="email", example="john.doe@example.com"),
- *                     @OA\Property(property="position", type="string", example="Developer"),
- *                     @OA\Property(property="degree", type="string", example="BSc Computer Science"),
- *                     @OA\Property(property="department", type="string", example="Engineering"),
- *                     @OA\Property(property="position_de", type="string", example="Entwickler"),
- *                     @OA\Property(property="degree_de", type="string", example="B.Sc. Informatik"),
- *                     @OA\Property(property="department_de", type="string", example="Entwicklung"),
- *                     @OA\Property(property="status", type="string", enum={"active","inactive"}, example="active")
+ *                     @OA\Property(property="id", type="integer", description="Employee Card ID (must exist)"),
+ *                     @OA\Property(property="salutation", type="string", maxLength=255),
+ *                     @OA\Property(property="title", type="string", maxLength=100),
+ *                     @OA\Property(property="first_name", type="string", maxLength=100),
+ *                     @OA\Property(property="last_name", type="string", maxLength=100),
+ *                     @OA\Property(property="primary_email", type="string", format="email", maxLength=100),
+ *                     @OA\Property(property="position", type="string", maxLength=255),
+ *                     @OA\Property(property="degree", type="string", maxLength=255),
+ *                     @OA\Property(property="department", type="string", maxLength=255),
+ *                     @OA\Property(property="position_de", type="string", maxLength=255),
+ *                     @OA\Property(property="degree_de", type="string", maxLength=255),
+ *                     @OA\Property(property="department_de", type="string", maxLength=255),
+ *                     @OA\Property(property="status", type="string", enum={"active","inactive"}),
+
+ *                     @OA\Property(
+ *                         property="social_links",
+ *                         type="array",
+ *                         @OA\Items(
+ *                             type="object",
+ *                             @OA\Property(property="id", type="integer", description="Existing social link ID"),
+ *                             @OA\Property(property="icon", type="string", enum={"facebook","instagram","pinterest","tiktok","linkedin","youtube","whatsapp"}),
+ *                             @OA\Property(property="url", type="string", format="url")
+ *                         )
+ *                     ),
+
+ *                     @OA\Property(
+ *                         property="phone_numbers",
+ *                         type="array",
+ *                         @OA\Items(
+ *                             type="object",
+ *                             @OA\Property(property="id", type="integer"),
+ *                             @OA\Property(property="icon", type="string"),
+ *                             @OA\Property(property="label", type="string"),
+ *                             @OA\Property(property="label_de", type="string"),
+ *                             @OA\Property(property="phone_number", type="string"),
+ *                             @OA\Property(property="is_hidden", type="boolean"),
+ *                             @OA\Property(property="type", type="string", enum={"work","home","cell"})
+ *                         )
+ *                     ),
+
+ *                     @OA\Property(
+ *                         property="emails",
+ *                         type="array",
+ *                         @OA\Items(
+ *                             type="object",
+ *                             @OA\Property(property="id", type="integer"),
+ *                             @OA\Property(property="label", type="string"),
+ *                             @OA\Property(property="label_de", type="string"),
+ *                             @OA\Property(property="email", type="string", format="email"),
+ *                             @OA\Property(property="is_hidden", type="boolean"),
+ *                             @OA\Property(property="type", type="string", enum={"work","home"})
+ *                         )
+ *                     ),
+
+ *                     @OA\Property(
+ *                         property="websites",
+ *                         type="array",
+ *                         @OA\Items(
+ *                             type="object",
+ *                             @OA\Property(property="id", type="integer"),
+ *                             @OA\Property(property="icon", type="string"),
+ *                             @OA\Property(property="label", type="string"),
+ *                             @OA\Property(property="label_de", type="string"),
+ *                             @OA\Property(property="url", type="string", format="url"),
+ *                             @OA\Property(property="is_hidden", type="boolean")
+ *                         )
+ *                     ),
+
+ *                     @OA\Property(
+ *                         property="addresses",
+ *                         type="array",
+ *                         @OA\Items(
+ *                             type="object",
+ *                             @OA\Property(property="id", type="integer"),
+ *                             @OA\Property(property="label", type="string"),
+ *                             @OA\Property(property="label_de", type="string"),
+ *                             @OA\Property(property="street", type="string"),
+ *                             @OA\Property(property="house_number", type="string"),
+ *                             @OA\Property(property="zip", type="string"),
+ *                             @OA\Property(property="city", type="string"),
+ *                             @OA\Property(property="country", type="string"),
+ *                             @OA\Property(property="is_hidden", type="boolean"),
+ *                             @OA\Property(property="type", type="string", enum={"work","home"})
+ *                         )
+ *                     ),
+
+ *                     @OA\Property(
+ *                         property="buttons",
+ *                         type="array",
+ *                         @OA\Items(
+ *                             type="object",
+ *                             @OA\Property(property="id", type="integer"),
+ *                             @OA\Property(property="button_text", type="string"),
+ *                             @OA\Property(property="button_text_de", type="string"),
+ *                             @OA\Property(property="button_link", type="string", format="url"),
+ *                             @OA\Property(property="icon", type="string")
+ *                         )
+ *                     )
  *                 )
  *             )
  *         )
  *     ),
+ *
  *     @OA\Response(
  *         response=200,
- *         description="Employees created or updated successfully",
+ *         description="Employees updated successfully",
  *         @OA\JsonContent(
- *             type="object",
  *             @OA\Property(property="success", type="boolean", example=true),
  *             @OA\Property(property="message", type="string", example="Employees updated successfully."),
  *             @OA\Property(
@@ -365,14 +453,128 @@ use Validator;
  *                 @OA\Property(
  *                     property="updated",
  *                     type="array",
- *                     description="Array of full employee data after update",
- *                     @OA\Items(type="object") 
+ *                     @OA\Items(
+ *                         type="object",
+ *                         @OA\Property(
+ *                             property="card",
+ *                             type="object",
+ *                             @OA\Property(property="id", type="integer", example=100009),
+ *                             @OA\Property(property="code", type="string", example="UGVEEASK"),
+ *                             @OA\Property(property="salutation", type="string", example="Mr."),
+ *                             @OA\Property(property="title", type="string", example="CEO"),
+ *                             @OA\Property(property="first_name", type="string", example="John"),
+ *                             @OA\Property(property="last_name", type="string", example="Doe"),
+ *                             @OA\Property(property="primary_email", type="string", format="email", example="john9.doe@example.com"),
+ *                             @OA\Property(property="profile_image", type="string", nullable=true, example=null),
+ *                             @OA\Property(property="position", type="string", example="Manager"),
+ *                             @OA\Property(property="degree", type="string", example="MBA"),
+ *                             @OA\Property(property="department", type="string", example="Sales"),
+ *                             @OA\Property(property="position_de", type="string", example="Manager DE"),
+ *                             @OA\Property(property="degree_de", type="string", example="MBA DE"),
+ *                             @OA\Property(property="department_de", type="string", example="Sales DE"),
+ *                             @OA\Property(property="cards_group_id", type="integer", example=13),
+ *                             @OA\Property(property="status", type="string", example="active"),
+ *                             @OA\Property(property="downloads", type="integer", example=0)
+ *                         ),
+ *                         @OA\Property(
+ *                             property="additional",
+ *                             type="object",
+ *                             @OA\Property(
+ *                                 property="social_links",
+ *                                 type="array",
+ *                                 @OA\Items(
+ *                                     type="object",
+ *                                     @OA\Property(property="id", type="integer", example=38),
+ *                                     @OA\Property(property="card_id", type="integer", example=100009),
+ *                                     @OA\Property(property="icon", type="string", example="FaInstagram"),
+ *                                     @OA\Property(property="url", type="string", example="https://www.instagram.com/f4futuretech1_1/")
+ *                                 )
+ *                             ),
+ *                             @OA\Property(
+ *                                 property="phone_numbers",
+ *                                 type="array",
+ *                                 @OA\Items(
+ *                                     type="object",
+ *                                     @OA\Property(property="id", type="integer", example=144),
+ *                                     @OA\Property(property="card_id", type="integer", example=100009),
+ *                                     @OA\Property(property="label", type="string", example="Label"),
+ *                                     @OA\Property(property="label_de", type="string", example="Label DE"),
+ *                                     @OA\Property(property="icon", type="string", example="☎️"),
+ *                                     @OA\Property(property="phone_number", type="string", example="+3312341234"),
+ *                                     @OA\Property(property="type", type="string", example="cell", enum={"work","home","cell"}),
+ *                                     @OA\Property(property="is_hidden", type="boolean", example=false)
+ *                                 )
+ *                             ),
+ *                             @OA\Property(
+ *                                 property="emails",
+ *                                 type="array",
+ *                                 @OA\Items(
+ *                                     type="object",
+ *                                     @OA\Property(property="id", type="integer", example=41),
+ *                                     @OA\Property(property="card_id", type="integer", example=100009),
+ *                                     @OA\Property(property="label", type="string", nullable=true, example=null),
+ *                                     @OA\Property(property="label_de", type="string", nullable=true, example=null),
+ *                                     @OA\Property(property="email", type="string", format="email", example="abc1@xyz.com"),
+ *                                     @OA\Property(property="type", type="string", example="work", enum={"work","home"}),
+ *                                     @OA\Property(property="is_hidden", type="boolean", example=false)
+ *                                 )
+ *                             ),
+ *                             @OA\Property(
+ *                                 property="addresses",
+ *                                 type="array",
+ *                                 @OA\Items(type="object")
+ *                             ),
+ *                             @OA\Property(
+ *                                 property="websites",
+ *                                 type="array",
+ *                                 @OA\Items(
+ *                                     type="object",
+ *                                     @OA\Property(property="id", type="integer", example=19),
+ *                                     @OA\Property(property="card_id", type="integer", example=100009),
+ *                                     @OA\Property(property="icon", type="string", example="🌐"),
+ *                                     @OA\Property(property="label", type="string", nullable=true, example=null),
+ *                                     @OA\Property(property="label_de", type="string", nullable=true, example=null),
+ *                                     @OA\Property(property="url", type="string", example="https://www.f4futuretech1_1.com"),
+ *                                     @OA\Property(property="is_hidden", type="boolean", example=true)
+ *                                 )
+ *                             ),
+ *                             @OA\Property(
+ *                                 property="buttons",
+ *                                 type="array",
+ *                                 @OA\Items(
+ *                                     type="object",
+ *                                     @OA\Property(property="id", type="integer", example=285),
+ *                                     @OA\Property(property="card_id", type="integer", example=100009),
+ *                                     @OA\Property(property="button_text", type="string", example="Test"),
+ *                                     @OA\Property(property="button_text_de", type="string", example="Testen"),
+ *                                     @OA\Property(property="button_link", type="string", example="https://icons8.com/icons/set/tiktok123"),
+ *                                     @OA\Property(property="icon", type="string", example="❤️")
+ *                                 )
+ *                             )
+ *                         )
+ *                     )
  *                 )
  *             )
  *         )
  *     ),
- *     @OA\Response(response=422, description="Validation errors occurred"),
- *     @OA\Response(response=500, description="Failed to update one or more employees")
+ *     @OA\Response(
+ *         response=422,
+ *         description="Validation error",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="status", type="string", example="error"),
+ *             @OA\Property(property="message", type="string", example="Validation errors occurred."),
+ *             @OA\Property(property="data", type="object")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Server error",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="status", type="string", example="error"),
+ *             @OA\Property(property="message", type="string", example="An error occurred while updating employees."),
+ *             @OA\Property(property="data", type="object")
+ *         )
+ *     )
  * )
  */
 class EmployeeController extends Controller
@@ -655,7 +857,12 @@ class EmployeeController extends Controller
 
         $errors = [];
 
-        // 1️⃣ First pass: validate all employees
+        // ------------------------------
+        // 1️⃣ VALIDATE BEFORE TRANSACTION
+        // ------------------------------
+
+        $allowedIcons = ['facebook', 'instagram', 'pinterest', 'tiktok', 'linkedin', 'youtube', 'whatsapp'];
+
         foreach ($employees as $index => $employeeData) {
             $validator = Validator::make($employeeData, [
                 'id' => 'required|exists:cards,id',
@@ -671,6 +878,67 @@ class EmployeeController extends Controller
                 'degree_de' => 'nullable|string|max:255',
                 'department_de' => 'nullable|string|max:255',
                 'status' => 'required|in:active,inactive',
+
+                // Social links
+                'social_links' => 'nullable|array',
+                'social_links.*.id' => 'nullable|exists:card_social_links,id',
+                'social_links.*.icon' => [
+                    'required_with:social_links',
+                    'string',
+                    'max:100',
+                    Rule::in($allowedIcons)
+                ],
+                'social_links.*.url' => 'required_with:social_links|url|max:255',
+
+                // Phone numbers validation
+                'phone_numbers' => 'nullable|array',
+                'phone_numbers.*.id' => 'nullable|integer',
+                'phone_numbers.*.icon' => 'nullable|string|max:255',
+                'phone_numbers.*.label' => 'nullable|string|max:255',
+                'phone_numbers.*.label_de' => 'nullable|string|max:255',
+                'phone_numbers.*.phone_number' => 'required_with:phone_numbers|string|max:20',
+                'phone_numbers.*.is_hidden' => 'nullable|boolean',
+                'phone_numbers.*.type' => 'nullable|string|in:work,home,cell',
+
+                // Emails validation
+                'emails' => 'nullable|array',
+                'emails.*.id' => 'nullable|integer',
+                'emails.*.label' => 'nullable|string|max:255',
+                'emails.*.label_de' => 'nullable|string|max:255',
+                'emails.*.email' => 'required_with:emails|email|max:255',
+                'emails.*.is_hidden' => 'nullable|boolean',
+                'emails.*.type' => 'nullable|string|in:work,home',
+
+                // Websites validation
+                'websites' => 'nullable|array',
+                'websites.*.id' => 'nullable|integer',
+                'websites.*.icon' => 'nullable|string|max:50',
+                'websites.*.label' => 'nullable|string|max:255',
+                'websites.*.label_de' => 'nullable|string|max:255',
+                'websites.*.url' => 'required_with:websites|url|max:255',
+                'websites.*.is_hidden' => 'nullable|boolean',
+
+                // Addresses validation
+                'addresses' => 'nullable|array',
+                'addresses.*.id' => 'nullable|integer',
+                'addresses.*.label' => 'nullable|string|max:255',
+                'addresses.*.label_de' => 'nullable|string|max:255',
+                'addresses.*.street' => 'required_with:addresses|string|max:255',
+                'addresses.*.house_number' => 'nullable|string|max:50',
+                'addresses.*.zip' => 'nullable|string|max:20',
+                'addresses.*.city' => 'required_with|string|max:100',
+                'addresses.*.country' => 'nullable|string|max:100',
+                'addresses.*.is_hidden' => 'nullable|boolean',
+                'addresses.*.type' => 'nullable|string|in:work,home',
+
+
+                // Buttons validation
+                'buttons' => 'nullable|array',
+                'buttons.*.id' => 'nullable|integer',
+                'buttons.*.button_text' => 'required_with:buttons|string|max:255',
+                'buttons.*.button_text_de' => 'nullable|string|max:255',
+                'buttons.*.button_link' => 'required_with:buttons|url|max:1000',
+                'buttons.*.icon' => 'nullable|string|max:50',
             ]);
 
             if ($validator->fails()) {
@@ -678,7 +946,6 @@ class EmployeeController extends Controller
             }
         }
 
-        // 2️⃣ If any validation errors exist, return them without updating
         if (!empty($errors)) {
             return ApiResponse::error(
                 "Validation errors occurred.",
@@ -687,12 +954,19 @@ class EmployeeController extends Controller
             );
         }
 
-        $success = [];
+        // ------------------------------------------
+        // 2️⃣ PROCESS INSIDE TRANSACTION (ALL OR NONE)
+        // ------------------------------------------
+        DB::beginTransaction();
 
+        try {
+            $success = [];
 
-        foreach ($employees as $employeeData) {
-            try {
+            foreach ($employees as $employeeData) {
+
                 $employee = Card::findOrFail($employeeData['id']);
+
+                // Update main employee fields
                 foreach ($employeeFields as $field) {
                     if (array_key_exists($field, $employeeData)) {
                         $employee->$field = $employeeData[$field];
@@ -700,7 +974,348 @@ class EmployeeController extends Controller
                 }
                 $employee->save();
 
-                // 4️⃣ Fetch full employee data using show() method
+                // --------------------------------------
+                // SOCIAL LINKS
+                // --------------------------------------
+                if (isset($employeeData['social_links']) && is_array($employeeData['social_links'])) {
+
+                    $incomingLinks = $employeeData['social_links'];
+
+                    $newLinksCount = collect($incomingLinks)->filter(fn($l) => empty($l['id']))->count();
+
+                    $existingIdsIncoming = collect($incomingLinks)->pluck('id')->filter()->toArray();
+
+                    // Only count links that belong to this card and company
+                    $existingLinksKeptCount = $employee->cardSocialLinks()
+                        ->whereIn('id', $existingIdsIncoming)
+                        ->where('card_id', $employee->id)
+                        ->where('company_id', $request->company->id)
+                        ->count();
+
+                    $finalTotal = $existingLinksKeptCount + $newLinksCount;
+
+                    if ($finalTotal > 5) {
+                        DB::rollBack();
+                        return ApiResponse::error(
+                            "Maximum 5 social links are allowed per employee. You attempted {$finalTotal}.",
+                            [],
+                            422
+                        );
+                    }
+
+                    $processedIds = [];
+
+                    foreach ($incomingLinks as $link) {
+                        $iconValue = ucfirst(strtolower($link['icon']));
+                        $iconValue = 'Fa' . $iconValue;
+
+                        if (!empty($link['id'])) {
+                            // Update only if card_id and company_id match
+                            $social = $employee->cardSocialLinks()
+                                ->where('id', $link['id'])
+                                ->where('card_id', $employee->id)
+                                ->where('company_id', $request->company->id)
+                                ->first();
+
+                            if ($social) {
+                                $social->update([
+                                    'icon' => $iconValue,
+                                    'url' => $link['url'],
+                                ]);
+                                $processedIds[] = $link['id'];
+                            }
+                        } else {
+                            // Create new link
+                            $new = $employee->cardSocialLinks()->create([
+                                'icon' => $iconValue,
+                                'company_id' => $request->company->id,
+                                'url' => $link['url'],
+                            ]);
+                            $processedIds[] = $new->id;
+                        }
+                    }
+
+                    // Delete old links not in input, only for this card and company
+                    $employee->cardSocialLinks()
+                        ->where('card_id', $employee->id)
+                        ->where('company_id', $request->company->id)
+                        ->whereNotIn('id', $processedIds)
+                        ->delete();
+                }
+
+                // --------------------------------------
+                // PHONE NUMBERS
+                // --------------------------------------
+                if (isset($employeeData['phone_numbers']) && is_array($employeeData['phone_numbers'])) {
+
+                    $incomingNumbers = $employeeData['phone_numbers'];
+                    $processedIds = [];
+
+                    foreach ($incomingNumbers as $number) {
+
+                        if (empty($number['phone_number'])) {
+                            DB::rollBack();
+                            return ApiResponse::error(
+                                "Phone number is required for each entry.",
+                                [],
+                                422
+                            );
+                        }
+
+                        $numberData = [
+                            'company_id' => $request->company->id,
+                            'icon' => $number['icon'] ?? "☎️",
+                            'label' => $number['label'] ?? null,
+                            'label_de' => $number['label_de'] ?? null,
+                            'phone_number' => $number['phone_number'],
+                            'is_hidden' => $number['is_hidden'] ?? false,
+                            'type' => $number['type'] ?? 'work',
+                        ];
+
+                        if (!empty($number['id'])) {
+                            // Update only if card_id and company_id match
+                            $phone = $employee->cardPhoneNumbers()
+                                ->where('id', $number['id'])
+                                ->where('card_id', $employee->id)
+                                ->where('company_id', $request->company->id)
+                                ->first();
+
+                            if ($phone) {
+                                $phone->update($numberData);
+                                $processedIds[] = $number['id'];
+                            }
+                        } else {
+                            // Create new phone number
+                            $new = $employee->cardPhoneNumbers()->create($numberData);
+                            $processedIds[] = $new->id;
+                        }
+                    }
+
+                    // Delete old phone numbers not in input, only for this card and company
+                    $employee->cardPhoneNumbers()
+                        ->where('card_id', $employee->id)
+                        ->where('company_id', $request->company->id)
+                        ->whereNotIn('id', $processedIds)
+                        ->delete();
+                }
+
+
+                // --------------------------------------
+                // Emails
+                // --------------------------------------
+                if (isset($employeeData['emails']) && is_array($employeeData['emails'])) {
+
+                    $incomingEmails = $employeeData['emails'];
+                    $processedIds = [];
+
+                    foreach ($incomingEmails as $email) {
+
+                        if (empty($email['email'])) {
+                            DB::rollBack();
+                            return ApiResponse::error(
+                                "Email is required for each entry.",
+                                [],
+                                422
+                            );
+                        }
+
+                        $emailData = [
+                            'company_id' => $request->company->id,
+                            'label' => $email['label'] ?? null,
+                            'label_de' => $email['label_de'] ?? null,
+                            'email' => $email['email'],
+                            'is_hidden' => $email['is_hidden'] ?? false,
+                            'type' => $email['type'] ?? 'work', // default type
+                        ];
+
+                        if (!empty($email['id'])) {
+                            // Update only if card_id and company_id match
+                            $existing = $employee->cardEmails()
+                                ->where('id', $email['id'])
+                                ->where('card_id', $employee->id)
+                                ->where('company_id', $request->company->id)
+                                ->first();
+
+                            if ($existing) {
+                                $existing->update($emailData);
+                                $processedIds[] = $email['id'];
+                            }
+                        } else {
+                            // Create new email
+                            $new = $employee->cardEmails()->create($emailData);
+                            $processedIds[] = $new->id;
+                        }
+                    }
+
+                    // Delete old emails not in input, only for this card and company
+                    $employee->cardEmails()
+                        ->where('card_id', $employee->id)
+                        ->where('company_id', $request->company->id)
+                        ->whereNotIn('id', $processedIds)
+                        ->delete();
+                }
+
+                if (isset($employeeData['websites']) && is_array($employeeData['websites'])) {
+
+                    $incomingWebsites = $employeeData['websites'];
+                    $processedIds = [];
+
+                    foreach ($incomingWebsites as $website) {
+
+                        if (empty($website['url'])) {
+                            DB::rollBack();
+                            return ApiResponse::error(
+                                "Website URL is required for each entry.",
+                                [],
+                                422
+                            );
+                        }
+
+                        $websiteData = [
+                            'company_id' => $request->company->id,
+                            'icon' => $website['icon'] ?? "🌐",
+                            'label' => $website['label'] ?? null,
+                            'label_de' => $website['label_de'] ?? null,
+                            'url' => $website['url'],
+                            'is_hidden' => $website['is_hidden'] ?? false,
+                        ];
+
+                        if (!empty($website['id'])) {
+                            // Update only if card_id and company_id match
+                            $existing = $employee->cardWebsites()
+                                ->where('id', $website['id'])
+                                ->where('card_id', $employee->id)
+                                ->where('company_id', $request->company->id)
+                                ->first();
+
+                            if ($existing) {
+                                $existing->update($websiteData);
+                                $processedIds[] = $website['id'];
+                            }
+                        } else {
+                            // Create new website
+                            $new = $employee->cardWebsites()->create($websiteData);
+                            $processedIds[] = $new->id;
+                        }
+                    }
+
+                    // Delete old websites not in input, only for this card and company
+                    $employee->cardWebsites()
+                        ->where('card_id', $employee->id)
+                        ->where('company_id', $request->company->id)
+                        ->whereNotIn('id', $processedIds)
+                        ->delete();
+                }
+
+                if (isset($employeeData['addresses']) && is_array($employeeData['addresses'])) {
+
+                    $incomingAddresses = $employeeData['addresses'];
+                    $processedIds = [];
+
+                    foreach ($incomingAddresses as $address) {
+
+                        if (empty($address['street'])) {
+                            DB::rollBack();
+                            return ApiResponse::error(
+                                "Street is required for each address entry.",
+                                [],
+                                422
+                            );
+                        }
+
+                        $addressData = [
+                            'company_id' => $request->company->id,
+                            'label' => $address['label'] ?? null,
+                            'label_de' => $address['label_de'] ?? null,
+                            'street' => $address['street'],
+                            'house_number' => $address['house_number'] ?? null,
+                            'zip' => $address['zip'] ?? null,
+                            'city' => $address['city'] ?? null,
+                            'country' => $address['country'] ?? null,
+                            'is_hidden' => $address['is_hidden'] ?? false,
+                            'type' => $address['type'] ?? 'work', // default type if missing
+                        ];
+
+                        if (!empty($address['id'])) {
+                            // Update only if card_id and company_id match
+                            $existing = $employee->cardAddresses()
+                                ->where('id', $address['id'])
+                                ->where('card_id', $employee->id)
+                                ->where('company_id', $request->company->id)
+                                ->first();
+
+                            if ($existing) {
+                                $existing->update($addressData);
+                                $processedIds[] = $address['id'];
+                            }
+                        } else {
+                            // Create new address
+                            $new = $employee->cardAddresses()->create($addressData);
+                            $processedIds[] = $new->id;
+                        }
+                    }
+
+                    if (isset($employeeData['buttons']) && is_array($employeeData['buttons'])) {
+
+                        $incomingButtons = $employeeData['buttons'];
+                        $processedIds = [];
+
+                        foreach ($incomingButtons as $button) {
+
+                            if (empty($button['button_text']) || empty($button['button_link'])) {
+                                DB::rollBack();
+                                return ApiResponse::error(
+                                    "Button text and link are required for each entry.",
+                                    [],
+                                    422
+                                );
+                            }
+
+                            $buttonData = [
+                                'company_id' => $request->company->id,
+                                'button_text' => $button['button_text'],
+                                'button_text_de' => $button['button_text_de'] ?? "",
+                                'button_link' => $button['button_link'],
+                                'icon' => $button['icon'] ?? null,
+                            ];
+
+                            if (!empty($button['id'])) {
+                                // Update only if card_id and company_id match
+                                $existing = $employee->cardButtons()
+                                    ->where('id', $button['id'])
+                                    ->where('card_id', $employee->id)
+                                    ->where('company_id', $request->company->id)
+                                    ->first();
+
+                                if ($existing) {
+                                    $existing->update($buttonData);
+                                    $processedIds[] = $button['id'];
+                                }
+                            } else {
+                                // Create new button
+                                $new = $employee->cardButtons()->create($buttonData);
+                                $processedIds[] = $new->id;
+                            }
+                        }
+
+                        // Delete old buttons not in input, only for this card and company
+                        $employee->cardButtons()
+                            ->where('card_id', $employee->id)
+                            ->where('company_id', $request->company->id)
+                            ->whereNotIn('id', $processedIds)
+                            ->delete();
+                    }
+
+                    // Delete old addresses not in input, only for this card and company
+                    $employee->cardAddresses()
+                        ->where('card_id', $employee->id)
+                        ->where('company_id', $request->company->id)
+                        ->whereNotIn('id', $processedIds)
+                        ->delete();
+                }
+
+
+                // Fetch enriched response
                 $fullEmployee = $this->show(
                     $request,
                     $employee->id,
@@ -710,21 +1325,29 @@ class EmployeeController extends Controller
                 );
 
                 $success[] = $fullEmployee;
-            } catch (\Exception $e) {
-                return ApiResponse::error(
-                    "Error updating employee with ID {$employeeData['id']}.",
-                    ['exception' => [$e->getMessage()]],
-                    500
-                );
             }
-        }
 
-        return ApiResponse::success(
-            "Employees updated successfully.",
-            ['updated' => $success],
-            200
-        );
+            DB::commit(); // 🔥 SUCCESS — COMMIT EVERYTHING
+
+            return ApiResponse::success(
+                "Employees updated successfully.",
+                ['updated' => $success],
+                200
+            );
+
+        } catch (\Exception $e) {
+
+            DB::rollBack(); // ❌ ERROR — REVERSE EVERYTHING
+
+            return ApiResponse::error(
+                "An error occurred while updating employees.",
+                ['exception' => [$e->getMessage()]],
+                500
+            );
+        }
     }
+
+
 
     public function clearEmployee(Request $request, $id)
     {

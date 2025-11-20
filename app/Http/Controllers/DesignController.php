@@ -148,7 +148,7 @@ class DesignController extends Controller
             'card_buttons' => 'nullable|array',
             'card_buttons.*.id' => 'nullable|integer',
             'card_buttons.*.button_text' => 'required_with:card_buttons|string|max:255',
-            'card_buttons.*.button_text_de' => 'required_with:card_buttons|string|max:255',
+            'card_buttons.*.button_text_de' => 'nullable|string|max:255',
             'card_buttons.*.button_link' => 'required_with:card_buttons|url|max:1000',
             'card_buttons.*.icon' => 'nullable|string|max:50',
         ]);

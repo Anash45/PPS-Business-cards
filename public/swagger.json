@@ -276,9 +276,9 @@
                 "tags": [
                     "Employees"
                 ],
-                "summary": "Create or update multiple employees",
-                "description": "Stores or updates multiple employees in a single request. All employees must belong to the company associated with the API token.",
-                "operationId": "7122580ee4b6be73288c012aca31acfe",
+                "summary": "Create or update employees with related data",
+                "description": "This endpoint updates multiple employees and their related data (social links, phone numbers, emails, websites, addresses, buttons). All operations are performed in a database transaction, so if any error occurs, changes are rolled back.",
+                "operationId": "storeEmployees",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -289,7 +289,7 @@
                                 ],
                                 "properties": {
                                     "employees": {
-                                        "description": "Array of employee objects to create or update",
+                                        "description": "Array of employee objects to update or create",
                                         "type": "array",
                                         "items": {
                                             "required": [
@@ -304,64 +304,246 @@
                                             ],
                                             "properties": {
                                                 "id": {
-                                                    "description": "Existing employee ID to update",
-                                                    "type": "integer",
-                                                    "example": 25
+                                                    "description": "Employee Card ID (must exist)",
+                                                    "type": "integer"
                                                 },
                                                 "salutation": {
-                                                    "description": "Employee salutation",
                                                     "type": "string",
-                                                    "example": "Mr."
+                                                    "maxLength": 255
                                                 },
                                                 "title": {
-                                                    "description": "Optional title",
                                                     "type": "string",
-                                                    "example": "Team Lead"
+                                                    "maxLength": 100
                                                 },
                                                 "first_name": {
                                                     "type": "string",
-                                                    "example": "John"
+                                                    "maxLength": 100
                                                 },
                                                 "last_name": {
                                                     "type": "string",
-                                                    "example": "Doe"
+                                                    "maxLength": 100
                                                 },
                                                 "primary_email": {
                                                     "type": "string",
                                                     "format": "email",
-                                                    "example": "john.doe@example.com"
+                                                    "maxLength": 100
                                                 },
                                                 "position": {
                                                     "type": "string",
-                                                    "example": "Developer"
+                                                    "maxLength": 255
                                                 },
                                                 "degree": {
                                                     "type": "string",
-                                                    "example": "BSc Computer Science"
+                                                    "maxLength": 255
                                                 },
                                                 "department": {
                                                     "type": "string",
-                                                    "example": "Engineering"
+                                                    "maxLength": 255
                                                 },
                                                 "position_de": {
                                                     "type": "string",
-                                                    "example": "Entwickler"
+                                                    "maxLength": 255
                                                 },
                                                 "degree_de": {
                                                     "type": "string",
-                                                    "example": "B.Sc. Informatik"
+                                                    "maxLength": 255
                                                 },
                                                 "department_de": {
                                                     "type": "string",
-                                                    "example": "Entwicklung"
+                                                    "maxLength": 255
                                                 },
                                                 "status": {
                                                     "type": "string",
                                                     "enum": [
                                                         "active",
                                                         "inactive"
-                                                    ],
-                                                    "example": "active"
+                                                    ]
+                                                },
+                                                "social_links": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "description": "Existing social link ID",
+                                                                "type": "integer"
+                                                            },
+                                                            "icon": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "facebook",
+                                                                    "instagram",
+                                                                    "pinterest",
+                                                                    "tiktok",
+                                                                    "linkedin",
+                                                                    "youtube",
+                                                                    "whatsapp"
+                                                                ]
+                                                            },
+                                                            "url": {
+                                                                "type": "string",
+                                                                "format": "url"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "phone_numbers": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "icon": {
+                                                                "type": "string"
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "label_de": {
+                                                                "type": "string"
+                                                            },
+                                                            "phone_number": {
+                                                                "type": "string"
+                                                            },
+                                                            "is_hidden": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "work",
+                                                                    "home",
+                                                                    "cell"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "emails": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "label_de": {
+                                                                "type": "string"
+                                                            },
+                                                            "email": {
+                                                                "type": "string",
+                                                                "format": "email"
+                                                            },
+                                                            "is_hidden": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "work",
+                                                                    "home"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "websites": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "icon": {
+                                                                "type": "string"
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "label_de": {
+                                                                "type": "string"
+                                                            },
+                                                            "url": {
+                                                                "type": "string",
+                                                                "format": "url"
+                                                            },
+                                                            "is_hidden": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "addresses": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "label_de": {
+                                                                "type": "string"
+                                                            },
+                                                            "street": {
+                                                                "type": "string"
+                                                            },
+                                                            "house_number": {
+                                                                "type": "string"
+                                                            },
+                                                            "zip": {
+                                                                "type": "string"
+                                                            },
+                                                            "city": {
+                                                                "type": "string"
+                                                            },
+                                                            "country": {
+                                                                "type": "string"
+                                                            },
+                                                            "is_hidden": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "work",
+                                                                    "home"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "buttons": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "button_text": {
+                                                                "type": "string"
+                                                            },
+                                                            "button_text_de": {
+                                                                "type": "string"
+                                                            },
+                                                            "button_link": {
+                                                                "type": "string",
+                                                                "format": "url"
+                                                            },
+                                                            "icon": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
                                                 }
                                             },
                                             "type": "object"
@@ -375,7 +557,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Employees created or updated successfully",
+                        "description": "Employees updated successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -391,9 +573,278 @@
                                         "data": {
                                             "properties": {
                                                 "updated": {
-                                                    "description": "Array of full employee data after update",
                                                     "type": "array",
                                                     "items": {
+                                                        "properties": {
+                                                            "card": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "example": 100009
+                                                                    },
+                                                                    "code": {
+                                                                        "type": "string",
+                                                                        "example": "UGVEEASK"
+                                                                    },
+                                                                    "salutation": {
+                                                                        "type": "string",
+                                                                        "example": "Mr."
+                                                                    },
+                                                                    "title": {
+                                                                        "type": "string",
+                                                                        "example": "CEO"
+                                                                    },
+                                                                    "first_name": {
+                                                                        "type": "string",
+                                                                        "example": "John"
+                                                                    },
+                                                                    "last_name": {
+                                                                        "type": "string",
+                                                                        "example": "Doe"
+                                                                    },
+                                                                    "primary_email": {
+                                                                        "type": "string",
+                                                                        "format": "email",
+                                                                        "example": "john9.doe@example.com"
+                                                                    },
+                                                                    "profile_image": {
+                                                                        "type": "string",
+                                                                        "example": null,
+                                                                        "nullable": true
+                                                                    },
+                                                                    "position": {
+                                                                        "type": "string",
+                                                                        "example": "Manager"
+                                                                    },
+                                                                    "degree": {
+                                                                        "type": "string",
+                                                                        "example": "MBA"
+                                                                    },
+                                                                    "department": {
+                                                                        "type": "string",
+                                                                        "example": "Sales"
+                                                                    },
+                                                                    "position_de": {
+                                                                        "type": "string",
+                                                                        "example": "Manager DE"
+                                                                    },
+                                                                    "degree_de": {
+                                                                        "type": "string",
+                                                                        "example": "MBA DE"
+                                                                    },
+                                                                    "department_de": {
+                                                                        "type": "string",
+                                                                        "example": "Sales DE"
+                                                                    },
+                                                                    "cards_group_id": {
+                                                                        "type": "integer",
+                                                                        "example": 13
+                                                                    },
+                                                                    "status": {
+                                                                        "type": "string",
+                                                                        "example": "active"
+                                                                    },
+                                                                    "downloads": {
+                                                                        "type": "integer",
+                                                                        "example": 0
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            },
+                                                            "additional": {
+                                                                "properties": {
+                                                                    "social_links": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "properties": {
+                                                                                "id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 38
+                                                                                },
+                                                                                "card_id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 100009
+                                                                                },
+                                                                                "icon": {
+                                                                                    "type": "string",
+                                                                                    "example": "FaInstagram"
+                                                                                },
+                                                                                "url": {
+                                                                                    "type": "string",
+                                                                                    "example": "https://www.instagram.com/f4futuretech1_1/"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        }
+                                                                    },
+                                                                    "phone_numbers": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "properties": {
+                                                                                "id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 144
+                                                                                },
+                                                                                "card_id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 100009
+                                                                                },
+                                                                                "label": {
+                                                                                    "type": "string",
+                                                                                    "example": "Label"
+                                                                                },
+                                                                                "label_de": {
+                                                                                    "type": "string",
+                                                                                    "example": "Label DE"
+                                                                                },
+                                                                                "icon": {
+                                                                                    "type": "string",
+                                                                                    "example": "☎️"
+                                                                                },
+                                                                                "phone_number": {
+                                                                                    "type": "string",
+                                                                                    "example": "+3312341234"
+                                                                                },
+                                                                                "type": {
+                                                                                    "type": "string",
+                                                                                    "enum": [
+                                                                                        "work",
+                                                                                        "home",
+                                                                                        "cell"
+                                                                                    ],
+                                                                                    "example": "cell"
+                                                                                },
+                                                                                "is_hidden": {
+                                                                                    "type": "boolean",
+                                                                                    "example": false
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        }
+                                                                    },
+                                                                    "emails": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "properties": {
+                                                                                "id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 41
+                                                                                },
+                                                                                "card_id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 100009
+                                                                                },
+                                                                                "label": {
+                                                                                    "type": "string",
+                                                                                    "example": null,
+                                                                                    "nullable": true
+                                                                                },
+                                                                                "label_de": {
+                                                                                    "type": "string",
+                                                                                    "example": null,
+                                                                                    "nullable": true
+                                                                                },
+                                                                                "email": {
+                                                                                    "type": "string",
+                                                                                    "format": "email",
+                                                                                    "example": "abc1@xyz.com"
+                                                                                },
+                                                                                "type": {
+                                                                                    "type": "string",
+                                                                                    "enum": [
+                                                                                        "work",
+                                                                                        "home"
+                                                                                    ],
+                                                                                    "example": "work"
+                                                                                },
+                                                                                "is_hidden": {
+                                                                                    "type": "boolean",
+                                                                                    "example": false
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        }
+                                                                    },
+                                                                    "addresses": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "type": "object"
+                                                                        }
+                                                                    },
+                                                                    "websites": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "properties": {
+                                                                                "id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 19
+                                                                                },
+                                                                                "card_id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 100009
+                                                                                },
+                                                                                "icon": {
+                                                                                    "type": "string",
+                                                                                    "example": "🌐"
+                                                                                },
+                                                                                "label": {
+                                                                                    "type": "string",
+                                                                                    "example": null,
+                                                                                    "nullable": true
+                                                                                },
+                                                                                "label_de": {
+                                                                                    "type": "string",
+                                                                                    "example": null,
+                                                                                    "nullable": true
+                                                                                },
+                                                                                "url": {
+                                                                                    "type": "string",
+                                                                                    "example": "https://www.f4futuretech1_1.com"
+                                                                                },
+                                                                                "is_hidden": {
+                                                                                    "type": "boolean",
+                                                                                    "example": true
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        }
+                                                                    },
+                                                                    "buttons": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "properties": {
+                                                                                "id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 285
+                                                                                },
+                                                                                "card_id": {
+                                                                                    "type": "integer",
+                                                                                    "example": 100009
+                                                                                },
+                                                                                "button_text": {
+                                                                                    "type": "string",
+                                                                                    "example": "Test"
+                                                                                },
+                                                                                "button_text_de": {
+                                                                                    "type": "string",
+                                                                                    "example": "Testen"
+                                                                                },
+                                                                                "button_link": {
+                                                                                    "type": "string",
+                                                                                    "example": "https://icons8.com/icons/set/tiktok123"
+                                                                                },
+                                                                                "icon": {
+                                                                                    "type": "string",
+                                                                                    "example": "❤️"
+                                                                                }
+                                                                            },
+                                                                            "type": "object"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "type": "object"
+                                                            }
+                                                        },
                                                         "type": "object"
                                                     }
                                                 }
@@ -407,10 +858,50 @@
                         }
                     },
                     "422": {
-                        "description": "Validation errors occurred"
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation errors occurred."
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "500": {
-                        "description": "Failed to update one or more employees"
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "An error occurred while updating employees."
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
