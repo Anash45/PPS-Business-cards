@@ -161,3 +161,7 @@ body {
 .dt-container{
     overflow-x: auto;
 }
+
+.dropdown-item:last-child{
+    border-bottom: 0 !important;
+}

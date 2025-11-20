@@ -625,7 +625,7 @@ class CardsController extends Controller
 
         // ✅ Assign NFC cards to employee
         foreach ($nfcCards as $nfc) {
-            $nfc->card_id = $employee->id;
+            $nfc->card_code = $employee->code;
             $nfc->save();
         }
 
@@ -672,7 +672,7 @@ class CardsController extends Controller
 
         // ✅ Unassign NFC cards (clear card_id)
         foreach ($nfcCards as $nfc) {
-            $nfc->card_id = null;
+            $nfc->card_code = null;
             $nfc->save();
         }
 
@@ -744,6 +744,7 @@ class CardsController extends Controller
             'title' => 'title',
             'first_name' => 'first_name',
             'last_name' => 'last_name',
+            'primary_email' => 'primary_email',
             'degree' => 'degree',
             'position' => 'position',
             'department' => 'department',

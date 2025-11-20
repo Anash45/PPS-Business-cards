@@ -30,6 +30,8 @@ class Card extends Model
         'downloads',
     ];
 
+    protected $appends = ['is_eligible_for_sync', 'wallet_status'];
+
     public function company()
     {
         return $this->belongsTo(Company::class);
@@ -42,7 +44,17 @@ class Card extends Model
 
     public function nfcCards()
     {
-        return $this->hasMany(NfcCard::class);
+        return $this->hasMany(NfcCard::class, 'card_code', 'code');
+    }
+
+    protected static function booted()
+    {
+        static::updating(function ($card) {
+            if ($card->isDirty('code')) {
+                NfcCard::where('card_code', $card->getOriginal('code'))
+                    ->update(['card_code' => null]);
+            }
+        });
     }
 
     /**
@@ -215,7 +227,7 @@ class Card extends Model
         ];
     }
 
-    public function isEligibleForSync()
+    public function getIsEligibleForSyncAttribute()
     {
         $template = optional(optional($this->company)->cardTemplate);
 
@@ -225,6 +237,7 @@ class Card extends Model
             'last_name' => $this->last_name,
             'position' => $this->position,
             'profile_image' => $this->profile_image,
+            'primary_email' => $this->primary_email,
         ];
 
         // Required template fields
@@ -239,18 +252,16 @@ class Card extends Model
             'wallet_logo_image' => $template?->wallet_logo_image,
         ];
 
-        // Check card fields
         $missing = [];
 
         foreach ($requiredCardFields as $key => $value) {
-            if (is_null($value) || trim($value) === '') {
+            if (empty(trim((string) $value))) {
                 $missing[] = $key;
             }
         }
 
-        // Check template fields
         foreach ($requiredTemplateFields as $key => $value) {
-            if (is_null($value) || trim((string) $value) === '') {
+            if (empty(trim((string) $value))) {
                 $missing[] = $key;
             }
         }

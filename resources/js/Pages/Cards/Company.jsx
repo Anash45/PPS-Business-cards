@@ -6,15 +6,16 @@ import DataTable from "datatables.net-react";
 import DT from "datatables.net-dt";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import Button from "@/Components/Button";
-import { Plus, Pencil } from "lucide-react";
-import { useModal } from "@/context/ModalProvider";
 import { createRoot } from "react-dom/client";
 import { Dropdown, DropdownItem } from "@/Components/DropdownUi";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { getDomain } from "@/utils/viteConfig";
-import SampleCsvDownload from "@/Components/SampleCsvDownload";
 import { csvFieldDefinitions } from "@/utils/csvFieldDefinitions";
+import WalletStatusPill from "@/Components/WalletStatusPill";
+import WalletEligibilityPill from "@/Components/WalletEligibilityPill";
+import { ChevronDown } from "lucide-react";
+import { SyncingWarning } from "@/Components/SyncingWarning";
 
 // Bind DataTables
 DataTable.use(DT);
@@ -32,7 +33,7 @@ export default function Company() {
         (async () => {
             const domain = await getDomain();
             setLinkDomain(domain);
-            console.log("asdsad", domain);
+            console.log("Cards", cards);
         })();
     }, []);
 
@@ -63,6 +64,24 @@ export default function Company() {
                             : "Set Active"}
                     </DropdownItem>
                 </Dropdown>
+            );
+        }, 0);
+
+        return container;
+    };
+
+    const renderWalletStatus = (data, type, row) => {
+        const container = document.createElement("div");
+
+        setTimeout(() => {
+            const root = createRoot(container);
+            root.render(
+                <div className="flex gap-1 items-center flex-wrap">
+                    <WalletEligibilityPill
+                        eligibility={row?.is_eligible_for_sync?.eligible}
+                    />
+                    <WalletStatusPill status={row?.wallet_status?.status} />
+                </div>
             );
         }, 0);
 
@@ -112,6 +131,7 @@ export default function Company() {
         }
     };
 
+    const [isSyncing, setIsSyncing] = useState(false);
     const [isAnyChecked, setIsAnyChecked] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
 
@@ -163,10 +183,15 @@ export default function Company() {
                             alt="Profile"
                             class="rounded-full border-2 bg-white border-white w-8 h-8 object-cover shrink-0"
                         />
-                        <div>
+                        <div class="space-y0.5">
                             <p class="font-medium text-[#181D27] text-sm">
                                 ${fullName || "Not assigned"}
                             </p>
+                            ${
+                                row.primary_email
+                                    ? `<p class="text-xs">${row.primary_email}</p>`
+                                    : ""
+                            }
                         </div>
                     </div>
                 `;
@@ -187,6 +212,11 @@ export default function Company() {
                     ${isActive ? "Active" : "Inactive"}
                 </span>`;
                 },
+            },
+            {
+                title: "Wallet Status",
+                data: null,
+                render: renderWalletStatus,
             },
             {
                 title: "Actions",
@@ -313,6 +343,51 @@ export default function Company() {
         }
     };
 
+    const [backendErrors, setBackendErrors] = useState([]);
+
+    const handleSyncMultipleWallets = async () => {
+        if (!selectedIds.length) {
+            toast.warning("Please select at least one card.");
+            return;
+        }
+
+        setIsSyncing(true);
+        setBackendErrors([]); // reset errors
+
+        try {
+            const response = await axios.post(
+                "/company/cards/sync-multiple-wallets",
+                { ids: selectedIds }
+            );
+
+            // ✅ Only success responses reach here
+            toast.success(
+                response.data.message || "Cards synced successfully!"
+            );
+            router.reload({ only: ["cards"] });
+            setSelectedIds([]);
+
+            if (typeof refreshTable === "function") refreshTable();
+        } catch (error) {
+            // ❌ Catch block will handle 422 or other errors
+            console.error("Sync failed:", error);
+
+            if (error.response?.status === 422 && error.response.data.errors) {
+                // Backend returned validation / eligibility errors
+                setBackendErrors(error.response.data.errors);
+            } else {
+                // Other errors
+                const msg =
+                    error.response?.data?.message || "Failed to update wallet.";
+                toast.error(msg);
+            }
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    console.log("backendErrors: ", backendErrors);
+
     return (
         <AuthenticatedLayout>
             <Head title="Cards" />
@@ -327,47 +402,85 @@ export default function Company() {
                 ) : (
                     <div className="space-y-5">
                         <div className="py-4 md:px-6 px-4 rounded-[14px] bg-white flex flex-col gap-3 space-y-3">
-                            <div className="space-y-2">
+                            <div className="relative mb-2">
                                 <div className="flex items-center gap-3 flex-wrap">
-                                    <Button
-                                        onClick={() =>
-                                            handleMultipleToggle("active")
+                                    <Dropdown
+                                        align="left"
+                                        button={
+                                            <div className="flex items-center py-[9px] gap-2 cursor-pointer px-4 rounded-md border border-gray-500 text-sm">
+                                                <span>Bulk actions</span>
+                                                <ChevronDown className="h-5 w-5" />
+                                            </div>
                                         }
-                                        disabled={
-                                            !selectedIds.length || toggling
-                                        }
-                                        variant="primary-outline"
                                     >
-                                        Set Active
-                                    </Button>
+                                        <DropdownItem
+                                            onClick={() =>
+                                                handleMultipleToggle("active")
+                                            }
+                                            disabled={
+                                                !selectedIds.length || toggling
+                                            }
+                                        >
+                                            Set Active
+                                        </DropdownItem>
 
-                                    <Button
-                                        onClick={() =>
-                                            handleMultipleToggle("inactive")
-                                        }
-                                        disabled={
-                                            !selectedIds.length || toggling
-                                        }
-                                        variant="danger-outline"
-                                    >
-                                        Set Inactive
-                                    </Button>
-                                    <Button
-                                        onClick={handleDownload}
-                                        variant="light"
-                                        disabled={!isAnyChecked}
-                                    >
-                                        {saving
-                                            ? "Saving..."
-                                            : "Download Base CSV"}
-                                    </Button>
+                                        <DropdownItem
+                                            onClick={() =>
+                                                handleMultipleToggle("inactive")
+                                            }
+                                            disabled={
+                                                !selectedIds.length || toggling
+                                            }
+                                        >
+                                            Set Inactive
+                                        </DropdownItem>
+
+                                        <DropdownItem
+                                            onClick={handleDownload}
+                                            disabled={!isAnyChecked}
+                                        >
+                                            {saving
+                                                ? "Saving..."
+                                                : "Download Base CSV"}
+                                        </DropdownItem>
+
+                                        <DropdownItem
+                                            onClick={handleSyncMultipleWallets}
+                                            closeOnClick={true}
+                                            disabled={!isAnyChecked}
+                                        >
+                                            {isSyncing
+                                                ? "Syncing..."
+                                                : "Sync wallet"}
+                                        </DropdownItem>
+                                    </Dropdown>
                                 </div>
                                 {selectedIds.length > 0 ? (
-                                    <p className="text-sm text-primary">
-                                        {selectedIds.length} cards selected
+                                    <p className="text-sm text-primary top-full left-0 absolute mt-1">
+                                        {selectedIds.length} card(s) selected
                                     </p>
                                 ) : null}
                             </div>
+                            {Object.keys(backendErrors).length > 0 && (
+                                <div className="bg-red-50 border-l-4 border-red-400 text-red-700 p-4 mb-2">
+                                    <p className="font-bold">
+                                        Some cards could not be synced, fix the
+                                        issues first then try again.
+                                    </p>
+                                    <ul className="mt-2 list-disc list-inside text-sm">
+                                        {Object.entries(backendErrors).map(
+                                            ([cardId, errs]) =>
+                                                errs.map((err, i) => (
+                                                    <li key={`${cardId}-${i}`}>
+                                                        Card #{cardId}:{" "}
+                                                        {err.message}
+                                                    </li>
+                                                ))
+                                        )}
+                                    </ul>
+                                </div>
+                            )}
+                            <SyncingWarning isSyncing={isSyncing} />
                             <DataTable
                                 key={linkDomain}
                                 data={cards}

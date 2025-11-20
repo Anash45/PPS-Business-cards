@@ -34,7 +34,7 @@ export default function WalletStatusPill({ status }) {
         <span
             role="status"
             aria-live="polite"
-            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${cfg.bg} ${cfg.text} ring-1 ${cfg.ring}`}
+            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text} ring-1 ${cfg.ring}`}
             title={cfg.label}
         >
             <span>{cfg.label}</span>

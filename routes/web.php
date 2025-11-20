@@ -79,6 +79,8 @@ Route::middleware(['auth', 'role:company,editor,template_editor'])->group(functi
 
     Route::post('/company/cards/card_wallet/{card}/update', [DesignController::class, 'cardWalletUpdate'])
         ->name('design.cardWalletUpdate');
+    Route::post('/company/cards/sync-multiple-wallets', [DesignController::class, 'cardWalletBulkUpdate'])
+        ->name('design.cardWalletBulkUpdate');
 });
 
 

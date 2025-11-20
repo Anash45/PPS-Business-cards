@@ -14,6 +14,7 @@ export default function Design() {
         isSubscriptionActive,
         selectedCard = null,
         wallet_status = null,
+        wallet_eligibility = null,
         pageType,
     } = usePage().props;
     const {
@@ -51,7 +52,6 @@ export default function Design() {
 
         window.addEventListener("beforeunload", handleBeforeUnload);
 
-
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
@@ -87,7 +87,19 @@ export default function Design() {
 
     const [activeTab, setActiveTab] = useState(tabs[0].name);
 
-    console.log("Design Data:", company, selectedCard, pageType, isTemplate);
+    // console.log("Design Data:", company, selectedCard, pageType, isTemplate);
+
+    useEffect(() => {
+        router.reload({
+            only: [
+                "isSubscriptionActive",
+                "selectedCard",
+                "wallet_status",
+                "wallet_eligibility",
+            ],
+            preserveScroll: true,
+        });
+    }, [activeTab]);
 
     return (
         <AuthenticatedLayout>

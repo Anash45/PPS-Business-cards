@@ -56,7 +56,10 @@ export default function LandingTab() {
             formData.append("btn_bg_color", cardFormData.btn_bg_color);
             formData.append("btn_text_color", cardFormData.btn_text_color);
             formData.append("contact_btn_text", cardFormData.contact_btn_text);
-            formData.append("contact_btn_text_de", cardFormData.contact_btn_text_de);
+            formData.append(
+                "contact_btn_text_de",
+                cardFormData.contact_btn_text_de
+            );
             formData.append(
                 "vcard_btn_text_color",
                 cardFormData.vcard_btn_text_color ?? ""
@@ -382,7 +385,7 @@ export default function LandingTab() {
                     ...prev,
                     ...mappedData1,
                 }));
-                router.reload({ only: ["wallet_status"] });
+                router.reload({ only: ["wallet_status", "wallet_eligibility"] });
 
                 setTimeout(() => {
                     setIsChanged(false);

@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { mapCompanyTemplateData } from "@/utils/mapCompanyTemplateData";
 import { router, usePage } from "@inertiajs/react";
 import WalletStatusPill from "./WalletStatusPill";
+import WalletEligibilityPill from "./WalletEligibilityPill";
 
 export default function WalletTab() {
     const [isSaving, setIsSaving] = useState(false);
@@ -21,6 +22,7 @@ export default function WalletTab() {
         company,
         selectedCard = null,
         wallet_status = null,
+        wallet_eligibility = null,
     } = usePage().props;
 
     const handleSaveWallet = async () => {
@@ -34,7 +36,6 @@ export default function WalletTab() {
         // Note: Only append fields that the backend expects for template update (from validation rules)
         if (isTemplate) {
             formData.append("company_name", cardFormData.company_name);
-            formData.append("wallet_email", cardFormData.primary_email);
             formData.append(
                 "wallet_text_color",
                 cardFormData.wallet_text_color
@@ -60,9 +61,10 @@ export default function WalletTab() {
             }
         }
 
-        console.log("Checking:", isTemplate, selectedCard);
+        console.log("Checking Wallet Upload:", cardFormData.primary_email);
 
         if (!isTemplate && selectedCard) {
+            formData.append("wallet_email", cardFormData.primary_email);
             formData.append("wallet_name", cardFormData.wallet_name);
             formData.append("wallet_position", cardFormData.position);
 
@@ -117,7 +119,12 @@ export default function WalletTab() {
                 );
 
                 router.reload({
-                    only: ["wallet_status", "company", "selectedCard"],
+                    only: [
+                        "wallet_status",
+                        "wallet_eligibility",
+                        "company",
+                        "selectedCard",
+                    ],
                     onSuccess: (page) => {
                         const newCompany = page.props.company;
                         const newCard = page.props.selectedCard;
@@ -154,9 +161,9 @@ export default function WalletTab() {
 
                 if (error.response.status === 422) {
                     // Validation Error from Laravel (e.g., required field missing)
-                    const errors = error.response.data.errors;
+                    const errors = error.response.data.message;
                     // Extract the first error message for simplicity
-                    errorMessage = errors[Object.keys(errors)[0]][0];
+                    errorMessage = errors;
                 } else if (error.response.data.message) {
                     // General API error message (e.g., the 403 message from your backend)
                     errorMessage = error.response.data.message;
@@ -202,7 +209,16 @@ export default function WalletTab() {
                         <h4 className="text-xl leading-tight font-semibold">
                             Live Wallet Preview
                         </h4>
-                        <WalletStatusPill status={wallet_status?.status} />
+                        {!isTemplate ? (
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <WalletEligibilityPill
+                                    eligibility={wallet_eligibility?.eligible}
+                                />
+                                <WalletStatusPill
+                                    status={wallet_status?.status}
+                                />
+                            </div>
+                        ) : null}
                     </div>
                     <div className="px-5 pb-5 pt-4">
                         <WalletPreview />

@@ -13,6 +13,7 @@ import axios from "axios";
 import { getDomain } from "@/utils/viteConfig";
 import { csvFieldDefinitions } from "@/utils/csvFieldDefinitions";
 import SelectInput from "@/Components/SelectInput";
+import { ChevronDown } from "lucide-react";
 
 // Bind DataTables
 DataTable.use(DT);
@@ -79,6 +80,7 @@ export default function Nfc() {
 
                 // Reload only the cards prop via Inertia
                 router.reload({ only: ["nfcCards"] });
+                setSelectedIds([]);
             } else {
                 toast.error(
                     response.data?.message || "Failed to update card status."
@@ -270,6 +272,7 @@ export default function Nfc() {
 
             toast.success(response.data.message);
             router.reload({ only: ["nfcCards"] });
+            setSelectedIds([]);
 
             // ✅ Optional: refresh DataTable or state
             if (typeof refreshTable === "function") refreshTable();
@@ -303,6 +306,7 @@ export default function Nfc() {
 
             toast.success(response.data.message);
             router.reload({ only: ["nfcCards", "employeeCards"] });
+            setSelectedIds([]);
 
             if (typeof refreshTable === "function") refreshTable();
         } catch (error) {
@@ -330,6 +334,7 @@ export default function Nfc() {
 
             toast.success(response.data.message);
             router.reload({ only: ["nfcCards", "employeeCards"] });
+            setSelectedIds([]);
 
             if (typeof refreshTable === "function") refreshTable();
         } catch (error) {
@@ -357,31 +362,88 @@ export default function Nfc() {
                 ) : (
                     <div className="space-y-5">
                         <div className="py-4 md:px-6 px-4 rounded-[14px] bg-white flex flex-col gap-3 space-y-3">
-                            <div className="space-y-2">
+                            <div className="relative mb-2">
                                 <div className="flex items-center gap-3 flex-wrap">
-                                    <Button
-                                        onClick={() =>
-                                            handleMultipleToggle("active")
+                                    <Dropdown
+                                        align="left"
+                                        button={
+                                            <div className="flex items-center py-[9px] gap-2 cursor-pointer px-4 rounded-md border border-gray-500 text-sm">
+                                                <span>Bulk actions</span>
+                                                <ChevronDown className="h-5 w-5" />
+                                            </div>
                                         }
-                                        disabled={
-                                            !selectedIds.length || toggling
-                                        }
-                                        variant="primary-outline"
                                     >
-                                        Set Active
-                                    </Button>
+                                        <DropdownItem
+                                            onClick={() =>
+                                                handleMultipleToggle("active")
+                                            }
+                                            disabled={
+                                                !selectedIds.length || toggling
+                                            }
+                                        >
+                                            Set Active
+                                        </DropdownItem>
 
-                                    <Button
-                                        onClick={() =>
-                                            handleMultipleToggle("inactive")
-                                        }
-                                        disabled={
-                                            !selectedIds.length || toggling
-                                        }
-                                        variant="danger-outline"
-                                    >
-                                        Set Inactive
-                                    </Button>
+                                        <DropdownItem
+                                            onClick={() =>
+                                                handleMultipleToggle("inactive")
+                                            }
+                                            disabled={
+                                                !selectedIds.length || toggling
+                                            }
+                                        >
+                                            Set Inactive
+                                        </DropdownItem>
+
+                                        <DropdownItem
+                                            onClick={() => {
+                                                if (
+                                                    !selectedIds.length ||
+                                                    toggling ||
+                                                    !selectedEmployee
+                                                )
+                                                    return;
+
+                                                const confirmed =
+                                                    window.confirm(
+                                                        "Are you sure you want to assign these cards? This action cannot be undone."
+                                                    );
+                                                if (confirmed) {
+                                                    assignNfcToCards();
+                                                }
+                                            }}
+                                            disabled={
+                                                !selectedIds.length ||
+                                                toggling ||
+                                                !selectedEmployee
+                                            }
+                                        >
+                                            Assign Card(s)
+                                        </DropdownItem>
+
+                                        <DropdownItem
+                                            onClick={() => {
+                                                if (
+                                                    !selectedIds.length ||
+                                                    toggling
+                                                )
+                                                    return;
+
+                                                const confirmed =
+                                                    window.confirm(
+                                                        "Are you sure you want to unassign these cards? This action cannot be undone."
+                                                    );
+                                                if (confirmed) {
+                                                    unassignNfcCards();
+                                                }
+                                            }}
+                                            disabled={
+                                                !selectedIds.length || toggling
+                                            }
+                                        >
+                                            Unassign Card(s)
+                                        </DropdownItem>
+                                    </Dropdown>
                                     <div className="min-w-[200px]">
                                         <SelectInput
                                             id="employee"
@@ -411,32 +473,10 @@ export default function Nfc() {
                                             )}
                                         />
                                     </div>
-
-                                    <Button
-                                        onClick={() => assignNfcToCards()}
-                                        disabled={
-                                            !selectedIds.length ||
-                                            toggling ||
-                                            !selectedEmployee
-                                        }
-                                        variant="primary"
-                                    >
-                                        Assign Card(s)
-                                    </Button>
-
-                                    <Button
-                                        onClick={() => unassignNfcCards()}
-                                        disabled={
-                                            !selectedIds.length || toggling
-                                        }
-                                        variant="danger"
-                                    >
-                                        Unassign Card(s)
-                                    </Button>
                                 </div>
                                 {selectedIds.length > 0 ? (
-                                    <p className="text-sm text-primary">
-                                        {selectedIds.length} cards selected
+                                    <p className="text-sm text-primary top-full left-0 absolute mt-1">
+                                        {selectedIds.length} card(s) selected
                                     </p>
                                 ) : null}
                             </div>

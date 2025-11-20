@@ -69,11 +69,13 @@ export default function CardPreviewEmails({ cardEmails }) {
 
                     <span>
                         {(email.label || email.label_de) && (
-                            <span className="block">
-                                {isDE && email.label_de
-                                    ? email.label_de
-                                    : email.label}
-                            </span>
+                            <>
+                                <span className="block">
+                                    {isDE && email.label_de
+                                        ? email.label_de
+                                        : email.label}
+                                </span>{" "}
+                            </>
                         )}
                         {email.email}
                     </span>

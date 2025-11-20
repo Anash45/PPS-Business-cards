@@ -337,9 +337,27 @@ class DesignController extends Controller
                 'message' => 'No company associated with this user.',
             ], 404);
         }
+        // Check if card is eligible for sync
+        if (!$card->is_eligible_for_sync['eligible']) {
+            return response()->json([
+                'success' => false,
+                'error_code' => 'CARD_NOT_ELIGIBLE',
+                'message' => 'This card is missing required fields and cannot be synced.',
+                'missing_fields' => $card->is_eligible_for_sync['missing_fields'],
+            ], 422); // Unprocessable Entity
+        }
+
+        // Check if already synced
+        if ($card->wallet_status["status"] === 'synced') {
+            return response()->json([
+                'success' => false,
+                'error_code' => 'ALREADY_SYNCED',
+                'message' => 'This card is already synced to the wallet.',
+            ], 409); // Conflict
+        }
 
         try {
-            $wallet = $this->buildCardWalletFromCard($card);
+            $wallet = $this->buildCardWalletFromCardApi($card);
 
             return response()->json([
                 'success' => true,
@@ -354,9 +372,90 @@ class DesignController extends Controller
         }
     }
 
+    public function cardWalletBulkUpdate(Request $request)
+    {
+        $cardIds = $request->ids ?? [];
+        $user = Auth::user();
+
+        // ✅ Only allow company, editor, or template_editor
+        if (!$user->isCompany() && !in_array($user->role, ['editor', 'template_editor'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only allowed users can perform this action.',
+            ], 403);
+        }
+
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+        if (!$company) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No company associated with this user.',
+            ], 404);
+        }
+
+        $cards = Card::whereIn('id', $cardIds)->get();
+        $errors = [];
+
+        // ✅ First pass: collect all errors
+        foreach ($cards as $card) {
+            $cardErrors = [];
+
+            if (!$card->is_eligible_for_sync['eligible']) {
+                $cardErrors[] = [
+                    'error_code' => 'CARD_NOT_ELIGIBLE',
+                    'message' => 'This card is missing required fields and cannot be synced.',
+                    'missing_fields' => $card->is_eligible_for_sync['missing_fields'],
+                ];
+            }
+
+            if ($card->wallet_status['status'] === 'synced') {
+                $cardErrors[] = [
+                    'error_code' => 'ALREADY_SYNCED',
+                    'message' => 'This card is already synced to the wallet.',
+                ];
+            }
+
+            if (!empty($cardErrors)) {
+                $errors[$card->id] = $cardErrors;
+            }
+        }
+
+        // ✅ If any errors exist, return them without updating
+        if (!empty($errors)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Some cards cannot be synced due to errors.',
+                'errors' => $errors,
+            ], 422);
+        }
+
+        // ✅ No errors, proceed to update all cards
+        $results = [];
+        foreach ($cards as $card) {
+            try {
+                $wallet = $this->buildCardWalletFromCardApi($card);
+                $results[$card->id] = [
+                    'success' => true,
+                    'data' => ['card_wallet' => $wallet],
+                ];
+            } catch (\Exception $e) {
+                $results[$card->id] = [
+                    'success' => false,
+                    'error_code' => 'SYNC_FAILED',
+                    'message' => 'Failed: ' . $e->getMessage(),
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All cards processed successfully.',
+            'results' => $results,
+        ]);
+    }
 
 
-    private function buildCardWalletFromCard(Card $card)
+    private function buildCardWalletFromCardApi(Card $card)
     {
         $card->loadMissing(['company.cardTemplate']);
         $template = $card->company?->cardTemplate;
@@ -383,7 +482,7 @@ class DesignController extends Controller
         }
 
         // ✅ Validate card fields
-        $requiredCardFields = ['first_name', 'last_name', 'position', 'profile_image'];
+        $requiredCardFields = ['first_name', 'last_name', 'position', 'primary_email', 'profile_image'];
         foreach ($requiredCardFields as $field) {
             if (empty($card->$field)) {
                 throw new \Exception("Missing required card field: {$field}");
@@ -501,6 +600,7 @@ class DesignController extends Controller
         // ✅ Prepare payload
         $payload = [
             'template_id' => 88260,
+            'email_to' => $card->primary_email,
             'google_pass' => [
                 'img_hero' => $userImageFileId,
                 'img_logo' => $companyLogoFileId,
@@ -551,6 +651,7 @@ class DesignController extends Controller
             'pass_id' => $data['pass_id'] ?? $cardWallet->pass_id,
             'template_id' => 88260,
             'company_logo' => $template->wallet_logo_image,
+            'wallet_email' => $card->primary_email,
             'user_image' => $card->profile_image,
             'company_logo_string' => $companyLogoFileId,
             'user_image_string' => $userImageFileId,
@@ -742,12 +843,14 @@ class DesignController extends Controller
         }
 
         $walletStatus = $card->wallet_status;
+        $walletEligibility = $card->is_eligible_for_sync;
         $card->load(['cardWallet']);
 
         return inertia('Design/Index', [
             'pageType' => 'card',
             'company' => $company,
             'selectedCard' => $card,
+            'wallet_eligibility' => $walletEligibility,
             'wallet_status' => $walletStatus,
             'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
         ]);
