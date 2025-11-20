@@ -271,6 +271,153 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "post": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Create or update multiple employees",
+                "description": "Stores or updates multiple employees in a single request. All employees must belong to the company associated with the API token.",
+                "operationId": "7122580ee4b6be73288c012aca31acfe",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "employees"
+                                ],
+                                "properties": {
+                                    "employees": {
+                                        "description": "Array of employee objects to create or update",
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "id",
+                                                "salutation",
+                                                "first_name",
+                                                "last_name",
+                                                "primary_email",
+                                                "position",
+                                                "department",
+                                                "status"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "description": "Existing employee ID to update",
+                                                    "type": "integer",
+                                                    "example": 25
+                                                },
+                                                "salutation": {
+                                                    "description": "Employee salutation",
+                                                    "type": "string",
+                                                    "example": "Mr."
+                                                },
+                                                "title": {
+                                                    "description": "Optional title",
+                                                    "type": "string",
+                                                    "example": "Team Lead"
+                                                },
+                                                "first_name": {
+                                                    "type": "string",
+                                                    "example": "John"
+                                                },
+                                                "last_name": {
+                                                    "type": "string",
+                                                    "example": "Doe"
+                                                },
+                                                "primary_email": {
+                                                    "type": "string",
+                                                    "format": "email",
+                                                    "example": "john.doe@example.com"
+                                                },
+                                                "position": {
+                                                    "type": "string",
+                                                    "example": "Developer"
+                                                },
+                                                "degree": {
+                                                    "type": "string",
+                                                    "example": "BSc Computer Science"
+                                                },
+                                                "department": {
+                                                    "type": "string",
+                                                    "example": "Engineering"
+                                                },
+                                                "position_de": {
+                                                    "type": "string",
+                                                    "example": "Entwickler"
+                                                },
+                                                "degree_de": {
+                                                    "type": "string",
+                                                    "example": "B.Sc. Informatik"
+                                                },
+                                                "department_de": {
+                                                    "type": "string",
+                                                    "example": "Entwicklung"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "active",
+                                                        "inactive"
+                                                    ],
+                                                    "example": "active"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Employees created or updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Employees updated successfully."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "updated": {
+                                                    "description": "Array of full employee data after update",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation errors occurred"
+                    },
+                    "500": {
+                        "description": "Failed to update one or more employees"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/employees/{employeeId}": {

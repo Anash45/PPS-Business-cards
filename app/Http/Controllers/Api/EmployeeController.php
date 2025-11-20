@@ -316,6 +316,64 @@ use Validator;
  *     @OA\Response(response=422, description="Invalid payload"),
  *     @OA\Response(response=500, description="Failed to clear one or more employees")
  * )
+ * 
+ * @OA\Post(
+ *     path="/api/v1/employees",
+ *     summary="Create or update multiple employees",
+ *     description="Stores or updates multiple employees in a single request. All employees must belong to the company associated with the API token.",
+ *     tags={"Employees"},
+ *     security={{"bearerAuth":{}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             type="object",
+ *             required={"employees"},
+ *             @OA\Property(
+ *                 property="employees",
+ *                 type="array",
+ *                 description="Array of employee objects to create or update",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     required={"id","salutation","first_name","last_name","primary_email","position","department","status"},
+ *                     @OA\Property(property="id", type="integer", example=25, description="Existing employee ID to update"),
+ *                     @OA\Property(property="salutation", type="string", example="Mr.", description="Employee salutation"),
+ *                     @OA\Property(property="title", type="string", example="Team Lead", description="Optional title"),
+ *                     @OA\Property(property="first_name", type="string", example="John"),
+ *                     @OA\Property(property="last_name", type="string", example="Doe"),
+ *                     @OA\Property(property="primary_email", type="string", format="email", example="john.doe@example.com"),
+ *                     @OA\Property(property="position", type="string", example="Developer"),
+ *                     @OA\Property(property="degree", type="string", example="BSc Computer Science"),
+ *                     @OA\Property(property="department", type="string", example="Engineering"),
+ *                     @OA\Property(property="position_de", type="string", example="Entwickler"),
+ *                     @OA\Property(property="degree_de", type="string", example="B.Sc. Informatik"),
+ *                     @OA\Property(property="department_de", type="string", example="Entwicklung"),
+ *                     @OA\Property(property="status", type="string", enum={"active","inactive"}, example="active")
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Employees created or updated successfully",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="success", type="boolean", example=true),
+ *             @OA\Property(property="message", type="string", example="Employees updated successfully."),
+ *             @OA\Property(
+ *                 property="data",
+ *                 type="object",
+ *                 @OA\Property(
+ *                     property="updated",
+ *                     type="array",
+ *                     description="Array of full employee data after update",
+ *                     @OA\Items(type="object") 
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(response=422, description="Validation errors occurred"),
+ *     @OA\Response(response=500, description="Failed to update one or more employees")
+ * )
  */
 class EmployeeController extends Controller
 {
@@ -566,7 +624,7 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Store or update an employee (Card) and its relations.
+     * Store or update employees.
      */
 
     public function store(Request $request)
