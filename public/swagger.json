@@ -11,10 +11,6 @@
             "description": "Local server"
         },
         {
-            "url": "https://test.ppsbusinesscards.de/",
-            "description": "Test server"
-        },
-        {
             "url": "https://app.ppsbusinesscards.de/",
             "description": "Production server"
         }
