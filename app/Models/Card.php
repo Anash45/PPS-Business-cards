@@ -272,5 +272,24 @@ class Card extends Model
         ];
     }
 
+    /**
+     * Get a relation with only selected fields.
+     *
+     * @param string $relation
+     * @param array $fields
+     * @return array
+     */
+    public function getRelationFields(string $relation, array $fields = []): array
+    {
+        if (!$this->$relation) {
+            return [];
+        }
 
+        return $this->$relation->map(function ($item) use ($fields) {
+            if (!empty($fields)) {
+                return collect($item)->only($fields)->all();
+            }
+            return $item; // return full object if no fields specified
+        })->all();
+    }
 }

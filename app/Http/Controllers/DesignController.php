@@ -1171,6 +1171,159 @@ class DesignController extends Controller
         ]);
     }
 
+    public function clearCard(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        // ✅ Only company or editors can clear
+        if (!$user->isCompany() && !in_array($user->role, ['editor', 'template_editor'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        // ✅ Determine company
+        $companyId = $user->isCompany() ? $user->companyProfile->id : $user->company_id;
+
+        $card = Card::with([
+            'cardSocialLinks',
+            'cardPhoneNumbers',
+            'cardEmails',
+            'cardAddresses',
+            'cardWebsites',
+            'cardButtons',
+            'cardWallet'
+        ])->where('id', $id)
+            ->where('company_id', $companyId)
+            ->first();
+
+        if (!$card) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Card not found or does not belong to your company.',
+            ], 404);
+        }
+
+        // ✅ Delete related records
+        $card->cardSocialLinks()->delete();
+        $card->cardPhoneNumbers()->delete();
+        $card->cardEmails()->delete();
+        $card->cardAddresses()->delete();
+        $card->cardWebsites()->delete();
+        $card->cardButtons()->delete();
+        $card->cardWallet()->delete();
+
+        // ✅ Clear card fields except id, company_id, cards_group_id, downloads, timestamps
+        $card->update([
+            'status' => 'inactive',
+            'salutation' => null,
+            'title' => null,
+            'first_name' => null,
+            'last_name' => null,
+            'primary_email' => null,
+            'profile_image' => null,
+            'position' => null,
+            'position_de' => null,
+            'degree' => null,
+            'degree_de' => null,
+            'department' => null,
+            'department_de' => null,
+        ]);
+
+        // ✅ Generate new code
+        $card->code = Card::generateCode();
+        $card->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Employee deleted successfully.',
+            'new_code' => $card->code, // optional, return new code
+        ]);
+    }
+
+    public function bulkClearCards(Request $request)
+    {
+        $user = Auth::user();
+
+        // ✅ Validate input
+        $data = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:cards,id',
+        ]);
+
+        // ✅ Only company or editors can delete
+        if (!$user->isCompany() && !in_array($user->role, ['editor', 'template_editor'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        $companyId = $user->isCompany() ? $user->companyProfile->id : $user->company_id;
+
+        $cards = Card::with([
+            'cardSocialLinks',
+            'cardPhoneNumbers',
+            'cardEmails',
+            'cardAddresses',
+            'cardWebsites',
+            'cardButtons',
+            'cardWallet'
+        ])
+            ->whereIn('id', $data['ids'])
+            ->where('company_id', $companyId)
+            ->get();
+
+        if ($cards->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No employees found or they do not belong to your company.',
+            ], 404);
+        }
+
+        foreach ($cards as $card) {
+            // Delete related records
+            $card->cardSocialLinks()->delete();
+            $card->cardPhoneNumbers()->delete();
+            $card->cardEmails()->delete();
+            $card->cardAddresses()->delete();
+            $card->cardWebsites()->delete();
+            $card->cardButtons()->delete();
+            $card->cardWallet()->delete();
+
+            // Clear card fields except id, company_id, cards_group_id, downloads, timestamps
+            $card->update([
+                'status' => 'inactive',
+                'salutation' => null,
+                'title' => null,
+                'first_name' => null,
+                'last_name' => null,
+                'primary_email' => null,
+                'profile_image' => null,
+                'position' => null,
+                'position_de' => null,
+                'degree' => null,
+                'degree_de' => null,
+                'department' => null,
+                'department_de' => null,
+            ]);
+
+            // Generate new code
+            $card->code = Card::generateCode();
+            $card->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => count($cards) . ' employee(s) cleared and new codes generated successfully.',
+        ]);
+    }
+
+
+
+
+
     public function bulkCardUpdate(Request $request)
     {
         $user = Auth::user();

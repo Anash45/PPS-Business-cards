@@ -57,6 +57,10 @@ Route::middleware(['auth', 'role:company,editor,template_editor'])->group(functi
 
     Route::post('/company/cards/{card}/update', [DesignController::class, 'cardUpdate'])
         ->name('card.update');
+    Route::put('/company/cards/{card}/delete', [DesignController::class, 'clearCard'])
+        ->name('card.delete');
+    Route::put('/company/cards/bulk-delete', [DesignController::class, 'bulkClearCards'])
+        ->name('card.bulkDelete');
 
     Route::get('/csv-import', [CsvController::class, 'index'])
         ->name('csv.index');

@@ -14,7 +14,7 @@ import { getDomain } from "@/utils/viteConfig";
 import { csvFieldDefinitions } from "@/utils/csvFieldDefinitions";
 import WalletStatusPill from "@/Components/WalletStatusPill";
 import WalletEligibilityPill from "@/Components/WalletEligibilityPill";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, EditIcon, Trash2 } from "lucide-react";
 import { SyncingWarning } from "@/Components/SyncingWarning";
 
 // Bind DataTables
@@ -27,6 +27,75 @@ export default function Company() {
     const [linkDomain, setLinkDomain] = useState(
         "https://app.ppsbusinesscards.de"
     );
+
+    const handleDeleteEmployee = async (id) => {
+        if (
+            !window.confirm(
+                "This will delete all card details and related data permanently. Are you sure?"
+            )
+        ) {
+            return;
+        }
+
+        try {
+            const response = await axios.put(`/company/cards/${id}/delete`);
+            if (response.data.success) {
+                toast.success(response.data.message);
+                // Optional: refresh your table here
+                router.reload({ only: ["cards"] });
+
+                // ✅ Optional: refresh DataTable or state
+                if (typeof refreshTable === "function") refreshTable();
+            } else {
+                toast.error(response.data.message || "Failed to delete card.");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error(
+                error.response?.data?.message ||
+                    "An error occurred while deleting the card."
+            );
+        }
+    };
+
+    const handleDeleteMultipleEmployees = async () => {
+        if (!selectedIds || selectedIds.length === 0) {
+            toast.error("Please select at least one employee.");
+            return;
+        }
+
+        if (
+            !window.confirm(
+                `This will delete all details for ${selectedIds.length} employee(s) permanently. Are you sure?`
+            )
+        ) {
+            return;
+        }
+
+        try {
+            const response = await axios.put(`/company/cards/bulk-delete`, {
+                ids: selectedIds,
+            });
+
+            if (response.data.success) {
+                toast.success(response.data.message);
+                router.reload({ only: ["cards"] });
+
+                if (typeof refreshTable === "function") refreshTable();
+            } else {
+                toast.error(
+                    response.data.message ||
+                        "Failed to delete selected employees."
+                );
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error(
+                error.response?.data?.message ||
+                    "An error occurred while deleting selected employees."
+            );
+        }
+    };
 
     // Fetch domain on mount
     useEffect(() => {
@@ -54,7 +123,14 @@ export default function Company() {
                             (window.location.href = `/company/cards/${row.id}/edit`)
                         }
                     >
-                        Edit
+                        <div className="flex items-center gap-1">
+                            <EditIcon className="h-4 w-4" /> <span>Edit</span>
+                        </div>
+                    </DropdownItem>
+                    <DropdownItem onClick={() => handleDeleteEmployee(row.id)}>
+                        <div className="flex items-center gap-1">
+                            <Trash2 className="h-4 w-4" /> <span>Delete</span>
+                        </div>
                     </DropdownItem>
                     <DropdownItem
                         onClick={() => handleToggleStatus(row.id, row.status)}
@@ -106,6 +182,9 @@ export default function Company() {
 
                 // Reload only the cards prop via Inertia
                 router.reload({ only: ["cards"] });
+
+                // ✅ Optional: refresh DataTable or state
+                if (typeof refreshTable === "function") refreshTable();
             } else {
                 toast.error(
                     response.data?.message || "Failed to update card status."
@@ -433,6 +512,17 @@ export default function Company() {
                                             }
                                         >
                                             Set Inactive
+                                        </DropdownItem>
+
+                                        <DropdownItem
+                                            onClick={() =>
+                                                handleDeleteMultipleEmployees()
+                                            }
+                                            disabled={
+                                                !selectedIds.length || toggling
+                                            }
+                                        >
+                                            Delete Multiple
                                         </DropdownItem>
 
                                         <DropdownItem

@@ -7,8 +7,16 @@
     },
     "servers": [
         {
-            "url": "/",
+            "url": "http://127.0.0.1:8000",
             "description": "Local server"
+        },
+        {
+            "url": "https://test.ppsbusinesscards.de/",
+            "description": "Test server"
+        },
+        {
+            "url": "https://app.ppsbusinesscards.de/",
+            "description": "Production server"
         }
     ],
     "paths": {
@@ -76,17 +84,109 @@
                 }
             }
         },
-        "/v1/employees": {
+        "/api/v1/employees": {
             "get": {
                 "tags": [
                     "Employees"
                 ],
-                "summary": "Get list of employees for the authenticated company",
-                "description": "Returns company information along with a list of employees and their related card details.",
-                "operationId": "6c1b0bd6a8eb4e870c7d76522577ec2b",
+                "summary": "Get all employees for a company",
+                "description": "Fetch employees with optional related entities and wallet/sync info.",
+                "operationId": "bee848114eca59a5e4f8826227e68674",
+                "parameters": [
+                    {
+                        "name": "include_wallet_status",
+                        "in": "query",
+                        "description": "Include wallet status for each employee",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "include_sync_eligibility",
+                        "in": "query",
+                        "description": "Include sync eligibility for each employee",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "include_all",
+                        "in": "query",
+                        "description": "Include all relations (websites, phones, emails, addresses, buttons, social links)",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "include_websites",
+                        "in": "query",
+                        "description": "Include employee websites relation",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "include_phone_numbers",
+                        "in": "query",
+                        "description": "Include employee phone numbers relation",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "include_emails",
+                        "in": "query",
+                        "description": "Include employee emails relation",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "include_addresses",
+                        "in": "query",
+                        "description": "Include employee addresses relation",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "include_social_links",
+                        "in": "query",
+                        "description": "Include employee social links relation",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "include_buttons",
+                        "in": "query",
+                        "description": "Include employee buttons relation",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Successful response",
+                        "description": "Employees fetched successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -95,406 +195,69 @@
                                             "type": "boolean",
                                             "example": true
                                         },
-                                        "company_id": {
-                                            "type": "integer",
-                                            "example": 10
-                                        },
-                                        "company_name": {
+                                        "message": {
                                             "type": "string",
-                                            "example": "Company 123"
+                                            "example": "Employees fetched successfully."
                                         },
                                         "employees": {
                                             "type": "array",
                                             "items": {
                                                 "properties": {
-                                                    "id": {
-                                                        "type": "integer",
-                                                        "example": 100001
+                                                    "card": {
+                                                        "type": "object"
                                                     },
-                                                    "code": {
-                                                        "type": "string",
-                                                        "example": "3W3CSJJE"
-                                                    },
-                                                    "company_id": {
-                                                        "type": "integer",
-                                                        "example": 10
-                                                    },
-                                                    "cards_group_id": {
-                                                        "type": "integer",
-                                                        "example": 13
-                                                    },
-                                                    "status": {
-                                                        "type": "string",
-                                                        "example": "active"
-                                                    },
-                                                    "downloads": {
-                                                        "type": "integer",
-                                                        "example": 8
-                                                    },
-                                                    "salutation": {
-                                                        "type": "string",
-                                                        "example": "Mr."
-                                                    },
-                                                    "title": {
-                                                        "type": "string",
-                                                        "example": "dr."
-                                                    },
-                                                    "first_name": {
-                                                        "type": "string",
-                                                        "example": "Anas"
-                                                    },
-                                                    "last_name": {
-                                                        "type": "string",
-                                                        "example": "Syed"
-                                                    },
-                                                    "profile_image": {
-                                                        "type": "string",
-                                                        "example": "http://127.0.0.1:8000/storage/card_profiles/sample.png"
-                                                    },
-                                                    "position": {
-                                                        "type": "string",
-                                                        "example": "Web developer"
-                                                    },
-                                                    "position_de": {
-                                                        "type": "string",
-                                                        "example": "Webentwickler"
-                                                    },
-                                                    "degree": {
-                                                        "type": "string",
-                                                        "example": "BS Bioinformatics"
-                                                    },
-                                                    "degree_de": {
-                                                        "type": "string",
-                                                        "example": "BS Bioinformatik"
-                                                    },
-                                                    "department": {
-                                                        "type": "string",
-                                                        "example": "Technical"
-                                                    },
-                                                    "department_de": {
-                                                        "type": "string",
-                                                        "example": "Technisch"
-                                                    },
-                                                    "created_at": {
-                                                        "type": "string",
-                                                        "example": "2025-10-20T12:42:27.000000Z"
-                                                    },
-                                                    "updated_at": {
-                                                        "type": "string",
-                                                        "example": "2025-11-14T05:00:11.000000Z"
-                                                    },
-                                                    "card_social_links": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "type": "integer",
-                                                                    "example": 22
-                                                                },
-                                                                "company_id": {
-                                                                    "type": "integer",
-                                                                    "example": 10
-                                                                },
-                                                                "card_id": {
-                                                                    "type": "integer",
-                                                                    "example": 100001
-                                                                },
-                                                                "icon": {
-                                                                    "type": "string",
-                                                                    "enum": [
-                                                                        "FaFacebook",
-                                                                        "FaInstagram",
-                                                                        "FaPinterest",
-                                                                        "FaTiktok",
-                                                                        "FaLinkedin",
-                                                                        "FaYoutube",
-                                                                        "FaWhatsapp"
-                                                                    ],
-                                                                    "example": "FaFacebook"
-                                                                },
-                                                                "url": {
-                                                                    "type": "string",
-                                                                    "example": "https://facebook.com/yourpage"
-                                                                },
-                                                                "created_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-10-28T00:52:31.000000Z"
-                                                                },
-                                                                "updated_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-11-14T04:59:15.000000Z"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "card_phone_numbers": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "type": "integer",
-                                                                    "example": 128
-                                                                },
-                                                                "company_id": {
-                                                                    "type": "integer",
-                                                                    "example": 10
-                                                                },
-                                                                "card_id": {
-                                                                    "type": "integer",
-                                                                    "example": 100001
-                                                                },
-                                                                "label": {
-                                                                    "type": "string",
-                                                                    "example": "Home Phone"
-                                                                },
-                                                                "label_de": {
-                                                                    "type": "string",
-                                                                    "example": ""
-                                                                },
-                                                                "icon": {
-                                                                    "type": "string",
-                                                                    "example": "☎️"
-                                                                },
-                                                                "phone_number": {
-                                                                    "type": "string",
-                                                                    "example": "+331233123123"
-                                                                },
-                                                                "type": {
-                                                                    "type": "string",
-                                                                    "example": "cell"
-                                                                },
-                                                                "is_hidden": {
-                                                                    "type": "boolean",
-                                                                    "example": false
-                                                                },
-                                                                "created_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-10-28T00:52:31.000000Z"
-                                                                },
-                                                                "updated_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-11-14T04:59:15.000000Z"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "card_emails": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "type": "integer",
-                                                                    "example": 10
-                                                                },
-                                                                "company_id": {
-                                                                    "type": "integer",
-                                                                    "example": 10
-                                                                },
-                                                                "card_id": {
-                                                                    "type": "integer",
-                                                                    "example": 100001
-                                                                },
-                                                                "label": {
-                                                                    "type": "string",
-                                                                    "example": ""
-                                                                },
-                                                                "label_de": {
-                                                                    "type": "string",
-                                                                    "example": ""
-                                                                },
-                                                                "email": {
-                                                                    "type": "string",
-                                                                    "example": "abcq@xyz.com"
-                                                                },
-                                                                "type": {
-                                                                    "type": "string",
-                                                                    "example": "Work"
-                                                                },
-                                                                "is_hidden": {
-                                                                    "type": "boolean",
-                                                                    "example": false
-                                                                },
-                                                                "created_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-10-28T00:52:31.000000Z"
-                                                                },
-                                                                "updated_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-11-14T04:59:15.000000Z"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "card_addresses": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "type": "integer",
-                                                                    "example": 12
-                                                                },
-                                                                "company_id": {
-                                                                    "type": "integer",
-                                                                    "example": 10
-                                                                },
-                                                                "card_id": {
-                                                                    "type": "integer",
-                                                                    "example": 100001
-                                                                },
-                                                                "label": {
-                                                                    "type": "string",
-                                                                    "example": ""
-                                                                },
-                                                                "label_de": {
-                                                                    "type": "string",
-                                                                    "example": ""
-                                                                },
-                                                                "type": {
-                                                                    "type": "string",
-                                                                    "example": "Work"
-                                                                },
-                                                                "street": {
-                                                                    "type": "string",
-                                                                    "example": "Erich Müller"
-                                                                },
-                                                                "house_number": {
-                                                                    "type": "string",
-                                                                    "example": "Goethestr. 13"
-                                                                },
-                                                                "zip": {
-                                                                    "type": "string",
-                                                                    "example": "22767"
-                                                                },
-                                                                "city": {
-                                                                    "type": "string",
-                                                                    "example": "Hamburg"
-                                                                },
-                                                                "country": {
-                                                                    "type": "string",
-                                                                    "example": "GERMANY"
-                                                                },
-                                                                "is_hidden": {
-                                                                    "type": "boolean",
-                                                                    "example": false
-                                                                },
-                                                                "created_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-11-03T00:49:50.000000Z"
-                                                                },
-                                                                "updated_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-11-14T04:59:15.000000Z"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "card_websites": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "type": "integer",
-                                                                    "example": 8
-                                                                },
-                                                                "company_id": {
-                                                                    "type": "integer",
-                                                                    "example": 10
-                                                                },
-                                                                "card_id": {
-                                                                    "type": "integer",
-                                                                    "example": 100001
-                                                                },
-                                                                "icon": {
-                                                                    "type": "string",
-                                                                    "example": ""
-                                                                },
-                                                                "label": {
-                                                                    "type": "string",
-                                                                    "example": ""
-                                                                },
-                                                                "label_de": {
-                                                                    "type": "string",
-                                                                    "example": ""
-                                                                },
-                                                                "url": {
-                                                                    "type": "string",
-                                                                    "example": "https://www.f4futuretech.com"
-                                                                },
-                                                                "is_hidden": {
-                                                                    "type": "boolean",
-                                                                    "example": false
-                                                                },
-                                                                "created_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-10-28T00:52:31.000000Z"
-                                                                },
-                                                                "updated_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-11-14T04:59:15.000000Z"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "card_buttons": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "type": "integer",
-                                                                    "example": 5
-                                                                },
-                                                                "company_id": {
-                                                                    "type": "integer",
-                                                                    "example": 10
-                                                                },
-                                                                "card_id": {
-                                                                    "type": "integer",
-                                                                    "example": 100001
-                                                                },
-                                                                "icon": {
-                                                                    "type": "string",
-                                                                    "example": "☎️"
-                                                                },
-                                                                "button_text": {
-                                                                    "type": "string",
-                                                                    "example": "Contact Us"
-                                                                },
-                                                                "button_text_de": {
-                                                                    "type": "string",
-                                                                    "example": "Kontaktieren Sie uns"
-                                                                },
-                                                                "button_link": {
-                                                                    "type": "string",
-                                                                    "example": "https://example.com/contact"
-                                                                },
-                                                                "text_color": {
-                                                                    "type": "string",
-                                                                    "example": "#FFFFFF"
-                                                                },
-                                                                "bg_color": {
-                                                                    "type": "string",
-                                                                    "example": "#007BFF"
-                                                                },
-                                                                "created_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-10-28T00:52:31.000000Z"
-                                                                },
-                                                                "updated_at": {
-                                                                    "type": "string",
-                                                                    "example": "2025-11-14T04:59:15.000000Z"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
+                                                    "additional": {
+                                                        "type": "object"
                                                     }
                                                 },
                                                 "type": "object"
                                             }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Company not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Company not found."
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error fetching employees",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error fetching employees."
+                                        },
+                                        "errors": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -510,28 +273,110 @@
                 ]
             }
         },
-        "/api/employees/{id}": {
+        "/api/v1/employees/{employeeId}": {
             "get": {
                 "tags": [
                     "Employees"
                 ],
-                "summary": "Get a single employee by ID",
-                "operationId": "b39a64489a740c86409177742403e3b9",
+                "summary": "Get a single employee",
+                "description": "Fetch a single employee (card) by ID for the authenticated company. Optional query params control included relations.",
+                "operationId": "209d061c54afe0753f2a7b54ab477ca3",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "employeeId",
                         "in": "path",
-                        "description": "ID of the employee card",
+                        "description": "ID of the employee (card)",
                         "required": true,
                         "schema": {
                             "type": "integer",
-                            "example": 100014
+                            "example": 100001
+                        }
+                    },
+                    {
+                        "name": "include_wallet_status",
+                        "in": "query",
+                        "description": "Include wallet status if true (1 or true)",
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
+                        }
+                    },
+                    {
+                        "name": "include_sync_eligibility",
+                        "in": "query",
+                        "description": "Include sync eligibility if true (1 or true)",
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "include_all",
+                        "in": "query",
+                        "description": "Include all relations if true (1 or true)",
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    },
+                    {
+                        "name": "include_social_links",
+                        "in": "query",
+                        "description": "Include social links if true (1 or true)",
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
+                        }
+                    },
+                    {
+                        "name": "include_phone_numbers",
+                        "in": "query",
+                        "description": "Include phone numbers if true (1 or true)",
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
+                        }
+                    },
+                    {
+                        "name": "include_emails",
+                        "in": "query",
+                        "description": "Include emails if true (1 or true)",
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
+                        }
+                    },
+                    {
+                        "name": "include_addresses",
+                        "in": "query",
+                        "description": "Include addresses if true (1 or true)",
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
+                        }
+                    },
+                    {
+                        "name": "include_websites",
+                        "in": "query",
+                        "description": "Include websites if true (1 or true)",
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
+                        }
+                    },
+                    {
+                        "name": "include_buttons",
+                        "in": "query",
+                        "description": "Include buttons if true (1 or true)",
+                        "schema": {
+                            "type": "boolean",
+                            "example": true
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Employee retrieved successfully",
+                        "description": "Successful fetch of a single employee",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -540,199 +385,281 @@
                                             "type": "boolean",
                                             "example": true
                                         },
-                                        "company_id": {
-                                            "type": "integer",
-                                            "example": 1
-                                        },
-                                        "company_name": {
-                                            "type": "string",
-                                            "example": "Acme Corp"
-                                        },
-                                        "employee": {
+                                        "card": {
                                             "properties": {
                                                 "id": {
                                                     "type": "integer",
-                                                    "example": 100014
+                                                    "example": 100001
+                                                },
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "3W3CSJJE"
+                                                },
+                                                "salutation": {
+                                                    "type": "string",
+                                                    "example": "Mr."
+                                                },
+                                                "title": {
+                                                    "type": "string",
+                                                    "example": "dr."
+                                                },
+                                                "first_name": {
+                                                    "type": "string",
+                                                    "example": "Anas"
+                                                },
+                                                "last_name": {
+                                                    "type": "string",
+                                                    "example": "Syed"
+                                                },
+                                                "profile_image": {
+                                                    "type": "string",
+                                                    "example": "http://127.0.0.1:8000/storage/card_profiles/qh2LydV0RJpjJDUJWGU8lBryq3TeABekGuqFxxYt.png"
+                                                },
+                                                "position": {
+                                                    "type": "string",
+                                                    "example": "Web developer"
+                                                },
+                                                "degree": {
+                                                    "type": "string",
+                                                    "example": "BS Bioinformatics"
+                                                },
+                                                "department": {
+                                                    "type": "string",
+                                                    "example": "Technical"
+                                                },
+                                                "position_de": {
+                                                    "type": "string",
+                                                    "example": "Webentwickler"
+                                                },
+                                                "degree_de": {
+                                                    "type": "string",
+                                                    "example": "BS Bioinformatik"
+                                                },
+                                                "department_de": {
+                                                    "type": "string",
+                                                    "example": "Technisch"
+                                                },
+                                                "cards_group_id": {
+                                                    "type": "integer",
+                                                    "example": 13
                                                 },
                                                 "status": {
                                                     "type": "string",
                                                     "example": "active"
                                                 },
-                                                "salutation": {
-                                                    "type": "string",
-                                                    "example": "Mr"
+                                                "downloads": {
+                                                    "type": "integer",
+                                                    "example": 8
                                                 },
-                                                "title": {
+                                                "created_at": {
                                                     "type": "string",
-                                                    "nullable": true
+                                                    "format": "date-time",
+                                                    "example": "2025-10-20T12:42:27.000000Z"
                                                 },
-                                                "first_name": {
+                                                "updated_at": {
                                                     "type": "string",
-                                                    "example": "John"
-                                                },
-                                                "last_name": {
+                                                    "format": "date-time",
+                                                    "example": "2025-11-14T05:00:11.000000Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "additional": {
+                                            "properties": {
+                                                "wallet_status": {
                                                     "type": "string",
-                                                    "example": "Doe"
+                                                    "example": "active"
                                                 },
-                                                "profile_image": {
-                                                    "type": "string",
-                                                    "nullable": true
+                                                "is_eligible_for_sync": {
+                                                    "type": "boolean",
+                                                    "example": true
                                                 },
-                                                "position": {
-                                                    "type": "string",
-                                                    "example": "Developer"
-                                                },
-                                                "position_de": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "degree": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "degree_de": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "department": {
-                                                    "type": "string",
-                                                    "example": "IT"
-                                                },
-                                                "department_de": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "card_social_links": {
+                                                "social_links": {
                                                     "type": "array",
                                                     "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "example": 1
-                                                            },
-                                                            "icon": {
-                                                                "type": "string",
-                                                                "example": "LinkedIn"
-                                                            },
-                                                            "url": {
-                                                                "type": "string",
-                                                                "example": "https://linkedin.com/in/john"
-                                                            }
-                                                        },
                                                         "type": "object"
                                                     }
                                                 },
-                                                "card_phone_numbers": {
+                                                "phone_numbers": {
                                                     "type": "array",
                                                     "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "example": 10
-                                                            },
-                                                            "label": {
-                                                                "type": "string",
-                                                                "example": "Work"
-                                                            },
-                                                            "phone_number": {
-                                                                "type": "string",
-                                                                "example": "+1 555 123456"
-                                                            }
-                                                        },
                                                         "type": "object"
                                                     }
                                                 },
-                                                "card_emails": {
+                                                "emails": {
                                                     "type": "array",
                                                     "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "example": 20
-                                                            },
-                                                            "label": {
-                                                                "type": "string",
-                                                                "example": "Work"
-                                                            },
-                                                            "email": {
-                                                                "type": "string",
-                                                                "example": "john@example.com"
-                                                            }
-                                                        },
                                                         "type": "object"
                                                     }
                                                 },
-                                                "card_addresses": {
+                                                "addresses": {
                                                     "type": "array",
                                                     "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "example": 30
-                                                            },
-                                                            "label": {
-                                                                "type": "string",
-                                                                "example": "Office"
-                                                            },
-                                                            "street": {
-                                                                "type": "string",
-                                                                "example": "Main St"
-                                                            },
-                                                            "house_number": {
-                                                                "type": "string",
-                                                                "example": "123"
-                                                            },
-                                                            "zip": {
-                                                                "type": "string",
-                                                                "example": "10001"
-                                                            },
-                                                            "city": {
-                                                                "type": "string",
-                                                                "example": "New York"
-                                                            },
-                                                            "country": {
-                                                                "type": "string",
-                                                                "example": "USA"
-                                                            }
-                                                        },
                                                         "type": "object"
                                                     }
                                                 },
-                                                "card_websites": {
+                                                "websites": {
                                                     "type": "array",
                                                     "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "example": 40
-                                                            },
-                                                            "label": {
-                                                                "type": "string",
-                                                                "example": "Portfolio"
-                                                            },
-                                                            "url": {
-                                                                "type": "string",
-                                                                "example": "https://johndoe.dev"
-                                                            }
-                                                        },
                                                         "type": "object"
                                                     }
                                                 },
-                                                "card_buttons": {
+                                                "buttons": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Employee not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/employees/{id}/clear": {
+            "put": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Clear a single employee's details and generate a new code",
+                "description": "Clears all employee card fields, related records, and generates a new code. Employee must belong to the company associated with the API token.",
+                "operationId": "be7a247fcdd46a2296f64b1992331c07",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Employee ID to clear",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 25
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Employee cleared successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Employee cleared and new code generated successfully."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "employee_id": {
+                                                    "type": "integer",
+                                                    "example": 25
+                                                },
+                                                "new_code": {
+                                                    "type": "string",
+                                                    "example": "ABCD1234"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Employee not found or does not belong to company"
+                    },
+                    "500": {
+                        "description": "Failed to clear employee"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/employees/bulk-clear": {
+            "put": {
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Clear multiple employees' details and generate new codes",
+                "description": "Clears all fields and related data for multiple employees and generates new codes. All employees must belong to the company associated with the API token.",
+                "operationId": "dc05c16d11958952c12a4cb1f9810cd3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "ids"
+                                ],
+                                "properties": {
+                                    "ids": {
+                                        "description": "Array of employee IDs to clear",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 25
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Employees cleared successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "3 employee(s) cleared and new codes generated successfully."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "cleared": {
                                                     "type": "array",
                                                     "items": {
                                                         "properties": {
-                                                            "id": {
+                                                            "employee_id": {
                                                                 "type": "integer",
-                                                                "example": 50
+                                                                "example": 25
                                                             },
-                                                            "button_text": {
+                                                            "new_code": {
                                                                 "type": "string",
-                                                                "example": "Contact Me"
-                                                            },
-                                                            "button_link": {
-                                                                "type": "string",
-                                                                "example": "mailto:john@example.com"
+                                                                "example": "ABCD1234"
                                                             }
                                                         },
                                                         "type": "object"
@@ -748,7 +675,13 @@
                         }
                     },
                     "404": {
-                        "description": "Employee not found"
+                        "description": "No employees found or do not belong to company"
+                    },
+                    "422": {
+                        "description": "Invalid payload"
+                    },
+                    "500": {
+                        "description": "Failed to clear one or more employees"
                     }
                 },
                 "security": [
@@ -758,166 +691,41 @@
                 ]
             }
         },
-        "/api/employees": {
+        "/api/v1/nfc/multi-assign": {
             "post": {
                 "tags": [
-                    "Employees"
+                    "NFC Cards"
                 ],
-                "summary": "Create a new employee card",
-                "operationId": "1841a98f82e35adaf92f08bf7ac63e12",
+                "summary": "Assign multiple NFC cards to multiple employees",
+                "description": "Assigns NFC cards to employees. All IDs must belong to the company from the API token.",
+                "operationId": "ddfaa7d09bc1fb3cd00a510f71af798c",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "required": [
-                                    "first_name",
-                                    "last_name"
-                                ],
                                 "properties": {
-                                    "status": {
-                                        "type": "string",
-                                        "example": "active"
-                                    },
-                                    "salutation": {
-                                        "type": "string",
-                                        "example": "Mr"
-                                    },
-                                    "title": {
-                                        "type": "string",
-                                        "nullable": true
-                                    },
-                                    "first_name": {
-                                        "type": "string",
-                                        "example": "John"
-                                    },
-                                    "last_name": {
-                                        "type": "string",
-                                        "example": "Doe"
-                                    },
-                                    "profile_image": {
-                                        "type": "string",
-                                        "nullable": true
-                                    },
-                                    "position": {
-                                        "type": "string",
-                                        "example": "Developer"
-                                    },
-                                    "position_de": {
-                                        "type": "string",
-                                        "nullable": true
-                                    },
-                                    "degree": {
-                                        "type": "string",
-                                        "nullable": true
-                                    },
-                                    "degree_de": {
-                                        "type": "string",
-                                        "nullable": true
-                                    },
-                                    "department": {
-                                        "type": "string",
-                                        "example": "IT"
-                                    },
-                                    "department_de": {
-                                        "type": "string",
-                                        "nullable": true
-                                    },
-                                    "card_social_links": {
+                                    "assignments": {
+                                        "description": "Array of assignments",
                                         "type": "array",
                                         "items": {
+                                            "required": [
+                                                "employee",
+                                                "nfc_ids"
+                                            ],
                                             "properties": {
-                                                "platform": {
-                                                    "type": "string",
-                                                    "example": "LinkedIn"
+                                                "employee": {
+                                                    "description": "Employee ID to assign NFC cards to",
+                                                    "type": "integer",
+                                                    "example": 25
                                                 },
-                                                "url": {
-                                                    "type": "string",
-                                                    "example": "https://linkedin.com/in/john"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "card_phone_numbers": {
-                                        "type": "array",
-                                        "items": {
-                                            "properties": {
-                                                "label": {
-                                                    "type": "string",
-                                                    "example": "Work"
-                                                },
-                                                "number": {
-                                                    "type": "string",
-                                                    "example": "+1 555 112233"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "card_emails": {
-                                        "type": "array",
-                                        "items": {
-                                            "properties": {
-                                                "label": {
-                                                    "type": "string",
-                                                    "example": "Work"
-                                                },
-                                                "email": {
-                                                    "type": "string",
-                                                    "example": "john@example.com"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "card_addresses": {
-                                        "type": "array",
-                                        "items": {
-                                            "properties": {
-                                                "label": {
-                                                    "type": "string",
-                                                    "example": "Office"
-                                                },
-                                                "address": {
-                                                    "type": "string",
-                                                    "example": "123 Main St, London"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "card_websites": {
-                                        "type": "array",
-                                        "items": {
-                                            "properties": {
-                                                "label": {
-                                                    "type": "string",
-                                                    "example": "Portfolio"
-                                                },
-                                                "url": {
-                                                    "type": "string",
-                                                    "example": "https://johndoe.dev"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "card_buttons": {
-                                        "type": "array",
-                                        "items": {
-                                            "properties": {
-                                                "label": {
-                                                    "type": "string",
-                                                    "example": "Contact Me"
-                                                },
-                                                "action_type": {
-                                                    "type": "string",
-                                                    "example": "link"
-                                                },
-                                                "value": {
-                                                    "type": "string",
-                                                    "example": "mailto:john@example.com"
+                                                "nfc_ids": {
+                                                    "description": "Array of NFC card IDs to assign",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer",
+                                                        "example": 101
+                                                    }
                                                 }
                                             },
                                             "type": "object"
@@ -930,8 +738,8 @@
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Employee created successfully",
+                    "200": {
+                        "description": "Successful assignment",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -940,15 +748,42 @@
                                             "type": "boolean",
                                             "example": true
                                         },
-                                        "employee_id": {
-                                            "type": "integer",
-                                            "example": 100014
+                                        "message": {
+                                            "type": "string",
+                                            "example": "2 assignment(s) completed successfully."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "assignments": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "employee_id": {
+                                                                "type": "integer",
+                                                                "example": 25
+                                                            },
+                                                            "assigned_nfc_ids": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "integer",
+                                                                    "example": 101
+                                                                }
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Unauthorized / Invalid company ownership"
                     },
                     "422": {
                         "description": "Validation error"
@@ -961,179 +796,40 @@
                 ]
             }
         },
-        "/api/employees/createBulkEmployees": {
+        "/api/v1/nfc/multi-unassign": {
             "post": {
                 "tags": [
-                    "Employees"
+                    "NFC Cards"
                 ],
-                "summary": "Create multiple employee cards",
-                "operationId": "0e003c82f6635697a47bda218f9ec889",
+                "summary": "Unassign multiple NFC cards from employees",
+                "description": "Unassigns NFC cards. All IDs must belong to the company from the API token.",
+                "operationId": "ea9755059211eb073654c506a50f69a6",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "type": "array",
-                                "items": {
-                                    "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "active"
-                                        },
-                                        "salutation": {
-                                            "type": "string",
-                                            "example": "Ms"
-                                        },
-                                        "title": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "first_name": {
-                                            "type": "string",
-                                            "example": "Alice"
-                                        },
-                                        "last_name": {
-                                            "type": "string",
-                                            "example": "Smith"
-                                        },
-                                        "profile_image": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "position": {
-                                            "type": "string",
-                                            "example": "Designer"
-                                        },
-                                        "position_de": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "degree": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "degree_de": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "department": {
-                                            "type": "string",
-                                            "example": "Marketing"
-                                        },
-                                        "department_de": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "card_social_links": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "platform": {
-                                                        "type": "string",
-                                                        "example": "Instagram"
-                                                    },
-                                                    "url": {
-                                                        "type": "string",
-                                                        "example": "https://instagram.com/alice"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        },
-                                        "card_phone_numbers": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "label": {
-                                                        "type": "string",
-                                                        "example": "Work"
-                                                    },
-                                                    "number": {
-                                                        "type": "string",
-                                                        "example": "+1 999 888777"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        },
-                                        "card_emails": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "label": {
-                                                        "type": "string",
-                                                        "example": "Office"
-                                                    },
-                                                    "email": {
-                                                        "type": "string",
-                                                        "example": "alice@company.com"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        },
-                                        "card_addresses": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "label": {
-                                                        "type": "string",
-                                                        "example": "HQ"
-                                                    },
-                                                    "address": {
-                                                        "type": "string",
-                                                        "example": "45 Street, Berlin"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        },
-                                        "card_websites": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "label": {
-                                                        "type": "string",
-                                                        "example": "Portfolio"
-                                                    },
-                                                    "url": {
-                                                        "type": "string",
-                                                        "example": "https://alice.dev"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        },
-                                        "card_buttons": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "label": {
-                                                        "type": "string",
-                                                        "example": "Book Meeting"
-                                                    },
-                                                    "action_type": {
-                                                        "type": "string",
-                                                        "example": "link"
-                                                    },
-                                                    "value": {
-                                                        "type": "string",
-                                                        "example": "https://cal.com/alice"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
+                                "required": [
+                                    "nfc_ids"
+                                ],
+                                "properties": {
+                                    "nfc_ids": {
+                                        "description": "Array of NFC card IDs to unassign",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 101
                                         }
-                                    },
-                                    "type": "object"
-                                }
+                                    }
+                                },
+                                "type": "object"
                             }
                         }
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Bulk employees created successfully",
+                    "200": {
+                        "description": "Successful unassignment",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1142,18 +838,30 @@
                                             "type": "boolean",
                                             "example": true
                                         },
-                                        "created_ids": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "integer",
-                                                "example": 100014
-                                            }
+                                        "message": {
+                                            "type": "string",
+                                            "example": "5 NFC card(s) unassigned successfully."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "unassigned_nfc_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer",
+                                                        "example": 101
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Unauthorized / Invalid company ownership"
                     },
                     "422": {
                         "description": "Validation error"
@@ -1185,6 +893,10 @@
         {
             "name": "Employees",
             "description": "Employees"
+        },
+        {
+            "name": "NFC Cards",
+            "description": "NFC Cards"
         }
     ]
 }

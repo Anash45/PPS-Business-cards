@@ -8,7 +8,10 @@ namespace App\Http\Controllers\Api;
  *     version="1.0.0",
  *     description="API documentation for PPS Business Cards"
  * )
- * @OA\Server(url="/", description="Local server")
+ * 
+ * @OA\Server(url="http://127.0.0.1:8000", description="Local server")
+ * @OA\Server(url="https://test.ppsbusinesscards.de/", description="Test server")
+ * @OA\Server(url="https://app.ppsbusinesscards.de/", description="Production server")
  *
  * @OA\SecurityScheme(
  *     securityScheme="bearerAuth",
