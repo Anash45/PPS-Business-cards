@@ -191,7 +191,7 @@ class CardsController extends Controller
 
                     $nfcCards[] = [
                         'company_id' => $company->id,
-                        'card_id' => null,
+                        'card_code' => null,
                         'qr_code' => $qr,
                         'cards_group_id' => $group->id,
                         'status' => 'inactive',
