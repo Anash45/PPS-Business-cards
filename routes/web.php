@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\BasicController;
 use App\Http\Controllers\CardsController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CsvController;
@@ -140,6 +141,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/cards/download', [CardsController::class, 'downloadCsv'])->name('cards.download');
 
+
+    Route::get('/get-link-url', [BasicController::class, 'getLinkUrl']);
 });
 
 

@@ -17,6 +17,7 @@ export async function loadConfig() {
 
 // Convenience getter
 export async function getDomain() {
-    const cfg = await loadConfig();
-    return cfg.LINK_URL;
+    const response = await fetch('/get-link-url'); // Your controller route
+    const data = await response.json();
+    return data.link_url; // return ONLY the URL
 }

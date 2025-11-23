@@ -50,13 +50,13 @@ export default function WalletPreview({ isReal = false }) {
                         <img
                             src={cardFormData.profile_image_url}
                             alt="Banner"
-                            className="w-20 h-20 object-cover rounded-[10px] bg-white object-center"
+                            className="w-20 h-20 object-cover rounded-full bg-white object-center"
                         />
                     ) : (
                         <img
                             src={`/assets/images/profile-placeholder.png`}
                             alt="Banner"
-                            className="w-20 h-20 object-cover rounded-[10px] bg-white object-center"
+                            className="w-20 h-20 object-cover rounded-full bg-white object-center"
                         />
                     )}
                 </div>

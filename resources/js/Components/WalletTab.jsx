@@ -63,20 +63,6 @@ export default function WalletTab() {
 
         console.log("Checking Wallet Upload:", cardFormData.primary_email);
 
-        if (!isTemplate && selectedCard) {
-            formData.append("wallet_email", cardFormData.primary_email);
-            formData.append("wallet_name", cardFormData.wallet_name);
-            formData.append("wallet_position", cardFormData.position);
-
-            // Append the file if it exists
-            if (cardFormData.profile_image) {
-                formData.append("profile_image", cardFormData.profile_image);
-            }
-            if (cardFormData.profile_image_url == null) {
-                formData.append("profile_removed", true);
-            }
-        }
-
         try {
             // 2. Send data using Axios
             console.log("Submitting form data:");
@@ -146,7 +132,7 @@ export default function WalletTab() {
                 // Should generally not be hit if status is 2xx, but good for custom success:false responses
                 toast.error(
                     response.data.message ||
-                        "Something went wrong during saving."
+                    "Something went wrong during saving."
                 );
             }
         } catch (error) {
@@ -182,46 +168,91 @@ export default function WalletTab() {
         }
     };
 
+    console.log(wallet_eligibility);
+
     return (
         <div className="grid 2xl:grid-cols-11 grid-cols-1 gap-5 relative">
-            <div className="2xl:col-span-7 col-span-1 bg-white lg:p-6 p-5 rounded-[20px] shadow-box space-y-4 lg:order-1 order-2">
-                <WalletFormInformation />
+            {isTemplate ? (
+                <div className="2xl:col-span-7 col-span-1 bg-white rounded-[20px] shadow-box space-y-4 lg:order-1 order-2">
+                    <WalletFormInformation />
 
-                <div className="flex flex-wrap gap-5 justify-end">
-                    <Button
-                        className="px-8"
-                        variant="primary"
-                        onClick={handleSaveWallet}
-                        disabled={isSaving}
-                    >
-                        {isSaving
-                            ? "Saving..."
-                            : selectedCard
-                            ? "Save Wallet"
-                            : "Save Wallet Template"}
-                    </Button>
+                    <div className="flex flex-wrap gap-5 justify-end">
+                        <Button
+                            className="px-8"
+                            variant="primary"
+                            onClick={handleSaveWallet}
+                            disabled={isSaving}
+                        >
+                            {isSaving
+                                ? "Saving..."
+                                : selectedCard
+                                    ? "Save Wallet"
+                                    : "Save Wallet Template"}
+                        </Button>
+                    </div>
+
                 </div>
-            </div>
+            ) : null}
 
-            <div className="2xl:col-span-4 col-span-1  lg:order-2 order-1">
+            <div className={`${isTemplate ? '2xl:col-span-4' : '2xl:col-span-11'} col-span-1  lg:order-2 order-1`}>
                 <div className="bg-white rounded-2xl shadow-box border border-[#EAECF0] sticky top-3">
                     <div className="p-5 border-b border-b-[#EAECF0] flex items-center justify-between gap-3 flex-wrap">
                         <h4 className="text-xl leading-tight font-semibold">
                             Live Wallet Preview
                         </h4>
                         {!isTemplate ? (
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <WalletEligibilityPill
-                                    eligibility={wallet_eligibility?.eligible}
-                                />
-                                <WalletStatusPill
-                                    status={wallet_status?.status}
-                                />
-                            </div>
+                            <>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <WalletEligibilityPill
+                                        eligibility={wallet_eligibility?.eligible}
+                                    />
+                                    <WalletStatusPill
+                                        status={wallet_status?.status}
+                                    />
+                                </div>
+                            </>
                         ) : null}
                     </div>
                     <div className="px-5 pb-5 pt-4">
                         <WalletPreview />
+                        <div className="space-y-3">
+                            <p className="font-bold">Required Fields for Wallet Pass</p>
+                            <div className="space-y-1">
+
+                                {Array.isArray(wallet_eligibility?.missing_fields) &&
+                                    wallet_eligibility.missing_fields.length > 0 ? (
+                                    wallet_eligibility.missing_fields.map((field, idx) => {
+                                        const formatted =
+                                            field.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+                                        return (
+                                            <p className="text-red-700 text-sm font-semibold" key={idx}>
+                                                {formatted}
+                                            </p>
+                                        );
+                                    })
+                                ) : (
+                                    <p className="font-semibold text-green-700 text-sm">All required fields filled!</p>
+                                )}
+                            </div>
+                        </div>
+                        {!isTemplate ? (
+
+                            <div className="flex flex-wrap gap-5 justify-end">
+                                <Button
+                                    className="px-8"
+                                    variant="primary"
+                                    onClick={handleSaveWallet}
+                                    disabled={isSaving}
+                                >
+                                    {isSaving
+                                        ? "Saving..."
+                                        : selectedCard
+                                            ? "Save Wallet"
+                                            : "Save Wallet Template"}
+                                </Button>
+                            </div>
+                        ) : null}
                     </div>
                 </div>
             </div>
