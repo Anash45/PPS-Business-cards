@@ -215,43 +215,45 @@ export default function WalletTab() {
                     </div>
                     <div className="px-5 pb-5 pt-4">
                         <WalletPreview />
-                        <div className="space-y-3">
-                            <p className="font-bold">Required Fields for Wallet Pass</p>
-                            <div className="space-y-1">
-
-                                {Array.isArray(wallet_eligibility?.missing_fields) &&
-                                    wallet_eligibility.missing_fields.length > 0 ? (
-                                    wallet_eligibility.missing_fields.map((field, idx) => {
-                                        const formatted =
-                                            field.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
-                                        return (
-                                            <p className="text-red-700 text-sm font-semibold" key={idx}>
-                                                {formatted}
-                                            </p>
-                                        );
-                                    })
-                                ) : (
-                                    <p className="font-semibold text-green-700 text-sm">All required fields filled!</p>
-                                )}
-                            </div>
-                        </div>
                         {!isTemplate ? (
+                            <>
+                                <div className="space-y-3 mt-4">
+                                    <p className="font-bold">Required Fields for Wallet Pass</p>
+                                    <div className="space-y-1">
 
-                            <div className="flex flex-wrap gap-5 justify-end">
-                                <Button
-                                    className="px-8"
-                                    variant="primary"
-                                    onClick={handleSaveWallet}
-                                    disabled={isSaving}
-                                >
-                                    {isSaving
-                                        ? "Saving..."
-                                        : selectedCard
-                                            ? "Save Wallet"
-                                            : "Save Wallet Template"}
-                                </Button>
-                            </div>
+                                        {Array.isArray(wallet_eligibility?.missing_fields) &&
+                                            wallet_eligibility.missing_fields.length > 0 ? (
+                                            wallet_eligibility.missing_fields.map((field, idx) => {
+                                                const formatted =
+                                                    field.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+                                                return (
+                                                    <p className="text-red-700 text-sm font-semibold" key={idx}>
+                                                        {formatted}
+                                                    </p>
+                                                );
+                                            })
+                                        ) : (
+                                            <p className="font-semibold text-green-700 text-sm">All required fields filled!</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-wrap gap-5 justify-end">
+                                    <Button
+                                        className="px-8"
+                                        variant="primary"
+                                        onClick={handleSaveWallet}
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving
+                                            ? "Saving..."
+                                            : selectedCard
+                                                ? "Save Wallet"
+                                                : "Save Wallet Template"}
+                                    </Button>
+                                </div>
+                            </>
                         ) : null}
                     </div>
                 </div>
