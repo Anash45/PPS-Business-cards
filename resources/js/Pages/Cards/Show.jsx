@@ -49,18 +49,27 @@ export default function Company() {
             <Head>
                 {/* ✅ Page Title */}
                 <title>
-                    {cardFormData?.title ||
-                    cardFormData?.first_name ||
-                    cardFormData?.last_name
-                        ? [
-                              cardFormData?.title,
-                              cardFormData?.first_name,
-                              cardFormData?.last_name,
-                          ]
-                              .filter(Boolean)
-                              .join(" ")
-                        : "Great Guy To Know"}
+                    {(() => {
+                        const card = cardFormData || {};
+
+                        // Build name
+                        const name = [card.title, card.first_name, card.last_name]
+                            .filter(v => v && v.trim()) // remove empty / whitespace-only strings
+                            .join(" ");
+
+                        // Heading
+                        const company_name = card.company_name?.trim();
+
+                        // Build full title
+                        let fullTitle = "";
+
+                        if (name) fullTitle += name;
+                        if (company_name) fullTitle += name ? ` | ${company_name}` : company_name;
+
+                        return fullTitle;
+                    })()}
                 </title>
+
 
                 {/* ✅ Favicon / Browser Tab Icon */}
                 <link
@@ -70,8 +79,8 @@ export default function Company() {
                         cardFormData.profile_image_url
                             ? `${cardFormData.profile_image_url}`
                             : cardFormData.banner_image_url
-                            ? `${cardFormData.banner_image_url}`
-                            : "/assets/images/profile-placeholder.png"
+                                ? `${cardFormData.banner_image_url}`
+                                : "/assets/images/profile-placeholder.png"
                     }
                 />
 
@@ -82,8 +91,8 @@ export default function Company() {
                         cardFormData?.description ??
                         (cardFormData?.position || cardFormData?.department
                             ? [cardFormData?.position, cardFormData?.department]
-                                  .filter(Boolean)
-                                  .join(" - ")
+                                .filter(Boolean)
+                                .join(" - ")
                             : "Get in touch via my digital business card.")
                     }
                 />

@@ -910,14 +910,35 @@ class DesignController extends Controller
         $selectedCard = $nfcCard?->status === 'active' ? $associatedCard : $associatedCard;
 
         // Meta info
+        $companyName = $company->cardTemplate->company_name ?? null;
+
+        // Build name
+        $nameParts = array_filter([
+            $selectedCard?->title ?? null,
+            $selectedCard?->first_name ?? null,
+            $selectedCard?->last_name ?? null,
+        ], fn($v) => $v && trim($v));
+
+        $name = $nameParts ? trim(implode(' ', $nameParts)) : null;
+
+        // Build full title
+        $fullTitle = '';
+
+        // Add name if exists
+        if ($name) {
+            $fullTitle .= $name;
+        }
+
+        // Add company name with |
+        if ($companyName) {
+            $fullTitle .= $name ? ' | ' . $companyName : $companyName;
+        }
+
+        // Add fixed suffix - only if something before it exists
+        $fullTitle .= $fullTitle ? '' : 'Card';
+
         $meta = [
-            'title' => ($selectedCard?->title || $selectedCard?->first_name || $selectedCard?->last_name)
-                ? trim(implode(' ', array_filter([
-                    $selectedCard->title ?? null,
-                    $selectedCard->first_name ?? null,
-                    $selectedCard->last_name ?? null,
-                ])))
-                : 'Great Guy to Know',
+            'title' => $fullTitle,
             'description' => ($selectedCard?->position || $selectedCard?->department)
                 ? trim(strip_tags(
                     $selectedCard->position .
@@ -930,6 +951,7 @@ class DesignController extends Controller
                 : ($company->profile_image ?? '/assets/images/profile-placeholder.png'),
             'url' => request()->fullUrl(),
         ];
+
 
         return inertia('Cards/Show', [
             'pageType' => 'card',
