@@ -1,0 +1,1 @@
+import{j as r}from"./app-B8v70Kz_.js";import{A as s}from"./AutoTranslateProvider-B63kO4u0.js";function n({children:a}){return r.jsx(s,{children:r.jsx("div",{className:"font-jakarta-sans bg-[#fbfbfb] min-h-screen",children:a})})}export{n as C};
