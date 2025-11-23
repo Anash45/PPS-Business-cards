@@ -935,7 +935,7 @@ class DesignController extends Controller
         }
 
         // Add fixed suffix - only if something before it exists
-        $fullTitle .= $fullTitle ? '' : 'Card';
+        $fullTitle .= $fullTitle ? ' - PPS Business Cards' : 'PPS Business Cards';
 
         $meta = [
             'title' => $fullTitle,
