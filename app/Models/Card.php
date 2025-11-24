@@ -27,6 +27,7 @@ class Card extends Model
         'company_id',
         'cards_group_id',
         'status',
+        'is_syncing',
         'downloads',
     ];
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\BulkCardWalletSyncJob;
 use App\Models\Card;
 use App\Models\CardView;
 use App\Models\CardWalletDetail;
@@ -454,8 +455,131 @@ class DesignController extends Controller
         ]);
     }
 
+    public function cardWalletBulkUpdateBackground(Request $request)
+    {
+        $cardIds = $request->ids ?? [];
+        $user = Auth::user();
 
-    private function buildCardWalletFromCardApi(Card $card)
+        Log::info("cardWalletBulkUpdateBackground called by user {$user->id} with cards: " . json_encode($cardIds));
+
+        // Only allowed roles
+        if (!$user->isCompany() && !in_array($user->role, ['editor', 'template_editor'])) {
+            Log::warning("Unauthorized access attempt by user {$user->id}");
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only allowed users can perform this action.',
+            ], 403);
+        }
+
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+        if (!$company) {
+            Log::warning("User {$user->id} has no company associated");
+            return response()->json([
+                'success' => false,
+                'message' => 'No company associated with this user.',
+            ], 404);
+        }
+
+        // Prevent starting another job if any card for this company is already syncing
+        $alreadySyncing = Card::whereIn('id', $cardIds)->where('is_syncing', true)->exists();
+        if ($alreadySyncing) {
+            Log::info("Background sync aborted: a job is already running for company {$company->id}");
+            return response()->json([
+                'success' => false,
+                'message' => 'A sync is already in progress for some of these cards.',
+            ], 409);
+        }
+
+        $cards = Card::whereIn('id', $cardIds)->get();
+        $errors = [];
+
+        // Validate each card
+        foreach ($cards as $card) {
+            $cardErrors = [];
+
+            if (!$card->is_eligible_for_sync['eligible']) {
+                $cardErrors[] = [
+                    'error_code' => 'CARD_NOT_ELIGIBLE',
+                    'message' => 'This card is missing required fields and cannot be synced.',
+                    'missing_fields' => $card->is_eligible_for_sync['missing_fields'],
+                ];
+            }
+
+            if ($card->wallet_status['status'] === 'synced') {
+                $cardErrors[] = [
+                    'error_code' => 'ALREADY_SYNCED',
+                    'message' => 'This card is already synced to the wallet.',
+                ];
+            }
+
+            if (!empty($cardErrors)) {
+                $errors[$card->id] = $cardErrors;
+                Log::info("Card {$card->id} cannot be synced: " . json_encode($cardErrors));
+            }
+        }
+
+        if (!empty($errors)) {
+            Log::info("Background sync aborted due to errors for user {$user->id}");
+            return response()->json([
+                'success' => false,
+                'message' => 'Some cards cannot be synced due to errors.',
+                'errors' => $errors,
+            ], 422);
+        }
+
+        // Mark cards as syncing
+        Card::whereIn('id', $cards->pluck('id'))->update(['is_syncing' => true]);
+        Log::info("Marked cards as is_syncing for background processing: " . json_encode($cards->pluck('id')->toArray()));
+
+        // Dispatch job
+        BulkCardWalletSyncJob::dispatch($cards->pluck('id')->toArray(), $company->id);
+
+        Log::info("Dispatched BulkCardWalletSyncJob for cards: " . json_encode($cards->pluck('id')->toArray()));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Card sync scheduled in background.',
+        ]);
+    }
+
+
+    // CardController.php
+    public function syncStatus()
+    {
+        $user = auth()->user();
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id
+            : $user->company->id ?? null;
+
+        if (!$companyId) {
+            return response()->json([
+                'all_synced' => true,
+                'synced_employees' => []
+            ]);
+        }
+
+        // Fetch employees (Cards) for this company
+        $employees = Card::where('company_id', $companyId)->get();
+
+        // Check if all are synced
+        $allSynced = $employees->every(fn($emp) => !$emp->is_syncing);
+
+        // Include wallet_status accessor for synced employees
+        $syncedEmployees = $employees->filter(fn($emp) => !$emp->is_syncing)
+            ->map(fn($emp) => [
+                'id' => $emp->id,
+                'wallet_status' => $emp->wallet_status, // accessor used here
+            ])
+            ->values();
+
+        return response()->json([
+            'all_synced' => $allSynced,
+            'synced_employees' => $syncedEmployees,
+        ]);
+    }
+
+
+    public function buildCardWalletFromCardApi(Card $card): CardWalletDetail
     {
         $card->loadMissing(['company.cardTemplate']);
         $template = $card->company?->cardTemplate;
@@ -667,12 +791,15 @@ class DesignController extends Controller
             'label_3_value' => $vars['var8'],
             'wallet_title' => $vars['var9'],
             'download_link' => $data['download_link'] ?? 'Hiiiii',
+            'is_syncing' => 0,
         ]);
 
         $cardWallet->save();
 
         return $cardWallet;
     }
+
+
 
 
 

@@ -35,7 +35,7 @@ export default function Nfc() {
     }, []);
 
     useEffect(() => {
-        setHeaderTitle("NFC Cards Management");
+        setHeaderTitle("NFC-Card management");
         setHeaderText("");
     }, []);
 
@@ -351,7 +351,7 @@ export default function Nfc() {
 
     return (
         <AuthenticatedLayout>
-            <Head title="Cards" />
+            <Head title="NFC-Card management" />
 
             <div className="py-4 md:px-6 px-4 flex flex-col gap-6">
                 {!isSubscriptionActive ? (

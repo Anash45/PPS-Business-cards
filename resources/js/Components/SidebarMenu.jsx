@@ -30,7 +30,7 @@ const companyMenuGroups = [
     {
         groupName: "Business Cards",
         items: [
-            { name: "NFC Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
+            { name: "NFC-Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
             { name: "Employees", icon: IdCardIcon, route: "company.cards" },
             {
                 name: "Bulk Import",
@@ -53,7 +53,7 @@ const editorMenuGroups = [
     {
         groupName: "Business Cards",
         items: [
-            { name: "NFC Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
+            { name: "NFC-Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
             { name: "Employees", icon: IdCardIcon, route: "company.cards" },
             {
                 name: "Bulk Import",
@@ -78,7 +78,7 @@ const templateEditorMenuGroups = [
     {
         groupName: "Business Cards",
         items: [
-            { name: "NFC Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
+            { name: "NFC-Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
             { name: "Employees", icon: IdCardIcon, route: "company.cards" },
             {
                 name: "Bulk Import",

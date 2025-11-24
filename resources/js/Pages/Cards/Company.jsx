@@ -16,6 +16,8 @@ import WalletStatusPill from "@/Components/WalletStatusPill";
 import WalletEligibilityPill from "@/Components/WalletEligibilityPill";
 import { ChevronDown, EditIcon, Trash2 } from "lucide-react";
 import { SyncingWarning } from "@/Components/SyncingWarning";
+import CardSyncChecker from "@/Components/CardSyncChecker";
+import WalletSyncingPill from "@/Components/WalletSyncingPill";
 
 // Bind DataTables
 DataTable.use(DT);
@@ -27,6 +29,8 @@ export default function Company() {
     const [linkDomain, setLinkDomain] = useState(
         "https://app.ppsbusinesscards.de"
     );
+
+    const [employees, setEmployees] = useState(cards);
 
     const handleDeleteEmployee = async (id) => {
         if (
@@ -102,7 +106,7 @@ export default function Company() {
         (async () => {
             const domain = await getDomain();
             setLinkDomain(domain);
-            console.log("Cards", cards);
+            console.log("Cards", employees);
         })();
     }, []);
 
@@ -156,7 +160,12 @@ export default function Company() {
                     <WalletEligibilityPill
                         eligibility={row?.is_eligible_for_sync?.eligible}
                     />
-                    <WalletStatusPill status={row?.wallet_status?.status} />
+
+                    {row.is_syncing && Number(row.is_syncing) === 1 ? (
+                        <WalletSyncingPill /> // show spinner when syncing
+                    ) : (
+                        <WalletStatusPill status={row?.wallet_status?.status} /> // show regular status
+                    )}
                 </div>
             );
         }, 0);
@@ -211,6 +220,7 @@ export default function Company() {
     };
 
     const [isSyncing, setIsSyncing] = useState(false);
+    const [isSyncingBg, setIsSyncingBg] = useState(false);
     const [isAnyChecked, setIsAnyChecked] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
 
@@ -360,7 +370,10 @@ export default function Company() {
     const [saving, setSaving] = useState(false);
 
     const handleDownload = async () => {
-        if (!cards?.length || !selectedIds?.length) return;
+        if (!selectedIds.length) {
+            toast.error("Please select at least one employee.");
+            return;
+        }
 
         setSaving(true);
 
@@ -395,7 +408,7 @@ export default function Company() {
 
     const handleMultipleToggle = async (status) => {
         if (!selectedIds.length) {
-            toast.warning("Please select at least one card.");
+            toast.error("Please select at least one employee.");
             return;
         }
 
@@ -426,7 +439,7 @@ export default function Company() {
 
     const handleSyncMultipleWallets = async () => {
         if (!selectedIds.length) {
-            toast.warning("Please select at least one card.");
+            toast.error("Please select at least one employee.");
             return;
         }
 
@@ -465,12 +478,126 @@ export default function Company() {
         }
     };
 
+    // --- NEW: background version (calls backend job scheduler endpoint) ---
+    const handleSyncMultipleWalletsBackground = async () => {
+        if (!selectedIds.length) {
+            toast.error("Please select at least one employee.");
+            return;
+        }
+
+        setIsSyncingBg(true);
+        setBackendErrors([]);
+
+        // Save previous state to restore in case of error
+        let previousEmployeesState = [...employees];
+
+        try {
+            // Optimistic UI: only update is_syncing field
+            setEmployees((prev) =>
+                prev.map((emp) => {
+                    if (selectedIds.includes(emp.id)) {
+                        if (emp.is_syncing !== 1) {
+                            return { ...emp, is_syncing: 1 };
+                        }
+                    }
+                    return emp;
+                })
+            );
+
+            const response = await axios.post(
+                "/company/cards/sync-multiple-wallets-background",
+                { ids: selectedIds }
+            );
+
+            if (response.data?.success) {
+                toast.success(
+                    response.data.message || "Employees syncing in background!"
+                );
+                setSelectedIds([]);
+            } else {
+                toast.error(
+                    response.data.message ||
+                        "Failed to schedule background sync."
+                );
+                // revert to previous state
+                setEmployees(previousEmployeesState);
+                setIsSyncingBg(false);
+            }
+        } catch (error) {
+            console.error("Background sync schedule failed:", error);
+            // restore previous state
+            setEmployees(previousEmployeesState);
+            setIsSyncingBg(false);
+            setSelectedIds([]);
+
+            if (error.response?.status === 422 && error.response.data.errors) {
+                setBackendErrors(error.response.data.errors);
+            } else {
+                toast.error(
+                    error.response?.data?.message ||
+                        "Failed to schedule background sync."
+                );
+            }
+        }
+    };
+
+    console.log("Cards: ", employees);
+
+    useEffect(() => {
+        if (!employees || employees.length === 0) {
+            setIsSyncingBg(false);
+            return;
+        }
+
+        // Map current employees to a simple {id, is_syncing} object
+        const currentSyncStatus = employees.map((emp) => ({
+            id: emp.id,
+            is_syncing: Number(emp.is_syncing),
+        }));
+
+        // Compare with previous status
+        let hasChanged = false;
+        if (window.prevEmployeesSyncStatus) {
+            for (let i = 0; i < currentSyncStatus.length; i++) {
+                if (
+                    currentSyncStatus[i].is_syncing !==
+                    window.prevEmployeesSyncStatus[i]?.is_syncing
+                ) {
+                    hasChanged = true;
+                    break;
+                }
+            }
+        } else {
+            // First run, treat as changed
+            hasChanged = true;
+        }
+
+        // Store current state globally for next comparison
+        window.prevEmployeesSyncStatus = currentSyncStatus;
+
+        // Update isSyncingBg based on any employee still syncing
+        const anySyncing = currentSyncStatus.some(
+            (emp) => emp.is_syncing === 1
+        );
+        setIsSyncingBg(anySyncing);
+
+        // Refresh table only if something changed
+        if (hasChanged && typeof refreshTable === "function") {
+            refreshTable();
+        }
+    }, [employees]);
+
     console.log("backendErrors: ", backendErrors);
 
     return (
         <AuthenticatedLayout>
             <Head title="Cards" />
-
+            <CardSyncChecker
+                isSyncingBg={isSyncingBg}
+                setIsSyncingBg={setIsSyncingBg}
+                employees={employees}
+                setEmployees={setEmployees}
+            />
             <div className="py-4 md:px-6 px-4 flex flex-col gap-6">
                 {/* <SampleCsvDownload cards={cards} /> */}
                 {!isSubscriptionActive ? (
@@ -534,7 +661,7 @@ export default function Company() {
                                                 : "Download Base CSV"}
                                         </DropdownItem>
 
-                                        <DropdownItem
+                                        {/* <DropdownItem
                                             onClick={handleSyncMultipleWallets}
                                             closeOnClick={true}
                                             disabled={!isAnyChecked}
@@ -542,6 +669,18 @@ export default function Company() {
                                             {isSyncing
                                                 ? "Syncing..."
                                                 : "Sync wallet"}
+                                        </DropdownItem> */}
+
+                                        <DropdownItem
+                                            onClick={
+                                                handleSyncMultipleWalletsBackground
+                                            }
+                                            closeOnClick={true}
+                                            disabled={!isAnyChecked}
+                                        >
+                                            {isSyncingBg
+                                                ? "Syncing..."
+                                                : "Sync wallet passes"}
                                         </DropdownItem>
                                     </Dropdown>
                                 </div>
@@ -571,9 +710,13 @@ export default function Company() {
                                 </div>
                             )}
                             <SyncingWarning isSyncing={isSyncing} />
+                            <SyncingWarning
+                                isSyncing={isSyncingBg}
+                                syncType="background"
+                            />
                             <DataTable
                                 key={linkDomain}
-                                data={cards}
+                                data={employees}
                                 columns={columns}
                                 className="display site-datatable"
                                 options={{
