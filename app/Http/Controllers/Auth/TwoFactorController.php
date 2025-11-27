@@ -139,4 +139,17 @@ class TwoFactorController extends Controller
             'message' => 'Authenticator 2FA disabled.',
         ]);
     }
+
+    public function updateInterval(Request $request)
+    {
+        $request->validate([
+            'interval' => 'nullable|in:daily,weekly,15_days',
+        ]);
+
+        $user = auth()->user();
+        $user->two_factor_prompt_interval = $request->interval;
+        $user->save();
+
+        return response()->json(['message' => 'Interval updated.']);
+    }
 }

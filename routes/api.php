@@ -9,7 +9,7 @@ Route::prefix('v1')->group(function () {
 
 Route::middleware('check_company_api_token')->prefix('v1')->group(function () {
     Route::get('/employees', [EmployeeController::class, 'index']);
-    Route::get('/employees/{cardId}', [EmployeeController::class, 'index']);
+    Route::get('/employees/{cardId}', [EmployeeController::class, 'show']);
     Route::post('/employees', [EmployeeController::class, 'store']);
     Route::put('/employees/{cardId}/clear', [EmployeeController::class, 'clearEmployee']);
     Route::put('/employees/{cardId}/bulk-clear', [EmployeeController::class, 'bulkClearEmployees']);

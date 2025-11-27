@@ -101,4 +101,5 @@ Route::middleware('auth')->group(function () {
     Route::post('/two-factor/totp/start', [TwoFactorController::class, 'startTotpSetup']);
     Route::post('/two-factor/totp/verify', [TwoFactorController::class, 'verifyTotp']);
     Route::post('/two-factor/totp/disable', [TwoFactorController::class, 'disableTotp']);
+    Route::post('/two-factor/interval', [TwoFactorController::class, 'updateInterval']);
 });

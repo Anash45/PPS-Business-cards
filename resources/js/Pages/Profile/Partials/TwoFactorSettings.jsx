@@ -6,6 +6,7 @@ import InputError from "@/Components/InputError";
 import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import SelectInput from "@/Components/SelectInput";
 
 export default function TwoFactorSettings({ className = "" }) {
     const user = usePage().props.auth.user;
@@ -206,6 +207,48 @@ export default function TwoFactorSettings({ className = "" }) {
                             </form>
                         </div>
                     )}
+                </div>
+                {/* 2FA RE-AUTH INTERVAL */}
+                <div className="border p-4 rounded-md">
+                    <h3 className="font-semibold">
+                        When should we ask for 2FA again?
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                        Choose how frequently you want to re-confirm your
+                        identity on this device.
+                    </p>
+
+                    <SelectInput
+                        value={user.two_factor_prompt_interval || ""}
+                        onChange={async (e) => {
+                            if (loading) return;
+
+                            const interval = e.target ? e.target.value : e;
+                            setLoading(true);
+
+                            try {
+                                await axios.post("/two-factor/interval", {
+                                    interval,
+                                });
+                                toast.success("2FA interval updated.");
+                                router.reload({ only: ["auth"] });
+                            } catch (err) {
+                                toast.error("Failed to update interval.");
+                            } finally {
+                                setLoading(false);
+                            }
+                        }}
+                        menuPlacement="top"
+                        disabled={loading}
+                        className="w-full block"
+                        placeholder="Select interval"
+                        options={[
+                            { value: "", label: "Select interval" },
+                            { value: "daily", label: "Once per Day" },
+                            { value: "weekly", label: "Once per Week" },
+                            { value: "15_days", label: "Once per 15 Days" },
+                        ]}
+                    />
                 </div>
             </div>
         </section>

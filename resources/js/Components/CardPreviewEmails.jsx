@@ -12,15 +12,15 @@ export default function CardPreviewEmails({ cardEmails }) {
     // Build final display list
     const displayEmails = [];
 
-    // 👉 Show Primary Email only when not empty
-    if (cardFormData?.primary_email?.trim()) {
-        displayEmails.push({
-            label: "Primary Email",
-            label_de: "Primäre E-Mail-Adresse",
-            email: cardFormData.primary_email,
-            is_hidden: false,
-        });
-    }
+    // // 👉 Show Primary Email only when not empty
+    // if (cardFormData?.primary_email?.trim()) {
+    //     displayEmails.push({
+    //         label: "Primary Email",
+    //         label_de: "Primäre E-Mail-Adresse",
+    //         email: cardFormData.primary_email,
+    //         is_hidden: false,
+    //     });
+    // }
 
     // 👉 Add other saved emails
     if (visibleEmails.length > 0) {

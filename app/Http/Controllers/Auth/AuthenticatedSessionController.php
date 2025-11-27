@@ -35,14 +35,12 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
 
         // If the user has any 2FA enabled
-        if ($user->hasAny2FA()) {
-            // Store user id temporarily in session
+        if ($user->requires2FA()) {
+
             session(['2fa:user:id' => $user->id]);
 
-            // Logout temporarily
             Auth::logout();
 
-            // Redirect to 2FA selection page
             return redirect()->route('2fa.select');
         }
 

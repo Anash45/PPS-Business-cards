@@ -116,17 +116,32 @@ class TwoFactorLoginController extends Controller
             ]);
         }
 
-        // Clear 2FA session and log in
+        /*
+         |--------------------------------------------------------------------------
+         | Save trusted device information
+         | User-selected interval is already stored in: two_factor_prompt_interval
+         |--------------------------------------------------------------------------
+         */
+
+        $deviceHash = $user->generateDeviceHash();
+
+        $user->update([
+            'two_factor_last_verified_at' => now(),
+            'two_factor_device_hash' => $deviceHash,
+        ]);
+
+        // Clear 2FA session and login
         $request->session()->forget('2fa:user:id');
         Auth::login($user, true);
 
-        // Redirect based on user type
+        // Redirects
         if ($user->isEditor())
             return redirect()->route('company.cards');
         if ($user->isAdmin() || $user->isCompany())
             return redirect()->route('dashboard');
         return redirect()->route('profile.edit');
     }
+
 
 
     // Show the email 2FA form
@@ -143,12 +158,12 @@ class TwoFactorLoginController extends Controller
     // Handle form submission
     public function store(Request $request)
     {
-        // Validate the input
+        // Validate input
         $request->validate([
             'code' => 'required|digits:6',
         ]);
 
-        // Get the temporary user ID from session
+        // Temporary user ID
         $userId = session('2fa:user:id');
         if (!$userId) {
             return redirect()->route('login')
@@ -159,37 +174,53 @@ class TwoFactorLoginController extends Controller
 
         $enteredCode = $request->input('code');
 
-        // Check if code is expired first
+        // Check if code expired
         if (now()->greaterThan($user->email_2fa_expires_at)) {
-            return back()->withErrors(['code' => 'The 2FA code has expired. Please request a new one.']);
+            return back()->withErrors([
+                'code' => 'The 2FA code has expired. Please request a new one.'
+            ]);
         }
 
-        Log::info("User: ", ['User 2fa' => $user->email_2fa_code, 'Entered 2fa' => $enteredCode]);
+        Log::info("User 2FA", [
+            'expected' => $user->email_2fa_code,
+            'entered' => $enteredCode,
+        ]);
 
-        // Then check if code matches
+        // Check if code matches
         if ($user->email_2fa_code !== $enteredCode) {
-            return back()->withErrors(['code' => 'The 2FA code you entered is invalid.']);
+            return back()->withErrors([
+                'code' => 'The 2FA code you entered is invalid.'
+            ]);
         }
 
-        // Clear 2FA session and code
-        session()->forget('2fa:user:id');
-        $user->email_2fa_code = null;
-        $user->email_2fa_expires_at = null;
-        $user->save();
+        /*
+         |--------------------------------------------------------------------------
+         | SUCCESS: Store trusted device info
+         |--------------------------------------------------------------------------
+         */
+        $user->update([
+            'two_factor_last_verified_at' => now(),
+            'two_factor_device_hash' => $user->generateDeviceHash(),
+            'email_2fa_code' => null,
+            'email_2fa_expires_at' => null,
+        ]);
 
-        // Log in the user
+        // Clear temporary session
+        session()->forget('2fa:user:id');
+
+        // Log in
         Auth::login($user, true);
 
-        // Redirect based on role
+        // Redirect by role
         if ($user->isEditor()) {
             return redirect()->route('company.cards');
         }
         if ($user->isAdmin() || $user->isCompany()) {
             return redirect()->route('dashboard');
         }
-
         return redirect()->route('profile.edit');
     }
+
 
     // Resend code
     public function resend(Request $request)

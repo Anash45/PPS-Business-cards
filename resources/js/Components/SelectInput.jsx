@@ -9,10 +9,11 @@ export default forwardRef(function SelectInput(
         isSearchable = false,
         value,
         onChange,
-        options = [], // for small dataset
-        async = false, // new prop to enable async
-        loadOptions, // function for async loading
+        options = [],
+        async = false,
+        loadOptions,
         placeholder = "Select...",
+        menuPlacement = "bottom", // ⬅️ NEW PROP
         ...props
     },
     ref
@@ -70,7 +71,6 @@ export default forwardRef(function SelectInput(
         }),
     };
 
-    // Custom Option with icon
     const Option = (props) => (
         <defaultComponents.Option {...props}>
             {props.data.icon && <props.data.icon size={16} />}
@@ -78,7 +78,6 @@ export default forwardRef(function SelectInput(
         </defaultComponents.Option>
     );
 
-    // Custom SingleValue with icon
     const SingleValue = (props) => (
         <defaultComponents.SingleValue {...props}>
             {props.data.icon && <props.data.icon size={16} />}
@@ -101,6 +100,7 @@ export default forwardRef(function SelectInput(
                 placeholder={placeholder}
                 styles={customStyles}
                 components={components}
+                menuPlacement={menuPlacement} // ⬅️ ADDED
                 onChange={(option) =>
                     onChange({
                         target: {
@@ -124,6 +124,7 @@ export default forwardRef(function SelectInput(
             placeholder={placeholder}
             styles={customStyles}
             components={components}
+            menuPlacement={menuPlacement} // ⬅️ ADDED
             value={options.find((opt) => opt.value === value) || null}
             onChange={(option) =>
                 onChange({

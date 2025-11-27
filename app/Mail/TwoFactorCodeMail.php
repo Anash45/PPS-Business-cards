@@ -26,7 +26,8 @@ class TwoFactorCodeMail extends Mailable
     public function build()
     {
         return $this
+            ->from(config('mail.from.address'), config('mail.from.name')) // uses .env values
             ->subject('Your 2FA Login Code')
-            ->markdown('emails.two_factor_code'); // We'll create this markdown next
+            ->markdown('emails.two_factor_code');
     }
 }
