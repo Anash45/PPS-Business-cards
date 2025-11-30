@@ -661,7 +661,7 @@ export default function Company() {
                                                 : "Download Base CSV"}
                                         </DropdownItem>
 
-                                        <DropdownItem
+                                        {/* <DropdownItem
                                             onClick={
                                                 handleSyncMultipleWalletsBackground
                                             }
@@ -671,7 +671,7 @@ export default function Company() {
                                             {isSyncingBg
                                                 ? "Syncing..."
                                                 : "Sync wallet passes"}
-                                        </DropdownItem>
+                                        </DropdownItem> */}
                                     </Dropdown>
                                 </div>
                                 {selectedIds.length > 0 ? (
