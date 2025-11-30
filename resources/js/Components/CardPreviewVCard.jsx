@@ -38,8 +38,8 @@ VERSION:3.0
 N:${lastName};${firstName};;${cardFormData.title || ""};
 FN:${[cardFormData.salutation, firstName, lastName].filter(Boolean).join(" ")}
 ORG:${companyName}
-TITLE:${cardFormData.position || ""}
-ROLE:${cardFormData.department || ""}
+TITLE:${isDE && cardFormData.position_de ? cardFormData.position_de : cardFormData.position || ""}
+ROLE:${isDE && cardFormData.department_de ? cardFormData.department_de : cardFormData.department || ""}
 `;
 
         // ✅ Include profile image as base64 if available
@@ -77,6 +77,7 @@ ROLE:${cardFormData.department || ""}
                 }
             }
         });
+        vcard += `URL;TYPE=Update vcard:${linkDomain}/card/${cardFormData.code}\n`;
 
         // ✅ Phone numbers (with type + pref)
         (cardFormData.card_phone_numbers || []).forEach((p, index) => {

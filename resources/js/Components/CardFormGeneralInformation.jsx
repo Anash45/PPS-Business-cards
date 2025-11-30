@@ -173,6 +173,20 @@ export default function CardFormGeneralInformation() {
                             <div className="space-y-1">
                                 <InputLabel
                                     className="text-black text-sm font-medium"
+                                    value={"Employee Number"}
+                                    isDemo={isTemplate}
+                                />
+                                <TextInput
+                                    id="internal_employee_number"
+                                    value={cardFormData.internal_employee_number}
+                                    onChange={(e) => handleCardChange(e)}
+                                    name="internal_employee_number"
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <InputLabel
+                                    className="text-black text-sm font-medium"
                                     value={"Degree"}
                                     isDemo={isTemplate}
                                 />

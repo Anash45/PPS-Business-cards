@@ -71,12 +71,12 @@ export default function Plans() {
             {
                 title: "Monthly Price",
                 data: "price_monthly",
-                render: (data) => `$${parseFloat(data).toFixed(2)}`,
+                render: (data) => `&euro;${parseFloat(data).toFixed(2)}`,
             },
             {
                 title: "Annual Price",
                 data: "price_annual",
-                render: (data) => `$${parseFloat(data).toFixed(2)}`,
+                render: (data) => `&euro;${parseFloat(data).toFixed(2)}`,
             },
             {
                 title: "Custom",
@@ -136,6 +136,7 @@ export default function Plans() {
                             responsive: true,
                             pageLength: 10,
                             lengthMenu: [10, 25, 50, 100],
+                            order: [[1, "desc"]],
                             dom:
                                 "<'flex justify-between items-center mb-3 sd-top'<'flex items-center gap-2'l><'flex items-center gap-2'f>>" +
                                 "rt" +

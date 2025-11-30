@@ -19,6 +19,7 @@ export default function Header() {
         setIsImpersonating(!!props?.auth?.user?.impersonated_by);
     }, [props?.auth?.user?.impersonated_by]);
 
+    console.log("Impersonation State:", props?.auth?.user);
     const stopImpersonate = async () => {
         setIsPageLoading(true);
         try {
@@ -63,9 +64,9 @@ export default function Header() {
                     </div>
                 )}
 
-                <div className="h-10 w-10 rounded-lg border border-[#EEF2F6] flex items-center justify-center cursor-pointer">
+                {/* <div className="h-10 w-10 rounded-lg border border-[#EEF2F6] flex items-center justify-center cursor-pointer">
                     <Bell className="h-5 w-5 text-[#697586]" strokeWidth={2} />
-                </div>
+                </div> */}
             </div>
         </div>
     );

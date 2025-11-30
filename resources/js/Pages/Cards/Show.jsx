@@ -6,8 +6,11 @@ import CardPreview from "@/Components/CardPreview";
 import CardLayout from "@/Layouts/CardLayout";
 import { mapCompanyTemplateData } from "@/utils/mapCompanyTemplateData";
 import AutoTranslate from "@/Components/AutoTranslate";
+import { useAutoTranslate } from "@/context/AutoTranslateProvider";
 
 export default function Company() {
+    const { setShowLanguageSelector } = useAutoTranslate();
+    setShowLanguageSelector(false);
     const {
         selectedCard,
         company,

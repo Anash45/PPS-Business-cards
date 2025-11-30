@@ -1,12 +1,20 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 
-const AutoTranslateContext = createContext();
+const AutoTranslateContext = createContext({
+    lang: null,
+    setLang: () => {},
+    isDE: null,
+    setShowLanguageSelector: () => {},
+    mounted: false,
+});
 
 export function AutoTranslateProvider({ children }) {
+    const [mounted, setMounted] = useState(false);
+
     const systemLang = (navigator.language || "en").split("-")[0];
     const [lang, setLang] = useState(systemLang === "de" ? "de" : "en");
     const [open, setOpen] = useState(false);
-    const [showLanguageSelector, setShowLanguageSelector] = useState(true); // new state
+    const [showLanguageSelector, setShowLanguageSelector] = useState(true);
     const ref = useRef(null);
 
     const languages = [
@@ -22,6 +30,10 @@ export function AutoTranslateProvider({ children }) {
         setOpen(false);
     };
 
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -36,14 +48,22 @@ export function AutoTranslateProvider({ children }) {
 
     return (
         <AutoTranslateContext.Provider
-            value={{ lang, setLang, isDE, setShowLanguageSelector }}
+            value={{
+                lang: mounted ? lang : null,
+                setLang: mounted ? setLang : () => {},
+                isDE: mounted ? isDE : null,
+                setShowLanguageSelector: mounted
+                    ? setShowLanguageSelector
+                    : () => {},
+                mounted,
+            }}
         >
             {children}
 
-            {showLanguageSelector && (
+            {/* Only show selector if provider mounted correctly */}
+            {false && (
                 <div className="fixed top-4 right-4 z-50" ref={ref}>
                     <div className="relative">
-                        {/* Drop-up menu */}
                         {open && (
                             <div className="absolute top-12 right-0 mb-2 w-36 rounded-2xl shadow-lg bg-white border border-gray-200 transition-all duration-150">
                                 {languages.map((l) => (
@@ -67,7 +87,6 @@ export function AutoTranslateProvider({ children }) {
                             </div>
                         )}
 
-                        {/* Trigger button */}
                         <button
                             onClick={() => setOpen(!open)}
                             className="w-12 h-12 rounded-full shadow-md bg-primary text-white flex items-center justify-center text-xl hover:bg-primary focus:outline-none"

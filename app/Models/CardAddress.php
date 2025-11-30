@@ -20,6 +20,7 @@ class CardAddress extends Model
         'zip',
         'city',
         'country',
+        'map_link',
         'is_hidden',
     ];
 

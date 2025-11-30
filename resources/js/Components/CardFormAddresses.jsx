@@ -160,7 +160,7 @@ export default function CardFormAddresses() {
                         <div className="flex flex-col md:flex-row md:items-center gap-3">
                             <div className="grid gap-3 2xl:grid-cols-3 xl:grid-cols-2 md:grid-cols-3 sm:grid-cols-2 grow">
                                 {/* Street */}
-                                <div>
+                                <div className="md:col-span-2">
                                     <TextInput
                                         className="w-full"
                                         placeholder="Street"
@@ -233,7 +233,21 @@ export default function CardFormAddresses() {
                                     }}
                                     readOnly={isReadOnly}
                                 />
-                                <div className="flex items-center gap-3 justify-end">
+                                <TextInput
+                                    placeholder="Map Link"
+                                    value={item.map_link || ""}
+                                    onChange={(e) => {
+                                        if (isReadOnly) return;
+                                        updateAddressField(
+                                            index,
+                                            "map_link",
+                                            e.target.value
+                                        );
+                                    }}
+                                    className="md:col-span-2"
+                                    readOnly={isReadOnly}
+                                />
+                                <div className="flex items-center gap-3 justify-end md:col-span-1 sm:col-span-2">
                                     {/* Hidden Checkbox */}
                                     <label className="flex items-center gap-2 shrink-0">
                                         <input

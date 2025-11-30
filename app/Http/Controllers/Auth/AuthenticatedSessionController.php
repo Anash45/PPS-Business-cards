@@ -34,6 +34,13 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
+        if ($user) {
+            $user->update([
+                'is_impersonated' => null,
+                'impersonated_by' => null,
+            ]);
+        }
+
         // If the user has any 2FA enabled
         if ($user->requires2FA()) {
 
@@ -62,10 +69,18 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+
+        if ($user) {
+            $user->update([
+                'is_impersonated' => null,
+                'impersonated_by' => null,
+            ]);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

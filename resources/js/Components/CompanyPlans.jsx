@@ -68,12 +68,12 @@ export default function CompanyPlans({ plans = [], subscription = null }) {
                                         Price:
                                     </p>
                                     <p className="font-medium">
-                                        <span className="font-bold">
-                                            £{plan.price_monthly}
+                                        <span className="font-bold mr-1">
+                                            &euro;{plan.price_monthly}
                                         </span>
                                         /month or{" "}
-                                        <span className="font-bold">
-                                            £{plan.price_annual}
+                                        <span className="font-bold ml-1">
+                                            &euro;{plan.price_annual}
                                         </span>
                                         /year
                                     </p>

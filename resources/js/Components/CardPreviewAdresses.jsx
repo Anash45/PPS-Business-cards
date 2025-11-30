@@ -19,17 +19,20 @@ export default function CardPreviewAdresses({ cardAddresses }) {
                         key={index}
                         target="_blank"
                         rel="noopener noreferrer"
-                        href={`https://www.google.de/maps/search/?api=1&query=${encodeURIComponent(
-                            [
-                                address.street,
-                                address.house_number,
-                                address.zip,
-                                address.city,
-                                address.country,
-                            ]
-                                .filter(Boolean)
-                                .join(" ")
-                        )}`}
+                        href={
+                            address.map_link ||
+                            `https://www.google.de/maps/search/?api=1&query=${encodeURIComponent(
+                                [
+                                    address.street,
+                                    address.house_number,
+                                    address.zip,
+                                    address.city,
+                                    address.country,
+                                ]
+                                    .filter(Boolean)
+                                    .join(" ")
+                            )}`
+                        }
                         style={{
                             color:
                                 cardFormData?.address_text_color ??

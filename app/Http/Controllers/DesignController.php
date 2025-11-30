@@ -142,6 +142,7 @@ class DesignController extends Controller
             'card_addresses.*.zip' => 'nullable|string|max:20',
             'card_addresses.*.city' => 'nullable|string|max:100',
             'card_addresses.*.country' => 'nullable|string|max:100',
+            'card_addresses.*.map_link' => 'nullable|url|max:255',
             'card_addresses.*.is_hidden' => 'nullable|boolean',
             'card_addresses.*.type' => 'nullable|string|max:10',
 
@@ -1127,6 +1128,7 @@ class DesignController extends Controller
             'position_de' => 'nullable|string|max:255',
             'degree_de' => 'nullable|string|max:255',
             'department_de' => 'nullable|string|max:255',
+            'internal_employee_number' => 'nullable|string|max:100',
 
             // Social Media Links
             'card_social_links' => 'nullable|array',
@@ -1172,6 +1174,7 @@ class DesignController extends Controller
             'card_addresses.*.zip' => 'nullable|string|max:20',
             'card_addresses.*.city' => 'nullable|string|max:100',
             'card_addresses.*.country' => 'nullable|string|max:100',
+            'card_addresses.*.map_link' => 'nullable|url|max:255',
             'card_addresses.*.is_hidden' => 'nullable|boolean',
             'card_addresses.*.type' => 'nullable|string|max:10',
 
@@ -1863,6 +1866,7 @@ class DesignController extends Controller
                         'zip' => $addressData['zip'] ?? '',
                         'city' => $addressData['city'] ?? '',
                         'country' => $addressData['country'] ?? '',
+                        'map_link' => $addressData['map_link'] ?? '',
                         'type' => $addressData['type'] ?? 'Work',
                         'is_hidden' => $addressData['is_hidden'] ?? false,
                     ]);
@@ -1876,6 +1880,7 @@ class DesignController extends Controller
                     'zip' => $addressData['zip'] ?? '',
                     'city' => $addressData['city'] ?? '',
                     'country' => $addressData['country'] ?? '',
+                    'map_link' => $addressData['map_link'] ?? '',
                     'type' => $addressData['type'] ?? 'Work',
                     'is_hidden' => $addressData['is_hidden'] ?? false,
                     'company_id' => $company->id,

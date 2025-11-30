@@ -76,6 +76,7 @@ export function mapCompanyTemplateData(
                 position_de: selectedCard.position_de ?? "",
                 department: selectedCard.department ?? "",
                 department_de: selectedCard.department_de ?? "",
+                internal_employee_number: selectedCard.internal_employee_number ?? "",
                 profile_image_url: selectedCard?.profile_image
                     ? `/storage/${selectedCard.profile_image}`
                     : "/assets/images/profile-placeholder.png",
@@ -145,6 +146,7 @@ export function mapCompanyTemplateData(
                 zip: addr.zip || "",
                 city: addr.city || "",
                 country: addr.country || "",
+                map_link: addr.map_link || "",
                 is_hidden: addr.is_hidden ?? false,
                 type: addr.type ?? "Work",
                 company_id: addr.company_id || null,

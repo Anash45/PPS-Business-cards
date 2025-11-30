@@ -444,9 +444,11 @@ export default function Nfc() {
                                             Unassign Card(s)
                                         </DropdownItem>
                                     </Dropdown>
-                                    <div className="min-w-[200px]">
+                                    <div className="w-[280px] max-w-full">
                                         <SelectInput
                                             id="employee"
+                                            isSearchable={true}
+                                            placeholder="Select or search employee..."
                                             name="employee"
                                             value={selectedEmployee} // use the new state
                                             onChange={(selected) => {
@@ -458,17 +460,46 @@ export default function Nfc() {
                                             options={employeeCards.map(
                                                 (employee) => ({
                                                     value: employee.id,
-                                                    label:
-                                                        [
-                                                            employee.id,
-                                                            employee.salutation,
-                                                            employee.title,
+                                                    label: (() => {
+                                                        const id = employee.id;
+                                                        const internal =
+                                                            employee.internal_employee_number;
+                                                        const nameParts = [
                                                             employee.first_name,
                                                             employee.last_name,
                                                         ]
                                                             .filter(Boolean)
-                                                            .join(" ") ||
-                                                        "Not assigned",
+                                                            .join(" "); // join name parts with space
+
+                                                        // If both internal and name are empty
+                                                        if (
+                                                            !internal &&
+                                                            !nameParts
+                                                        )
+                                                            return "Not assigned";
+
+                                                        const inner = [
+                                                            internal,
+                                                            nameParts,
+                                                        ]
+                                                            .filter(Boolean)
+                                                            .join(" - ");
+                                                        return `${id} - (${inner})`;
+                                                    })(),
+                                                    icon: () => (
+                                                        <img
+                                                            src={
+                                                                employee.profile_image
+                                                                    ? `/storage/${employee.profile_image}`
+                                                                    : "/assets/images/profile-placeholder.png"
+                                                            } // fallback
+                                                            alt={
+                                                                employee.first_name ||
+                                                                "Employee"
+                                                            }
+                                                            className="h-6 w-6 rounded-full"
+                                                        />
+                                                    ),
                                                 })
                                             )}
                                         />

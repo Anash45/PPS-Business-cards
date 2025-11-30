@@ -107,6 +107,7 @@ export default function LandingTab() {
             formData.append("position_de", cardFormData.position_de);
             formData.append("degree_de", cardFormData.degree_de);
             formData.append("department_de", cardFormData.department_de);
+            formData.append("internal_employee_number", cardFormData.internal_employee_number);
 
             // Append the file if it exists
             if (cardFormData.profile_image) {
@@ -284,6 +285,10 @@ export default function LandingTab() {
                 formData.append(
                     `card_addresses[${index}][country]`,
                     addr.country || ""
+                );
+                formData.append(
+                    `card_addresses[${index}][map_link]`,
+                    addr.map_link || ""
                 );
                 formData.append(
                     `card_addresses[${index}][is_hidden]`,

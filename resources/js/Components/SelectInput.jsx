@@ -39,6 +39,13 @@ export default forwardRef(function SelectInput(
             boxShadow: "none",
             "&:hover": { borderColor: "#84af83" },
         }),
+        input: (base) => ({
+            ...base,
+            color: "#1f1f1f",
+            fontSize: "14px",
+            padding: "4px 0",
+            boxShadow: "none",
+        }),
         dropdownIndicator: (base) => ({
             ...base,
             color: "#64748B",

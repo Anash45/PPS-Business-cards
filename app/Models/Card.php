@@ -23,6 +23,7 @@ class Card extends Model
         'position_de',
         'degree_de',
         'department_de',
+        'internal_employee_number',
         'code',
         'company_id',
         'cards_group_id',

@@ -165,3 +165,7 @@ body {
 .dropdown-item:last-child{
     border-bottom: 0 !important;
 }
+
+.custom-select__input{
+    box-shadow: none !important;
+}
