@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\CardHelper;
 use App\Jobs\BulkCardWalletSyncJob;
 use App\Models\Card;
 use App\Models\CardView;
@@ -724,7 +725,7 @@ class DesignController extends Controller
 
         // ✅ Prepare payload
         $payload = [
-            'template_id' => 88260,
+            'template_id' => 88419,
             'email_to' => $card->primary_email,
             'google_pass' => [
                 'img_hero' => $userImageFileId,
@@ -1315,12 +1316,56 @@ class DesignController extends Controller
                 }),
         ])->first();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Card updated successfully!',
-            'company' => $company,
-            'selectedCard' => $card,
-        ]);
+        // if ($card->last_email_sent_at === null) {
+        //     CardHelper::sendCardEmail($card->id);
+        // }
+
+        // Check if card is eligible for sync
+        if (!$card->is_eligible_for_sync['eligible']) {
+            return response()->json([
+                'success' => true,
+                'error_code' => 'CARD_NOT_ELIGIBLE',
+                'message' => 'Employee updated but cannot be synced with wallet pass because required fields are missing.',
+                'missing_fields' => $card->is_eligible_for_sync['missing_fields'],
+                'company' => $company,
+                'selectedCard' => $card,
+            ], 200);
+        }
+
+        // Check if already synced
+        if ($card->wallet_status["status"] === 'synced') {
+            return response()->json([
+                'success' => true,
+                'error_code' => 'ALREADY_SYNCED',
+                'message' => 'Employee updated but cannot be synced with wallet pass because it is already synced.',
+                'company' => $company,
+                'selectedCard' => $card,
+            ], 200);
+        }
+        try {
+            $wallet = $this->buildCardWalletFromCardApi($card);
+
+            if ($card->last_email_sent_at === null) {
+                CardHelper::sendCardEmail($card->id);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Card Wallet updated successfully!',
+                'data' => ['card_wallet' => $wallet],
+                'company' => $company,
+                'selectedCard' => $card,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => true,
+                'error_code' => 'WALLET_API_FAILED',
+                'message' => 'Employee updated successfully but wallet sync failed: ' . $e->getMessage(),
+                'company' => $company,
+                'selectedCard' => $card,
+            ], 200);
+        }
     }
 
     public function clearCard(Request $request, $id)

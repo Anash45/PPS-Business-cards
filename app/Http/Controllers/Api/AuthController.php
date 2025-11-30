@@ -13,7 +13,7 @@ class AuthController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/api/authenticate",
+     *     path="/api/v1/authenticate",
      *     tags={"Auth"},
      *     summary="Authenticate company by API key and create a company API token",
      *     @OA\RequestBody(

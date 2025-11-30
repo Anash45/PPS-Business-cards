@@ -19,6 +19,7 @@ export default function LandingTab() {
         isTemplate,
         isChanged,
         setIsChanged,
+        setIsPageLoading,
     } = useGlobal(GlobalProvider);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -35,7 +36,7 @@ export default function LandingTab() {
     console.log("Current cardFormData:", cardFormData);
 
     const handleSaveTemplate = async () => {
-        setIsSaving(true);
+        setIsPageLoading(true);
 
         // 1. Create FormData object
         // This is required when sending files (like banner_image)
@@ -107,7 +108,10 @@ export default function LandingTab() {
             formData.append("position_de", cardFormData.position_de);
             formData.append("degree_de", cardFormData.degree_de);
             formData.append("department_de", cardFormData.department_de);
-            formData.append("internal_employee_number", cardFormData.internal_employee_number);
+            formData.append(
+                "internal_employee_number",
+                cardFormData.internal_employee_number
+            );
 
             // Append the file if it exists
             if (cardFormData.profile_image) {
@@ -374,7 +378,8 @@ export default function LandingTab() {
             // 3. Handle Success
             if (response?.data?.success) {
                 toast.success(
-                    response.data.message || "Template saved successfully!"
+                    response.data.message || "Template saved successfully!",
+                    { duration: 5000 }
                 );
                 // You can update state here with the new template data if needed:
                 // ✅ Get the updated company from backend
@@ -390,7 +395,9 @@ export default function LandingTab() {
                     ...prev,
                     ...mappedData1,
                 }));
-                router.reload({ only: ["wallet_status", "wallet_eligibility"] });
+                router.reload({
+                    only: ["wallet_status", "wallet_eligibility"],
+                });
 
                 setTimeout(() => {
                     setIsChanged(false);
@@ -399,7 +406,8 @@ export default function LandingTab() {
                 // Should generally not be hit if status is 2xx, but good for custom success:false responses
                 toast.error(
                     response.data.message ||
-                        "Something went wrong during saving."
+                        "Something went wrong during saving.",
+                    { duration: 5000 }
                 );
             }
         } catch (error) {
@@ -428,10 +436,10 @@ export default function LandingTab() {
                 errorMessage = "Network Error. Please check your connection.";
             }
 
-            toast.error(errorMessage);
+            toast.error(errorMessage, { duration: 5000 });
         } finally {
             // 5. Reset saving status
-            setIsSaving(false);
+            setIsPageLoading(false);
         }
     };
 
@@ -458,6 +466,18 @@ export default function LandingTab() {
                             ? "Save Card"
                             : "Save Template"}
                     </Button>
+                    {isTemplate ? (
+                        <Button
+                            className="px-8"
+                            variant="primary"
+                            onClick={handleSaveTemplate}
+                            disabled={isSaving}
+                        >
+                            {isSaving
+                                ? "Saving..."
+                                : "Save Template and update passes"}
+                        </Button>
+                    ) : null}
                 </div>
             </div>
 

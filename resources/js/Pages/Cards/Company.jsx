@@ -437,46 +437,6 @@ export default function Company() {
 
     const [backendErrors, setBackendErrors] = useState([]);
 
-    const handleSyncMultipleWallets = async () => {
-        if (!selectedIds.length) {
-            toast.error("Please select at least one employee.");
-            return;
-        }
-
-        setIsSyncing(true);
-        setBackendErrors([]); // reset errors
-
-        try {
-            const response = await axios.post(
-                "/company/cards/sync-multiple-wallets",
-                { ids: selectedIds }
-            );
-
-            // ✅ Only success responses reach here
-            toast.success(
-                response.data.message || "Cards synced successfully!"
-            );
-            router.reload({ only: ["cards"] });
-            setSelectedIds([]);
-
-            if (typeof refreshTable === "function") refreshTable();
-        } catch (error) {
-            // ❌ Catch block will handle 422 or other errors
-            console.error("Sync failed:", error);
-
-            if (error.response?.status === 422 && error.response.data.errors) {
-                // Backend returned validation / eligibility errors
-                setBackendErrors(error.response.data.errors);
-            } else {
-                // Other errors
-                const msg =
-                    error.response?.data?.message || "Failed to update wallet.";
-                toast.error(msg);
-            }
-        } finally {
-            setIsSyncing(false);
-        }
-    };
 
     // --- NEW: background version (calls backend job scheduler endpoint) ---
     const handleSyncMultipleWalletsBackground = async () => {
@@ -660,16 +620,6 @@ export default function Company() {
                                                 ? "Saving..."
                                                 : "Download Base CSV"}
                                         </DropdownItem>
-
-                                        {/* <DropdownItem
-                                            onClick={handleSyncMultipleWallets}
-                                            closeOnClick={true}
-                                            disabled={!isAnyChecked}
-                                        >
-                                            {isSyncing
-                                                ? "Syncing..."
-                                                : "Sync wallet"}
-                                        </DropdownItem> */}
 
                                         <DropdownItem
                                             onClick={

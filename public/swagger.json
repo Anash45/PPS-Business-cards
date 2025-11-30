@@ -16,13 +16,13 @@
         }
     ],
     "paths": {
-        "/api/authenticate": {
+        "/api/v1/authenticate": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Authenticate company by API key and create a company API token",
-                "operationId": "9076b2f08b57227d057da88e9a73cdba",
+                "operationId": "91d7c3d59738bb2639cd05ca38f5eb52",
                 "requestBody": {
                     "required": true,
                     "content": {

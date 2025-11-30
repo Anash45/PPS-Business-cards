@@ -26,6 +26,7 @@ export const GlobalProvider = ({ children }) => {
     const [errors, setErrors] = useState([]);
     const [cardSectionsOrder, setCardSectionsOrder] = useState([]);
     const [isChanged, setIsChanged] = useState(false);
+    const [pageSaving, setPageSaving] = useState(null);
 
     // 🔹 Card form state
     const [cardFormData, setCardFormData] = useState({
@@ -165,6 +166,8 @@ export const GlobalProvider = ({ children }) => {
                 setCardSectionsOrder,
                 isChanged,
                 setIsChanged,
+                pageSaving,
+                setPageSaving,
             }}
         >
             {children}
@@ -210,6 +213,8 @@ export const useGlobal = () => {
             setCardSectionsOrder: () => {},
             isChanged: null,
             setIsChanged: () => {},
+            pageSaving: null,
+            setPageSaving: () => {},
         };
     }
     return context;
