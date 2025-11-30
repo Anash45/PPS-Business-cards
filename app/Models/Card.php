@@ -30,6 +30,7 @@ class Card extends Model
         'status',
         'is_syncing',
         'downloads',
+        'last_email_sent',
     ];
 
     protected $appends = ['is_eligible_for_sync', 'wallet_status'];

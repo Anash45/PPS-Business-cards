@@ -1316,9 +1316,9 @@ class DesignController extends Controller
                 }),
         ])->first();
 
-        // if ($card->last_email_sent_at === null) {
-        //     CardHelper::sendCardEmail($card->id);
-        // }
+        if ($card->last_email_sent === null) {
+            CardHelper::sendCardEmail($card->id);
+        }
 
         // Check if card is eligible for sync
         if (!$card->is_eligible_for_sync['eligible']) {
@@ -1345,7 +1345,7 @@ class DesignController extends Controller
         try {
             $wallet = $this->buildCardWalletFromCardApi($card);
 
-            if ($card->last_email_sent_at === null) {
+            if ($card->last_email_sent === null) {
                 CardHelper::sendCardEmail($card->id);
             }
 

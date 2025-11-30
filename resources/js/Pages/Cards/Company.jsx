@@ -289,6 +289,47 @@ export default function Company() {
             { title: "Position", data: "position" },
             { title: "Department", data: "department" },
             {
+                title: "Notified",
+                data: null,
+                render: (data, type, row) => {
+                    const ts = row.last_email_sent ? new Date(row.last_email_sent) : null;
+                    const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
+                    const formatDate = (d) => `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+                    const formatTime = (d) => {
+                        let hours = d.getHours();
+                        const minutes = pad(d.getMinutes());
+                        const ampm = hours >= 12 ? 'PM' : 'AM';
+                        hours = hours % 12;
+                        if (hours === 0) hours = 12;
+                        return `${hours}:${minutes} ${ampm}`;
+                    };
+
+                    if (ts) {
+                        const dateStr = formatDate(ts);
+                        const timeStr = formatTime(ts);
+                        return `
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 border border-green-200">
+                                    Sent
+                                </span>
+                                <div class="flex flex-col leading-tight text-xs">
+                                    <span>${dateStr}</span>
+                                    <span>${timeStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700 border border-red-200">
+                                Never
+                            </span>
+                        </div>
+                    `;
+                },
+            },
+            {
                 title: "Status",
                 data: "status",
                 render: (data) => {
@@ -436,7 +477,6 @@ export default function Company() {
     };
 
     const [backendErrors, setBackendErrors] = useState([]);
-
 
     // --- NEW: background version (calls backend job scheduler endpoint) ---
     const handleSyncMultipleWalletsBackground = async () => {
