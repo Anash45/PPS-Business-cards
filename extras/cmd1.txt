@@ -1,0 +1,54 @@
+UPDATE cards SET profile_image = 'card_profiles/profile-21.png' WHERE id = 110021;
+UPDATE cards SET profile_image = 'card_profiles/profile-22.png' WHERE id = 110022;
+UPDATE cards SET profile_image = 'card_profiles/profile-23.png' WHERE id = 110023;
+UPDATE cards SET profile_image = 'card_profiles/profile-24.png' WHERE id = 110024;
+UPDATE cards SET profile_image = 'card_profiles/profile-25.png' WHERE id = 110025;
+UPDATE cards SET profile_image = 'card_profiles/profile-26.png' WHERE id = 110026;
+UPDATE cards SET profile_image = 'card_profiles/profile-27.png' WHERE id = 110027;
+UPDATE cards SET profile_image = 'card_profiles/profile-28.png' WHERE id = 110028;
+UPDATE cards SET profile_image = 'card_profiles/profile-29.png' WHERE id = 110029;
+UPDATE cards SET profile_image = 'card_profiles/profile-30.png' WHERE id = 110030;
+
+UPDATE cards SET profile_image = 'card_profiles/profile-31.png' WHERE id = 110031;
+UPDATE cards SET profile_image = 'card_profiles/profile-32.png' WHERE id = 110032;
+UPDATE cards SET profile_image = 'card_profiles/profile-33.png' WHERE id = 110033;
+UPDATE cards SET profile_image = 'card_profiles/profile-34.png' WHERE id = 110034;
+UPDATE cards SET profile_image = 'card_profiles/profile-35.png' WHERE id = 110035;
+UPDATE cards SET profile_image = 'card_profiles/profile-36.png' WHERE id = 110036;
+UPDATE cards SET profile_image = 'card_profiles/profile-37.png' WHERE id = 110037;
+UPDATE cards SET profile_image = 'card_profiles/profile-38.png' WHERE id = 110038;
+UPDATE cards SET profile_image = 'card_profiles/profile-39.png' WHERE id = 110039;
+UPDATE cards SET profile_image = 'card_profiles/profile-40.png' WHERE id = 110040;
+
+UPDATE cards SET profile_image = 'card_profiles/profile-41.png' WHERE id = 110041;
+UPDATE cards SET profile_image = 'card_profiles/profile-42.png' WHERE id = 110042;
+UPDATE cards SET profile_image = 'card_profiles/profile-43.png' WHERE id = 110043;
+UPDATE cards SET profile_image = 'card_profiles/profile-44.png' WHERE id = 110044;
+UPDATE cards SET profile_image = 'card_profiles/profile-45.png' WHERE id = 110045;
+UPDATE cards SET profile_image = 'card_profiles/profile-46.png' WHERE id = 110046;
+UPDATE cards SET profile_image = 'card_profiles/profile-47.png' WHERE id = 110047;
+UPDATE cards SET profile_image = 'card_profiles/profile-48.png' WHERE id = 110048;
+UPDATE cards SET profile_image = 'card_profiles/profile-49.png' WHERE id = 110049;
+UPDATE cards SET profile_image = 'card_profiles/profile-50.png' WHERE id = 110050;
+
+UPDATE cards SET profile_image = 'card_profiles/profile-1.png' WHERE id = 110061;
+UPDATE cards SET profile_image = 'card_profiles/profile-2.png' WHERE id = 110062;
+UPDATE cards SET profile_image = 'card_profiles/profile-3.png' WHERE id = 110063;
+UPDATE cards SET profile_image = 'card_profiles/profile-4.png' WHERE id = 110064;
+UPDATE cards SET profile_image = 'card_profiles/profile-5.png' WHERE id = 110065;
+UPDATE cards SET profile_image = 'card_profiles/profile-6.png' WHERE id = 110066;
+UPDATE cards SET profile_image = 'card_profiles/profile-7.png' WHERE id = 110067;
+UPDATE cards SET profile_image = 'card_profiles/profile-8.png' WHERE id = 110068;
+UPDATE cards SET profile_image = 'card_profiles/profile-9.png' WHERE id = 110069;
+UPDATE cards SET profile_image = 'card_profiles/profile-10.png' WHERE id = 110070;
+
+UPDATE cards SET profile_image = 'card_profiles/profile-11.png' WHERE id = 110051;
+UPDATE cards SET profile_image = 'card_profiles/profile-12.png' WHERE id = 110052;
+UPDATE cards SET profile_image = 'card_profiles/profile-13.png' WHERE id = 110053;
+UPDATE cards SET profile_image = 'card_profiles/profile-14.png' WHERE id = 110054;
+UPDATE cards SET profile_image = 'card_profiles/profile-15.png' WHERE id = 110055;
+UPDATE cards SET profile_image = 'card_profiles/profile-16.png' WHERE id = 110056;
+UPDATE cards SET profile_image = 'card_profiles/profile-17.png' WHERE id = 110057;
+UPDATE cards SET profile_image = 'card_profiles/profile-18.png' WHERE id = 110058;
+UPDATE cards SET profile_image = 'card_profiles/profile-19.png' WHERE id = 110059;
+UPDATE cards SET profile_image = 'card_profiles/profile-20.png' WHERE id = 110070;

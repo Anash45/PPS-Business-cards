@@ -229,17 +229,16 @@ export default function Company() {
             {
                 title: `<input type="checkbox" id="select-all" /> ID`,
                 data: "id",
-                orderable: false,
                 render: (data, type, row) => {
                     const isChecked = selectedIds.includes(row.id);
                     return `
-        <div class="flex items-center gap-2">
+        <label class="flex items-center gap-2">
             <input type="checkbox" 
                    class="row-checkbox" 
                    value="${row.id}" 
                    ${isChecked ? "checked" : ""} />
             <span>${row.id}</span>
-        </div>
+        </label>
     `;
                 },
             },
