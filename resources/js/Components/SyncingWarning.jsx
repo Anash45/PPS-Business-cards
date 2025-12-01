@@ -10,9 +10,16 @@ export function SyncingWarning({ isSyncing, syncType = "normal" }) {
 
             {syncType == "background" ? (
                 <div>
-                    <p className="font-bold">Card Wallets syncing...</p>
+                    <p className="font-bold">Wallets cards syncing...</p>
                     <p className="mt-1 text-sm">
                         ⚠️ Syncing in background. You can keep doing your work.
+                    </p>
+                </div>
+            ) : syncType == "emailSending" ? (
+                <div>
+                    <p className="font-bold">Wallets cards sending emails...</p>
+                    <p className="mt-1 text-sm">
+                        ⚠️ E-mails sending in background. You can keep doing your work.
                     </p>
                 </div>
             ) : (

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Helpers\CardHelper;
 use App\Jobs\BulkCardWalletSyncJob;
+use App\Models\BulkEmailJob;
+use App\Models\BulkEmailJobItem;
 use App\Models\BulkWalletApiJob;
 use App\Models\BulkWalletApiJobItem;
 use App\Models\Card;
@@ -46,11 +48,18 @@ class DesignController extends Controller
                 ? optional(optional($user->company)->owner)->hasActiveSubscription()
                 : false);
 
+
+        // Check if ANY job is pending/processing for this company
+        $hasRunningJob = BulkWalletApiJob::where('company_id', $company->id)
+            ->whereIn('status', ['pending', 'processing'])
+            ->exists();
+
         return inertia('Design/Index', [
             'pageType' => "template",
             'company' => $company,
             'card' => null,
             'isSubscriptionActive' => $isSubscriptionActive,
+            'hasRunningJob' => $hasRunningJob,
         ]);
     }
 
@@ -77,6 +86,21 @@ class DesignController extends Controller
                 'success' => false,
                 'message' => 'No company associated with this user.',
             ], 404);
+        }
+
+        // If frontend requested wallet passes update, check for running job first
+        if ($request->boolean('updateWalletPasses')) {
+            $hasRunningJob = BulkWalletApiJob::where('company_id', $company->id)
+                ->whereIn('status', ['pending', 'processing'])
+                ->exists();
+
+            if ($hasRunningJob) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'A wallet sync job is already running for this company, try again after it finishes.',
+                    'hasRunningJob' => true,
+                ], 409);
+            }
         }
 
         $validated = $request->validate([
@@ -236,11 +260,40 @@ class DesignController extends Controller
             'cardButtons' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
         ]);
 
+        // ✅ If requested, auto-schedule wallet updates for all eligible + not-synced cards
+        $walletSync = null;
+        if ($request->boolean('updateWalletPasses')) {
+            $eligibleIds = Card::where('company_id', $company->id)
+                ->get()
+                ->filter(fn($card) => ($card->is_eligible_for_sync['eligible'] ?? false) && (($card->wallet_status['status'] ?? null) !== 'synced'))
+                ->pluck('id')
+                ->values()
+                ->all();
+
+            if (empty($eligibleIds)) {
+                $walletSync = [
+                    'scheduled' => false,
+                    'message' => 'No eligible cards to sync.',
+                    'eligible_ids' => [],
+                ];
+            } else {
+                // Reuse background scheduler; allow passing IDs directly
+                $bgResponse = $this->cardWalletBulkUpdateBackground(new Request(['ids' => $eligibleIds]), $eligibleIds);
+                $bgData = method_exists($bgResponse, 'getData') ? $bgResponse->getData(true) : null;
+                $walletSync = $bgData ?: [
+                    'scheduled' => true,
+                    'job_id' => null,
+                    'message' => 'Bulk Wallet API sync scheduled',
+                ];
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Template ' . ($template->wasRecentlyCreated ? 'created' : 'updated') . ' successfully!',
             'company' => $company,
             'selectedCard' => null,
+            'wallet_sync' => $walletSync,
         ]);
     }
 
@@ -315,11 +368,40 @@ class DesignController extends Controller
             'cardButtons' => fn($q) => $q->where('company_id', $company->id)->whereNull('card_id'),
         ]);
 
+        // ✅ If requested, auto-schedule wallet updates for all eligible + not-synced cards
+        $walletSync = null;
+        if ($request->boolean('updateWalletPasses')) {
+            $eligibleIds = Card::where('company_id', $company->id)
+                ->get()
+                ->filter(fn($card) => ($card->is_eligible_for_sync['eligible'] ?? false) && (($card->wallet_status['status'] ?? null) !== 'synced'))
+                ->pluck('id')
+                ->values()
+                ->all();
+
+            if (empty($eligibleIds)) {
+                $walletSync = [
+                    'scheduled' => false,
+                    'message' => 'No eligible cards to sync.',
+                    'eligible_ids' => [],
+                ];
+            } else {
+                // Reuse existing background scheduler; allow passing IDs directly
+                $bgResponse = $this->cardWalletBulkUpdateBackground(new Request(['ids' => $eligibleIds]), $eligibleIds);
+                $bgData = method_exists($bgResponse, 'getData') ? $bgResponse->getData(true) : null;
+                $walletSync = $bgData ?: [
+                    'scheduled' => true,
+                    'job_id' => null,
+                    'message' => 'Bulk Wallet API sync scheduled',
+                ];
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Template ' . ($template->wasRecentlyCreated ? 'created' : 'updated') . ' successfully!',
             'company' => $company,
             'selectedCard' => null,
+            'wallet_sync' => $walletSync,
         ]);
     }
 
@@ -347,7 +429,7 @@ class DesignController extends Controller
             return response()->json([
                 'success' => false,
                 'error_code' => 'CARD_NOT_ELIGIBLE',
-                'message' => 'This card is missing required fields and cannot be synced.',
+                'message' => 'This employee is missing required fields and cannot be synced.',
                 'missing_fields' => $card->is_eligible_for_sync['missing_fields'],
             ], 422); // Unprocessable Entity
         }
@@ -357,7 +439,7 @@ class DesignController extends Controller
             return response()->json([
                 'success' => false,
                 'error_code' => 'ALREADY_SYNCED',
-                'message' => 'This card is already synced to the wallet.',
+                'message' => 'This employee is already synced to the wallet.',
             ], 409); // Conflict
         }
 
@@ -408,7 +490,7 @@ class DesignController extends Controller
             if (!$card->is_eligible_for_sync['eligible']) {
                 $cardErrors[] = [
                     'error_code' => 'CARD_NOT_ELIGIBLE',
-                    'message' => 'This card is missing required fields and cannot be synced.',
+                    'message' => 'This employee is missing required fields and cannot be synced.',
                     'missing_fields' => $card->is_eligible_for_sync['missing_fields'],
                 ];
             }
@@ -416,7 +498,7 @@ class DesignController extends Controller
             if ($card->wallet_status['status'] === 'synced') {
                 $cardErrors[] = [
                     'error_code' => 'ALREADY_SYNCED',
-                    'message' => 'This card is already synced to the wallet.',
+                    'message' => 'This employee is already synced to the wallet.',
                 ];
             }
 
@@ -429,7 +511,7 @@ class DesignController extends Controller
         if (!empty($errors)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Some cards cannot be synced due to errors.',
+                'message' => 'Some employees cannot be synced due to errors.',
                 'errors' => $errors,
             ], 422);
         }
@@ -459,13 +541,13 @@ class DesignController extends Controller
         ]);
     }
 
-    public function cardWalletBulkUpdateBackground(Request $request)
+    public function cardWalletBulkUpdateBackground(Request $request, ?array $ids = null)
     {
-        $cardIds = $request->ids ?? [];
+        $cardIds = $ids ?? ($request->ids ?? []);
         $user = Auth::user();
 
         if (!$cardIds) {
-            return response()->json(['success' => false, 'message' => 'No cards selected'], 422);
+            return response()->json(['success' => false, 'message' => 'No employees selected'], 422);
         }
 
         // Authorization
@@ -505,14 +587,14 @@ class DesignController extends Controller
             if ($card->wallet_status['status'] === 'synced') {
                 $cardErrors[] = [
                     'error_code' => 'ALREADY_SYNCED',
-                    'message' => 'This card is already synced to the wallet.'
+                    'message' => 'This employee is already synced to the wallet.'
                 ];
             }
 
             if (!$card->is_eligible_for_sync['eligible']) {
                 $cardErrors[] = [
                     'error_code' => 'NOT_ELIGIBLE',
-                    'message' => 'This card is missing required fields and cannot be synced.',
+                    'message' => 'This employee is missing required fields and cannot be synced.',
                     'missing_fields' => $card->is_eligible_for_sync['missing_fields'] ?? []
                 ];
             }
@@ -527,7 +609,7 @@ class DesignController extends Controller
             Log::info("Bulk Wallet API sync aborted due to errors for user {$user->id}");
             return response()->json([
                 'success' => false,
-                'message' => 'Some cards cannot be synced due to errors.',
+                'message' => 'Some employees cannot be synced due to errors.',
                 'errors' => $errors
             ], 422);
         }
@@ -554,6 +636,107 @@ class DesignController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Bulk Wallet API sync scheduled',
+            'job_id' => $job->id,
+        ]);
+    }
+
+
+    public function cardSendingEmails(Request $request, ?array $ids = null)
+    {
+        $cardIds = $ids ?? ($request->ids ?? []);
+        $user = Auth::user();
+
+        if (!$cardIds) {
+            return response()->json(['success' => false, 'message' => 'No employees selected'], 422);
+        }
+
+        // Authorization
+        if (!$user->isCompany() && !in_array($user->role, ['editor', 'template_editor'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+        if (!$company) {
+            return response()->json(['success' => false, 'message' => 'No company found'], 404);
+        }
+
+        // Prevent duplicate jobs
+        $alreadyRunning = BulkEmailJob::where('company_id', $company->id)
+            ->whereIn('status', ['pending', 'processing'])
+            ->exists();
+
+        if ($alreadyRunning) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An e-mail sending job is already running for your company'
+            ], 409);
+        }
+
+        $cards = Card::whereIn('id', $cardIds)->get();
+
+        if ($cards->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No valid cards found'], 422);
+        }
+
+        $errors = [];
+
+        // Check each card for errors
+        foreach ($cards as $card) {
+            $cardErrors = [];
+
+            if ($card->wallet_status['status'] !== 'synced') {
+                $cardErrors[] = [
+                    'error_code' => 'NOT_ALREADY_SYNCED',
+                    'message' => 'This employee should be synced first with wallet pass.',
+                ];
+            }
+
+            if (!$card->is_eligible_for_sync['eligible']) {
+                $cardErrors[] = [
+                    'error_code' => 'NOT_ELIGIBLE',
+                    'message' => 'This employee should be synced first with wallet pass.',
+                    'missing_fields' => $card->is_eligible_for_sync['missing_fields'] ?? []
+                ];
+            }
+
+            if (!empty($cardErrors)) {
+                $errors[$card->id] = $cardErrors;
+            }
+        }
+
+        // If there are any errors, stop processing
+        if (!empty($errors)) {
+            Log::info("Bulk EMAIL SENDING aborted due to errors for user {$user->id}");
+            return response()->json([
+                'success' => false,
+                'message' => 'Some employees cannot be synced due to errors.',
+                'errors' => $errors
+            ], 422);
+        }
+
+        // All cards are eligible → create the job
+        $job = BulkEmailJob::create([
+            'company_id' => $company->id,
+            'status' => 'pending',
+            'total_items' => $cards->count(),
+        ]);
+
+        // Create job items
+        foreach ($cards as $card) {
+            BulkEmailJobItem::create([
+                'bulk_email_job_id' => $job->id,
+                'company_id' => $company->id,
+                'email' => $card->email,
+                'card_id' => $card->id,
+                'status' => 'pending',
+            ]);
+        }
+
+        Log::info("BulkEmailJob created for company {$company->id}, job_id={$job->id}");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bulk Email sending scheduled',
             'job_id' => $job->id,
         ]);
     }
@@ -946,7 +1129,7 @@ class DesignController extends Controller
         ) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized access to this card.',
+                'message' => 'Unauthorized access to this employee.',
             ], 403);
         }
 
@@ -1129,7 +1312,7 @@ class DesignController extends Controller
         ) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized access to this card.',
+                'message' => 'Unauthorized access to this employee.',
             ], 403);
         }
 
@@ -1550,7 +1733,7 @@ class DesignController extends Controller
         ) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized access to this card.',
+                'message' => 'Unauthorized access to this employee.',
             ], 403);
         }
 
@@ -1760,7 +1943,7 @@ class DesignController extends Controller
                     'icon' => $linkData['icon'] ?? null,
                     'url' => $linkData['url'] ?? '',
                     'company_id' => $company->id,
-                    'card_id' => $cardId, // only for this card if cardId is provided
+                    'card_id' => $cardId, // only for this employee if cardId is provided
                 ]);
             }
         }
@@ -2004,6 +2187,54 @@ class DesignController extends Controller
         foreach ($toDelete as $button) {
             $button->delete();
         }
+    }
+
+    public function walletSyncableCounts(Request $request)
+    {
+        $user = Auth::user();
+
+        // ✅ Only company or editors can access
+        if (
+            !$user->isCompany() &&
+            !in_array($user->role, ['editor', 'template_editor'])
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.',
+            ], 403);
+        }
+
+        $companyId = $user->isCompany() ? $user->companyProfile->id : $user->company_id;
+
+        $cards = Card::where('company_id', $companyId)->get();
+        $totalCards = $cards->count();
+
+        $eligibleCount = $cards
+            ->filter(fn($card) => ($card->is_eligible_for_sync['eligible'] ?? false))
+            ->count();
+
+        $notSyncedCount = $cards
+            ->filter(fn($card) => (($card->wallet_status['status'] ?? null) !== 'synced'))
+            ->count();
+
+        $eligibleNotSyncedCount = $cards
+            ->filter(fn($card) => ($card->is_eligible_for_sync['eligible'] ?? false) && (($card->wallet_status['status'] ?? null) !== 'synced'))
+            ->count();
+
+        $syncedCount = $totalCards - $notSyncedCount;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_cards' => $totalCards,
+                'eligible_not_synced_count' => $eligibleNotSyncedCount,
+                'not_synced_count' => $notSyncedCount,
+                'eligible_count' => $eligibleCount,
+                'synced_count' => $syncedCount,
+                // Back-compat key used previously
+                'syncable_cards' => $eligibleNotSyncedCount,
+            ],
+        ]);
     }
 
 }

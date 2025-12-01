@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Helpers\CardHelper;
 use App\Models\BulkWalletApiJob;
 use App\Models\BulkWalletApiJobItem;
 use App\Models\Card;
@@ -113,6 +114,10 @@ class ProcessBulkWalletApiJob implements ShouldQueue
                 app(DesignController::class)->buildCardWalletFromCardApi($card);
 
                 $item->update(['status' => 'synced']);
+
+                if ($card->last_email_sent === null) {
+                    CardHelper::sendCardEmail($card->id);
+                }
                 Log::info("[{$this->jobName}] Card synced successfully, card_id={$card->id}");
 
             } catch (\Exception $e) {

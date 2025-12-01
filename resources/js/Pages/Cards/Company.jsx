@@ -18,12 +18,13 @@ import { ChevronDown, EditIcon, Trash2 } from "lucide-react";
 import { SyncingWarning } from "@/Components/SyncingWarning";
 import CardSyncChecker from "@/Components/CardSyncChecker";
 import WalletSyncingPill from "@/Components/WalletSyncingPill";
+import { set } from "date-fns";
 
 // Bind DataTables
 DataTable.use(DT);
 
 export default function Company() {
-    const { cards, isSubscriptionActive } = usePage().props;
+    const { cards, isSubscriptionActive, hasRunningJob, hasRunningEmailJob } = usePage().props;
     const { setHeaderTitle, setHeaderText } = useGlobal(GlobalProvider);
 
     const [linkDomain, setLinkDomain] = useState(
@@ -220,7 +221,8 @@ export default function Company() {
     };
 
     const [isSyncing, setIsSyncing] = useState(false);
-    const [isSyncingBg, setIsSyncingBg] = useState(false);
+    const [isSyncingBg, setIsSyncingBg] = useState(hasRunningJob ?? false);
+    const [isSendingEmails, setIsSendingEmails] = useState(hasRunningEmailJob ?? false);
     const [isAnyChecked, setIsAnyChecked] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
 
@@ -291,13 +293,18 @@ export default function Company() {
                 title: "Notified",
                 data: null,
                 render: (data, type, row) => {
-                    const ts = row.last_email_sent ? new Date(row.last_email_sent) : null;
+                    const ts = row.last_email_sent
+                        ? new Date(row.last_email_sent)
+                        : null;
                     const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
-                    const formatDate = (d) => `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+                    const formatDate = (d) =>
+                        `${pad(d.getDate())}.${pad(
+                            d.getMonth() + 1
+                        )}.${d.getFullYear()}`;
                     const formatTime = (d) => {
                         let hours = d.getHours();
                         const minutes = pad(d.getMinutes());
-                        const ampm = hours >= 12 ? 'PM' : 'AM';
+                        const ampm = hours >= 12 ? "PM" : "AM";
                         hours = hours % 12;
                         if (hours === 0) hours = 12;
                         return `${hours}:${minutes} ${ampm}`;
@@ -491,7 +498,6 @@ export default function Company() {
         let previousEmployeesState = [...employees];
 
         try {
-
             const response = await axios.post(
                 "/company/cards/sync-multiple-wallets-background",
                 { ids: selectedIds }
@@ -529,51 +535,62 @@ export default function Company() {
         }
     };
 
-    console.log("Cards: ", employees);
-
-    useEffect(() => {
-        if (!employees || employees.length === 0) {
-            setIsSyncingBg(false);
+    const handleSendEmails = async () => {
+        if (!selectedIds.length) {
+            toast.error("Please select at least one employee.");
             return;
         }
 
-        // Map current employees to a simple {id, is_syncing} object
-        const currentSyncStatus = employees.map((emp) => ({
-            id: emp.id,
-            is_syncing: Number(emp.is_syncing),
-        }));
+        setIsSendingEmails(true);
+        setBackendErrors([]);
 
-        // Compare with previous status
-        let hasChanged = false;
-        if (window.prevEmployeesSyncStatus) {
-            for (let i = 0; i < currentSyncStatus.length; i++) {
-                if (
-                    currentSyncStatus[i].is_syncing !==
-                    window.prevEmployeesSyncStatus[i]?.is_syncing
-                ) {
-                    hasChanged = true;
-                    break;
-                }
+        // Save previous state to restore in case of error
+        let previousEmployeesState = [...employees];
+
+        try {
+            const response = await axios.post(
+                "/company/cards/card-sending-emails",
+                { ids: selectedIds }
+            );
+
+            if (response.data?.success) {
+                toast.success(
+                    response.data.message || "Emails sending in background!"
+                );
+                setSelectedIds([]);
+            } else {
+                toast.error(
+                    response.data.message ||
+                        "Failed to schedule background email sending."
+                );
+                // revert to previous state
+                setEmployees(previousEmployeesState);
+                setIsSendingEmails(false);
             }
-        } else {
-            // First run, treat as changed
-            hasChanged = true;
+        } catch (error) {
+            console.error("Background email sending schedule failed:", error);
+            // restore previous state
+            setIsSendingEmails(false);
+            setSelectedIds([]);
+
+            if (error.response?.status === 422 && error.response.data.errors) {
+                setBackendErrors(error.response.data.errors);
+            } else {
+                toast.error(
+                    error.response?.data?.message ||
+                        "Failed to schedule background email sending."
+                );
+            }
         }
+    };
 
-        // Store current state globally for next comparison
-        window.prevEmployeesSyncStatus = currentSyncStatus;
+    console.log("hasRunningJob: ", hasRunningJob);
 
-        // Update isSyncingBg based on any employee still syncing
-        const anySyncing = currentSyncStatus.some(
-            (emp) => emp.is_syncing === 1
-        );
-        setIsSyncingBg(anySyncing);
+    useEffect(() => {
+        setIsSyncingBg(hasRunningJob);
+    }, [hasRunningJob]);
 
-        // Refresh table only if something changed
-        if (hasChanged && typeof refreshTable === "function") {
-            refreshTable();
-        }
-    }, [employees]);
+
 
     console.log("backendErrors: ", backendErrors);
 
@@ -651,14 +668,14 @@ export default function Company() {
 
                                         <DropdownItem
                                             onClick={
-                                                handleSyncMultipleWalletsBackground
+                                                handleSendEmails
                                             }
                                             closeOnClick={true}
                                             disabled={!isAnyChecked}
                                         >
-                                            {isSyncingBg
-                                                ? "Syncing..."
-                                                : "Sync wallet passes"}
+                                            {isSendingEmails
+                                                ? "Sending E-mails..."
+                                                : "Send E-mails"}
                                         </DropdownItem>
                                     </Dropdown>
                                 </div>
@@ -691,6 +708,10 @@ export default function Company() {
                             <SyncingWarning
                                 isSyncing={isSyncingBg}
                                 syncType="background"
+                            />
+                            <SyncingWarning
+                                isSyncing={isSendingEmails}
+                                syncType="emailSending"
                             />
                             <DataTable
                                 key={linkDomain}

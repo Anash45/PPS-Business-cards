@@ -88,7 +88,10 @@ Route::middleware(['auth', 'role:company,editor,template_editor'])->group(functi
         ->name('design.cardWalletBulkUpdate');
     Route::post('/company/cards/sync-multiple-wallets-background', [DesignController::class, 'cardWalletBulkUpdateBackground'])
         ->name('design.cardWalletBulkUpdateBackground');
+    Route::post('/company/cards/card-sending-emails', [DesignController::class, 'cardSendingEmails'])
+        ->name('design.cardSendingEmails');
     Route::get('/company/cards/sync-status', [DesignController::class, 'syncStatus']);
+    Route::get('/company/cards/wallet-syncable-counts', [DesignController::class, 'walletSyncableCounts']);
 });
 
 

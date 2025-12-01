@@ -6,13 +6,20 @@ import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import toast from "react-hot-toast";
 import { router, usePage } from "@inertiajs/react";
 import { mapCompanyTemplateData } from "@/utils/mapCompanyTemplateData";
+import axios from "axios";
 import CardFormSocialLinks from "./CardFormSocialLinks";
 import CardPreview from "./CardPreview";
 import CardFormProfile from "./CardFormProfile";
 import CardFormSections from "./CardFormSections";
+import Swal from "sweetalert2";
+import { SyncingWarning } from "./SyncingWarning";
 
 export default function LandingTab() {
-    const { company, selectedCard = null } = usePage().props;
+    const {
+        company,
+        selectedCard = null,
+        hasRunningJob = false,
+    } = usePage().props;
     const {
         cardFormData,
         setCardFormData,
@@ -34,8 +41,12 @@ export default function LandingTab() {
     }, [company, selectedCard]);
 
     console.log("Current cardFormData:", cardFormData);
+    const [isSyncingBg, setIsSyncingBg] = useState(false);
+    useEffect(() => {
+        setIsSyncingBg(hasRunningJob);
+    }, [hasRunningJob]);
 
-    const handleSaveTemplate = async () => {
+    const handleSaveTemplate = async (updateWalletPasses = false) => {
         setIsPageLoading(true);
 
         // 1. Create FormData object
@@ -45,6 +56,7 @@ export default function LandingTab() {
         // Append all relevant data to the FormData object
         // Note: Only append fields that the backend expects for template update (from validation rules)
         if (isTemplate) {
+            formData.append("updateWalletPasses", updateWalletPasses);
             formData.append("company_name", cardFormData.company_name);
             formData.append("name_text_color", cardFormData.name_text_color);
             formData.append(
@@ -443,9 +455,54 @@ export default function LandingTab() {
         }
     };
 
+    const handleSaveTemplateAndWallet = async () => {
+        try {
+            const res = await axios.get(
+                "/company/cards/wallet-syncable-counts"
+            );
+
+            console.log("Wallet syncable counts response:", res);
+            const d = res?.data?.data ?? res?.data ?? {};
+            const eligible =
+                d.eligible_not_synced_count ?? d.eligible_count ?? 0;
+            const notSynced = d.not_synced_count ?? 0;
+
+            const { isConfirmed } = await Swal.fire({
+                title: "Update Wallet Passes?",
+                html: `
+        <div style="text-align:left">
+          <p><strong>Eligible (not synced):</strong> ${eligible}</p>
+          <p><strong>Not synced (all):</strong> ${notSynced}</p>
+          <p style="margin-top:8px">This will update <strong>${eligible}</strong> pass(es).</p>
+        </div>
+      `,
+                icon: "info",
+                showCancelButton: true,
+                confirmButtonText: "Proceed",
+                cancelButtonText: "Cancel",
+                focusConfirm: false,
+            });
+
+            if (!isConfirmed) return;
+
+            // Next: call your save-and-update flow
+            await handleSaveTemplate(true);
+            router.reload({
+                only: ["hasRunningJob"],
+            });
+        } catch (e) {
+            console.error(e);
+            toast.error(
+                e.response?.data?.message ||
+                    "Could not fetch wallet sync counts."
+            );
+        }
+    };
+
     return (
         <div className="grid 2xl:grid-cols-11 grid-cols-1 gap-5 relative">
             <div className="2xl:col-span-7 col-span-1 bg-white lg:p-6 md:p-5 p-0 rounded-[20px] shadow-box space-y-4 2xl:order-1 order-2">
+                <SyncingWarning isSyncing={isSyncingBg} syncType="background" />
                 {isTemplate && <CardFormBanner />}
                 <CardFormProfile />
                 <CardFormGeneralInformation />
@@ -470,7 +527,7 @@ export default function LandingTab() {
                         <Button
                             className="px-8"
                             variant="primary"
-                            onClick={handleSaveTemplate}
+                            onClick={handleSaveTemplateAndWallet}
                             disabled={isSaving}
                         >
                             {isSaving

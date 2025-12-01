@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BulkEmailJob;
 use App\Models\BulkWalletApiJob;
 use App\Models\Card;
 use App\Models\CardsGroup;
@@ -400,11 +401,16 @@ class CardsController extends Controller
             ->whereIn('status', ['pending', 'processing'])
             ->exists();
 
+        $hasRunningEmailJob = BulkEmailJob::where('company_id', $company->id)
+            ->whereIn('status', ['pending', 'processing'])
+            ->exists();
+
         // Pass to Inertia
         return Inertia::render('Cards/Company', [
             'cards' => $cards,
             'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
             'hasRunningJob' => $hasRunningJob,
+            'hasRunningEmailJob' => $hasRunningEmailJob,
         ]);
     }
 
