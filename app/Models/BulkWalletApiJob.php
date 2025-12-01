@@ -15,6 +15,7 @@ class BulkWalletApiJob extends Model
         'status',
         'total_items',
         'processed_items',
+        'last_processed_at',
         'reason'
     ];
 

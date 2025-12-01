@@ -18,6 +18,7 @@ class ProcessBulkEmailJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $batchSize = 50;
+    public $maxStuckMinutes = 10; // Consider a job stuck if last_processed_at older than this
     public $maxInactiveMinutes = 30;
     public $jobName = 'ProcessBulkEmailJob';
 
@@ -46,7 +47,19 @@ class ProcessBulkEmailJob implements ShouldQueue
             return;
         }
 
-        Log::info("[{$this->jobName}] Working on job_id={$job->id}");
+        Log::info("[{$this->jobName}] Working on job_id={$job->id} for company_id={$job->company_id}");
+
+        // Prevent overlapping jobs for same company
+        $alreadyProcessing = BulkEmailJob::where('company_id', $job->company_id)
+            ->where('status', 'processing')
+            ->where('id', '<>', $job->id)
+            ->where('last_processed_at', '>=', now()->subMinutes($this->maxStuckMinutes))
+            ->exists();
+
+        if ($alreadyProcessing) {
+            Log::info("[{$this->jobName}] Another job is already running for company {$job->company_id}. Skipping this run.");
+            return;
+        }
 
         // Mark as processing
         $job->update([
@@ -69,6 +82,17 @@ class ProcessBulkEmailJob implements ShouldQueue
         Log::info("[{$this->jobName}] Sending {$items->count()} emails.");
 
         foreach ($items as $item) {
+            // Check if job has been inactive too long during processing
+            $job->refresh();
+            if ($job->last_processed_at && $job->last_processed_at < now()->subMinutes($this->maxInactiveMinutes)) {
+                $job->update([
+                    'status' => 'failed',
+                    'reason' => 'Job stopped due to inactivity during batch processing'
+                ]);
+                Log::warning("[{$this->jobName}] Job {$job->id} stopped mid-batch due to inactivity.");
+                return;
+            }
+
             try {
                 $card = Card::find($item->card_id);
 
@@ -77,6 +101,7 @@ class ProcessBulkEmailJob implements ShouldQueue
                         'status' => 'failed',
                         'reason' => 'Card not found'
                     ]);
+                    Log::warning("[{$this->jobName}] Card not found, item_id={$item->id}");
                     continue;
                 }
 
@@ -84,6 +109,9 @@ class ProcessBulkEmailJob implements ShouldQueue
                 CardHelper::sendCardEmail($card->id);
 
                 $item->update(['status' => 'sent']);
+
+                // Update heartbeat after each email
+                $job->update(['last_processed_at' => now()]);
 
                 Log::info("[{$this->jobName}] Email sent for card_id={$card->id}");
 
@@ -102,14 +130,16 @@ class ProcessBulkEmailJob implements ShouldQueue
         $job->processed_items = $processed;
 
         if ($processed >= $job->total_items) {
-            $job->update(['status' => 'completed']);
+            $job->status = 'completed';
         } else {
-            $job->update(['status' => 'processing']);
+            $job->status = 'processing';
         }
 
-        // Heartbeat
-        $job->update(['last_processed_at' => now()]);
+        // Update heartbeat
+        $job->last_processed_at = now();
+        $job->save();
 
-        Log::info("[{$this->jobName}] Batch complete. {$processed}/{$job->total_items} done.");
+        Log::info("[{$this->jobName}] Batch processed: {$items->count()} items for job_id={$job->id}. Processed total: {$processed}/{$job->total_items}");
+        Log::info("[{$this->jobName}] Job execution ended at " . now());
     }
 }
