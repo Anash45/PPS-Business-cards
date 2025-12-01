@@ -8,18 +8,22 @@ import toast from "react-hot-toast";
 
 export default function UserTable({ users, plans, companies, authUser }) {
     const [search, setSearch] = useState("");
+    const [initialSearch] = useState(""); // Track initial search to detect changes
     const { openModal } = useModal();
     const { setIsPageLoading } = useGlobal();
 
     // 🔍 Debounced search
     useEffect(() => {
         const timeout = setTimeout(() => {
-            router.get(
-                route("users.index"),
-                { search },
-                { preserveState: true, replace: true }
-            );
-        }, 100);
+            // Only navigate if search has actually changed from initial value
+            if (search !== initialSearch) {
+                router.get(
+                    route("users.index"),
+                    { search },
+                    { preserveState: true, replace: true }
+                );
+            }
+        }, 300);
 
         return () => clearTimeout(timeout);
     }, [search]);
