@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BulkWalletApiJob;
 use App\Models\Card;
 use App\Models\CardsGroup;
 use App\Models\Company;
@@ -392,12 +393,18 @@ class CardsController extends Controller
         $company = $user->isCompany() ? $user->companyProfile : $user->company;
 
         // Get all cards for this company
-        $cards = Card::where('company_id', $user->company->id)->get();
+        $cards = Card::where('company_id', $company->id)->get();
+
+        // Check if ANY job is pending/processing for this company
+        $hasRunningJob = BulkWalletApiJob::where('company_id', $company->id)
+            ->whereIn('status', ['pending', 'processing'])
+            ->exists();
 
         // Pass to Inertia
         return Inertia::render('Cards/Company', [
             'cards' => $cards,
             'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
+            'hasRunningJob' => $hasRunningJob,
         ]);
     }
 

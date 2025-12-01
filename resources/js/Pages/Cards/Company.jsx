@@ -491,17 +491,6 @@ export default function Company() {
         let previousEmployeesState = [...employees];
 
         try {
-            // Optimistic UI: only update is_syncing field
-            setEmployees((prev) =>
-                prev.map((emp) => {
-                    if (selectedIds.includes(emp.id)) {
-                        if (emp.is_syncing !== 1) {
-                            return { ...emp, is_syncing: 1 };
-                        }
-                    }
-                    return emp;
-                })
-            );
 
             const response = await axios.post(
                 "/company/cards/sync-multiple-wallets-background",

@@ -26,18 +26,23 @@ class ProcessBulkWalletApiJob implements ShouldQueue
         Log::info("[{$this->jobName}] Job execution started at " . now());
 
         // Get next pending job or stuck job
-        $job = BulkWalletApiJob::where(function ($q) {
-            $q->where('status', 'pending')
-                ->orWhere(function ($q2) {
-                    $q2->where('status', 'processing')
-                        ->where('last_processed_at', '<', now()->subMinutes($this->maxStuckMinutes));
-                });
-        })
+        $job = BulkWalletApiJob::whereIn('status', ['pending', 'processing'])
             ->orderBy('created_at', 'asc')
             ->first();
 
         if (!$job) {
             Log::info("[{$this->jobName}] No pending or stuck BulkWalletApiJob found.");
+            return;
+        }
+
+        // Stop job if it has been inactive for 30 mins
+        if ($job->last_processed_at && $job->last_processed_at < now()->subMinutes(30)) {
+            $job->update([
+                'status' => 'failed',
+                'reason' => 'Job expired due to inactivity of 30 minutes',
+            ]);
+
+            Log::warning("[{$this->jobName}] Job {$job->id} expired due to inactivity.");
             return;
         }
 
