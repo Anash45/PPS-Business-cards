@@ -168,13 +168,43 @@ export default function WalletTab() {
         }
     };
 
+    const [walletType, setWalletType] = useState("apple");
     console.log(wallet_eligibility);
 
     return (
         <div className="grid 2xl:grid-cols-11 grid-cols-1 gap-5 relative">
             {isTemplate ? (
                 <div className="2xl:col-span-7 col-span-1 bg-white rounded-[20px] shadow-box space-y-4 lg:order-1 order-2">
-                    <WalletFormInformation />
+                    <div className="px-5 pt-4 pb-2 border-b border-b-[#EAECF0]">
+                        <div className="flex gap-1 rounded-full bg-gray-100 p-1 border border-gray-200 text-xs w-fit">
+                            <button
+                                className={`px-4 py-2 rounded-full font-semibold transition-colors ${
+                                    walletType === "apple"
+                                        ? "bg-primary text-white"
+                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                                onClick={() =>
+                                    setWalletType("apple")
+                                }
+                            >
+                                Apple Wallet
+                            </button>
+                            <button
+                                className={`px-4 py-2 rounded-full font-semibold transition-colors ${
+                                    walletType === "google"
+                                        ? "bg-primary text-white"
+                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                                onClick={() =>
+                                    setWalletType("google")
+                                }
+                            >
+                                Google Wallet
+                            </button>
+                        </div>
+                    </div>
+
+                    <WalletFormInformation  walletType={walletType} />
 
                     <div className="flex flex-wrap gap-5 justify-end">
                         <Button
@@ -219,7 +249,7 @@ export default function WalletTab() {
                         ) : null}
                     </div>
                     <div className="px-5 pb-5 pt-4">
-                        <WalletPreview />
+                        <WalletPreview isTemplate={isTemplate} walletType={walletType} />
                         {!isTemplate ? (
                             <>
                                 <div className="space-y-3 mt-4">

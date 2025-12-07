@@ -13,7 +13,7 @@ import ColorInput from "./ColorInput";
 import CardImageUploader from "./CardImagesUploader";
 import card from "@material-tailwind/react/theme/components/card";
 
-export default function WalletFormInformation() {
+export default function WalletFormInformation({ walletType }) {
     const [open, setOpen] = useState(1);
     const [delayedClass, setDelayedClass] = useState(false);
     useEffect(() => {
@@ -86,20 +86,22 @@ export default function WalletFormInformation() {
                                     className="w-full"
                                 />
                             </div>
-                            <div className="space-y-1">
-                                <InputLabel
-                                    className="text-black text-sm font-medium"
-                                    value={"Wallet Text Color"}
-                                    isDemo={!isTemplate}
-                                />
-                                <ColorInput
-                                    id="wallet_text_color"
-                                    value={cardFormData.wallet_text_color}
-                                    onChange={(e) => handleCardChange(e)}
-                                    name="wallet_text_color"
-                                    className="w-full"
-                                />
-                            </div>
+                            {walletType === "apple" ? (
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        className="text-black text-sm font-medium"
+                                        value={"Wallet Text Color"}
+                                        isDemo={!isTemplate}
+                                    />
+                                    <ColorInput
+                                        id="wallet_text_color"
+                                        value={cardFormData.wallet_text_color}
+                                        onChange={(e) => handleCardChange(e)}
+                                        name="wallet_text_color"
+                                        className="w-full"
+                                    />
+                                </div>
+                            ) : null}
                         </div>
                         {isTemplate ? (
                             <div className="space-y-1">
@@ -196,7 +198,9 @@ export default function WalletFormInformation() {
                             <InputLabel
                                 className="text-black text-sm font-medium"
                                 isDemo={true}
-                                value={"Primary Email (Used to send wallet pass)"}
+                                value={
+                                    "Primary Email (Used to send wallet pass)"
+                                }
                             />
                             <TextInput
                                 id="primary_email"

@@ -817,10 +817,13 @@ class DesignController extends Controller
 
         // ✅ Upload images only if new or changed
         $userImageFileId = null;
+        $userImageGoogleFileId = null;
+        $userImageBase64 = null; // store base64 for Google-specific needs
         $companyLogoFileId = null;
 
         // Check if CardWallet exists
         $cardWallet = CardWalletDetail::where('card_id', $card->id)->first();
+        $existingUserImageGoogleString = $cardWallet->user_image_google_string ?? null;
 
         Log::info('🪪 Starting image handling for Card Wallet', [
             'card_id' => $card->id,
@@ -833,11 +836,87 @@ class DesignController extends Controller
         if ($cardWallet && $card->profile_image === $cardWallet->user_image) {
             // No need to upload again
             $userImageFileId = $cardWallet->user_image_string;
+            $userImageGoogleFileId = $cardWallet->user_image_google_string ?? null;
             Log::info('✅ Reusing existing user image file ID', [
                 'card_id' => $card->id,
                 'user_image_string' => $userImageFileId,
             ]);
         } else {
+
+            if ($card->profile_image !== null) {
+                $originalProfileImage = $card->profile_image;
+                $profilePath = storage_path('app/public/' . $originalProfileImage);
+
+                // If file missing, log and skip; otherwise create a transparent 3:1 canvas with the image centered
+                if (!file_exists($profilePath)) {
+                    Log::warning('Profile image not found on disk, skipping transparent render', [
+                        'card_id' => $card->id,
+                        'path' => $profilePath,
+                    ]);
+                } else {
+                    $mime = mime_content_type($profilePath);
+                    $createImage = null;
+                    if (in_array($mime, ['image/jpeg', 'image/jpg'])) {
+                        $createImage = fn($p) => imagecreatefromjpeg($p);
+                    } elseif ($mime === 'image/png') {
+                        $createImage = fn($p) => imagecreatefrompng($p);
+                    }
+
+                    if ($createImage) {
+                        [$origW, $origH] = getimagesize($profilePath);
+                        if ($origW > 0 && $origH > 0) {
+                            $src = $createImage($profilePath);
+
+                            // Target canvas: 3:1 ratio, height = original height, width = height * 3
+                            $targetH = $origH;
+                            $targetW = $targetH * 3;
+
+                            $canvas = imagecreatetruecolor($targetW, $targetH);
+                            imagesavealpha($canvas, true);
+                            $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+                            imagefill($canvas, 0, 0, $transparent);
+
+                            // Resize source to match target height (preserve aspect), center horizontally
+                            $scale = $targetH / $origH;
+                            $dstW = (int) round($origW * $scale);
+                            $dstH = $targetH;
+                            $dstX = (int) floor(($targetW - $dstW) / 2);
+                            $dstY = 0;
+
+                            imagecopyresampled($canvas, $src, $dstX, $dstY, 0, 0, $dstW, $dstH, $origW, $origH);
+
+                            // Save as PNG with transparent prefix
+                            $pathInfo = pathinfo($card->profile_image);
+                            $transparentName = 'transparent_' . ($pathInfo['filename'] ?? 'image') . '.png';
+                            $transparentPath = trim(($pathInfo['dirname'] ?? ''), '/');
+                            $transparentPath = ($transparentPath ? $transparentPath . '/' : '') . $transparentName;
+
+                            ob_start();
+                            imagepng($canvas);
+                            $pngData = ob_get_clean();
+
+                            imagedestroy($canvas);
+                            imagedestroy($src);
+
+                            if ($pngData !== false) {
+                                Storage::disk('public')->put($transparentPath, $pngData);
+                                Log::info('Created transparent profile image (kept original active)', [
+                                    'card_id' => $card->id,
+                                    'original' => $originalProfileImage,
+                                    'transparent' => $transparentPath,
+                                    'size' => strlen($pngData),
+                                ]);
+                            } else {
+                                Log::warning('Failed to encode transparent profile image', [
+                                    'card_id' => $card->id,
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
+
+
             Log::info('📤 Uploading new user image to PPS Wallet', [
                 'card_id' => $card->id,
                 'reason' => $cardWallet ? 'Image changed' : 'New wallet record',
@@ -850,6 +929,21 @@ class DesignController extends Controller
                     'card_id' => $card->id,
                     'api_response' => $userUpload,
                     'file_id' => $userImageFileId,
+                ]);
+            } else {
+                Log::warning('⚠️ Failed to convert user image to Base64', [
+                    'card_id' => $card->id,
+                ]);
+            }
+
+            $userImageGoogleBase64 = $this->imageToBase64($transparentPath ?? $card->profile_image);
+            if ($userImageGoogleBase64) {
+                $userUpload = $this->uploadImageToWalletApi($userImageGoogleBase64);
+                $userImageGoogleFileId = $userUpload['file_id'] ?? null;
+                Log::info('✅ User image upload response', [
+                    'card_id' => $card->id,
+                    'api_response' => $userUpload,
+                    'file_id' => $userImageGoogleFileId,
                 ]);
             } else {
                 Log::warning('⚠️ Failed to convert user image to Base64', [
@@ -910,6 +1004,8 @@ class DesignController extends Controller
         // ✅ Get or create local card wallet record
         $cardWallet = CardWalletDetail::firstOrNew(['card_id' => $card->id]);
 
+        $finalUserImageGoogleString = $userImageGoogleFileId ?? $cardWallet->user_image_google_string ?? $existingUserImageGoogleString;
+
         // ✅ Prepare vars for pass creation
         $vars = [
             'var1' => env('LINK_URL') . '/card/' . $card->code,
@@ -927,8 +1023,12 @@ class DesignController extends Controller
         $payload = [
             'template_id' => 88419,
             'email_to' => $card->primary_email,
+            "organization_name" => $template->company_name,
+            "program_name" => $template->wallet_title,
+            "loyalty_balance" => trim(implode(' ', array_filter([$card->salutation, $card->title, $card->first_name, $card->last_name]))),
+            "loyalty_label" => $template->wallet_label_1,
             'google_pass' => [
-                'img_hero' => $userImageFileId,
+                'img_hero' => $finalUserImageGoogleString,
                 'img_logo' => $companyLogoFileId,
                 'background_color' => $template->wallet_bg_color,
             ],
@@ -981,6 +1081,7 @@ class DesignController extends Controller
             'user_image' => $card->profile_image,
             'company_logo_string' => $companyLogoFileId,
             'user_image_string' => $userImageFileId,
+            'user_image_google_string' => $finalUserImageGoogleString,
             'bg_color' => $template->wallet_bg_color,
             'text_color' => $template->wallet_text_color,
             'card_code' => $data['serial_number'] ?? null,
@@ -1317,7 +1418,7 @@ class DesignController extends Controller
         }
 
         $validated = $request->validate([
-            'profile_image' => 'nullable|image|max:5120',
+            'profile_image' => 'nullable|image|mimes:jpeg,jpg,png|dimensions:ratio=1/1|max:2048',
             'salutation' => 'nullable|string|max:255',
             'title' => 'nullable|string|max:100',
             'first_name' => 'nullable|string|max:100',

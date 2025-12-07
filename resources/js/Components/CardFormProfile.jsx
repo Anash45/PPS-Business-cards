@@ -71,14 +71,16 @@ export default function CardFormProfile() {
                                 value={"Profile Image"}
                             />
                             <CardImageUploader
-                            name="profile_image"
-                            value={
-                                cardFormData.profile_image ??
-                                cardFormData.profile_image_url
-                            }
-                            onChange={handleCardChange}
-                            label="Logo Image"
-                        />
+                                name="profile_image"
+                                value={
+                                    cardFormData.profile_image ??
+                                    cardFormData.profile_image_url
+                                }
+                                onChange={handleCardChange}
+                                label="Profile Image"
+                                maxSizeMB={2}
+                                message="Image should be less than 2 MB, in a supported format (JPEG, JPG, PNG) and in a 1x1 aspect ratio."
+                            />
                         </div>
                     </div>
                 </div>

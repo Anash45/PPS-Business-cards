@@ -17,6 +17,7 @@ class CardWalletDetail extends Model
         'user_image',
         'company_logo_string',
         'user_image_string',
+        'user_image_google_string',
         'bg_color',
         'text_color',
         'card_code',
