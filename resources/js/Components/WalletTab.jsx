@@ -59,6 +59,18 @@ export default function WalletTab() {
             if (cardFormData.wallet_logo_image_url == null) {
                 formData.append("wallet_logo_removed", true);
             }
+
+            
+            // Append the file if it exists
+            if (cardFormData.google_wallet_logo_image) {
+                formData.append(
+                    "google_wallet_logo_image",
+                    cardFormData.google_wallet_logo_image
+                );
+            }
+            if (cardFormData.google_wallet_logo_image_url == null) {
+                formData.append("google_wallet_logo_removed", true);
+            }
         }
 
         console.log("Checking Wallet Upload:", cardFormData.primary_email);

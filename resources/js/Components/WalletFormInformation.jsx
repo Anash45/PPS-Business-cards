@@ -104,21 +104,40 @@ export default function WalletFormInformation({ walletType }) {
                             ) : null}
                         </div>
                         {isTemplate ? (
-                            <div className="space-y-1">
-                                <InputLabel
-                                    className="text-black text-sm font-medium"
-                                    value={"Wallet Logo Image"}
-                                />
-                                <CardImageUploader
-                                    name="wallet_logo_image"
-                                    value={
-                                        cardFormData.wallet_logo_image ??
-                                        cardFormData.wallet_logo_image_url
-                                    }
-                                    onChange={handleCardChange}
-                                    label="Logo Image"
-                                />
-                            </div>
+                            walletType === "apple" ? (
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        className="text-black text-sm font-medium"
+                                        value={"Apple Wallet Logo Image"}
+                                    />
+                                    <CardImageUploader
+                                        name="wallet_logo_image"
+                                        value={
+                                            cardFormData.wallet_logo_image ??
+                                            cardFormData.wallet_logo_image_url
+                                        }
+                                        onChange={handleCardChange}
+                                        label="Logo Image"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="space-y-1">
+                                    <InputLabel
+                                        className="text-black text-sm font-medium"
+                                        value={"Google Wallet Logo Image"}
+                                    />
+                                    <CardImageUploader
+                                        name="google_wallet_logo_image"
+                                        value={
+                                            cardFormData.google_wallet_logo_image ??
+                                            cardFormData.google_wallet_logo_image_url
+                                        }
+                                        message="File should be max 5 MB and in 1/1 ratio (e.g. 500x500 px)."
+                                        onChange={handleCardChange}
+                                        label="Logo Image"
+                                    />
+                                </div>
+                            )
                         ) : null}
                     </div>
                     <div className="p-3 rounded-lg grid sm:grid-cols-2 gap-4 border border-[#EAECF0]">

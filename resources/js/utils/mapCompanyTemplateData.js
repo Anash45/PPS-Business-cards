@@ -40,6 +40,10 @@ export function mapCompanyTemplateData(
         wallet_logo_image_url: template?.wallet_logo_image
             ? `/storage/${template.wallet_logo_image}`
             : null,
+        google_wallet_logo_image: null,
+        google_wallet_logo_image_url: template?.google_wallet_logo_image
+            ? `/storage/${template.google_wallet_logo_image}`
+            : null,
         wallet_text_color: template?.wallet_text_color ?? "#000000",
         wallet_bg_color: template?.wallet_bg_color ?? "#c4f1c8",
         wallet_label_1: template?.wallet_label_1 ?? "Name",

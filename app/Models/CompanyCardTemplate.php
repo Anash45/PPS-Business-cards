@@ -40,6 +40,7 @@ class CompanyCardTemplate extends Model
         'wallet_label_3',
         'wallet_qr_caption',
         'wallet_logo_image',
+        'google_wallet_logo_image',
     ];
 
     public function company()

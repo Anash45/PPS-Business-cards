@@ -28,9 +28,9 @@ export default function GoogleWalletPreview({ isReal }) {
             <div className="pb-2">
                 <div className="relative border-b border-gray-100/20 p-3 flex items-center gap-3">
                     <div className="h-7 w-7 rounded-full overflow-hidden bg-white flex items-center justify-center">
-                        {cardFormData.wallet_logo_image_url ? (
+                        {cardFormData.google_wallet_logo_image_url ? (
                             <img
-                                src={cardFormData.wallet_logo_image_url}
+                                src={cardFormData.google_wallet_logo_image_url}
                                 alt="Banner"
                                 className="w-full h-6"
                             />

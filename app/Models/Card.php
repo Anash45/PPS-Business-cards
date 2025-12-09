@@ -170,6 +170,10 @@ class Card extends Model
                 'expected' => $this->profile_image,
                 'actual' => $wallet->user_image,
             ],
+            'user_image_google_string' => [
+                'expected' => !empty($this->profile_image) ? 'present' : '',
+                'actual' => !empty($wallet->user_image_google_string) ? 'present' : '',
+            ],
             'label_3_value' => [
                 'expected' => $this->position,
                 'actual' => $wallet->label_3_value,
@@ -207,6 +211,10 @@ class Card extends Model
             'company_logo' => [
                 'expected' => $template?->wallet_logo_image,
                 'actual' => $wallet->company_logo,
+            ],
+            'google_company_logo' => [
+                'expected' => $template?->google_wallet_logo_image,
+                'actual' => $wallet->google_company_logo,
             ],
         ];
 

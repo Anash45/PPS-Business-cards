@@ -321,6 +321,7 @@ class DesignController extends Controller
 
         $validated = $request->validate([
             'wallet_logo_image' => 'nullable|image|max:5120',
+            'google_wallet_logo_image' => 'nullable|image|dimensions:ratio=1/1|max:5120',
             'company_name' => 'required|string|max:255',
             'wallet_title' => 'nullable|string|max:100',
             'wallet_bg_color' => 'nullable|string|max:100',
@@ -334,7 +335,7 @@ class DesignController extends Controller
         // ✅ Get or create template
         $template = CompanyCardTemplate::firstOrNew(['company_id' => $company->id]);
 
-        // ✅ Handle banner removal
+        // ✅ Handle apple logo removal
         if ($request->boolean('wallet_logo_removed')) {
             if ($template->wallet_logo_image && Storage::exists($template->wallet_logo_image)) {
                 Storage::delete($template->wallet_logo_image);
@@ -342,13 +343,31 @@ class DesignController extends Controller
             $validated['wallet_logo_image'] = null;
         }
 
-        // ✅ Handle new banner upload
+        // ✅ Handle new apple logo upload
         if ($request->hasFile('wallet_logo_image')) {
             if ($template->wallet_logo_image && Storage::exists($template->wallet_logo_image)) {
                 Storage::delete($template->wallet_logo_image);
             }
             $path = $request->file('wallet_logo_image')->store('company_logos', 'public');
             $validated['wallet_logo_image'] = $path;
+        }
+
+
+        // ✅ Handle google logo removal
+        if ($request->boolean('google_wallet_logo_removed')) {
+            if ($template->google_wallet_logo_image && Storage::exists($template->google_wallet_logo_image)) {
+                Storage::delete($template->google_wallet_logo_image);
+            }
+            $validated['google_wallet_logo_image'] = null;
+        }
+
+        // ✅ Handle new google logo upload
+        if ($request->hasFile('google_wallet_logo_image')) {
+            if ($template->google_wallet_logo_image && Storage::exists($template->google_wallet_logo_image)) {
+                Storage::delete($template->google_wallet_logo_image);
+            }
+            $path = $request->file('google_wallet_logo_image')->store('company_logos', 'public');
+            $validated['google_wallet_logo_image'] = $path;
         }
 
         // ✅ Save template
@@ -843,79 +862,6 @@ class DesignController extends Controller
             ]);
         } else {
 
-            if ($card->profile_image !== null) {
-                $originalProfileImage = $card->profile_image;
-                $profilePath = storage_path('app/public/' . $originalProfileImage);
-
-                // If file missing, log and skip; otherwise create a transparent 3:1 canvas with the image centered
-                if (!file_exists($profilePath)) {
-                    Log::warning('Profile image not found on disk, skipping transparent render', [
-                        'card_id' => $card->id,
-                        'path' => $profilePath,
-                    ]);
-                } else {
-                    $mime = mime_content_type($profilePath);
-                    $createImage = null;
-                    if (in_array($mime, ['image/jpeg', 'image/jpg'])) {
-                        $createImage = fn($p) => imagecreatefromjpeg($p);
-                    } elseif ($mime === 'image/png') {
-                        $createImage = fn($p) => imagecreatefrompng($p);
-                    }
-
-                    if ($createImage) {
-                        [$origW, $origH] = getimagesize($profilePath);
-                        if ($origW > 0 && $origH > 0) {
-                            $src = $createImage($profilePath);
-
-                            // Target canvas: 3:1 ratio, height = original height, width = height * 3
-                            $targetH = $origH;
-                            $targetW = $targetH * 3;
-
-                            $canvas = imagecreatetruecolor($targetW, $targetH);
-                            imagesavealpha($canvas, true);
-                            $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
-                            imagefill($canvas, 0, 0, $transparent);
-
-                            // Resize source to match target height (preserve aspect), center horizontally
-                            $scale = $targetH / $origH;
-                            $dstW = (int) round($origW * $scale);
-                            $dstH = $targetH;
-                            $dstX = (int) floor(($targetW - $dstW) / 2);
-                            $dstY = 0;
-
-                            imagecopyresampled($canvas, $src, $dstX, $dstY, 0, 0, $dstW, $dstH, $origW, $origH);
-
-                            // Save as PNG with transparent prefix
-                            $pathInfo = pathinfo($card->profile_image);
-                            $transparentName = 'transparent_' . ($pathInfo['filename'] ?? 'image') . '.png';
-                            $transparentPath = trim(($pathInfo['dirname'] ?? ''), '/');
-                            $transparentPath = ($transparentPath ? $transparentPath . '/' : '') . $transparentName;
-
-                            ob_start();
-                            imagepng($canvas);
-                            $pngData = ob_get_clean();
-
-                            imagedestroy($canvas);
-                            imagedestroy($src);
-
-                            if ($pngData !== false) {
-                                Storage::disk('public')->put($transparentPath, $pngData);
-                                Log::info('Created transparent profile image (kept original active)', [
-                                    'card_id' => $card->id,
-                                    'original' => $originalProfileImage,
-                                    'transparent' => $transparentPath,
-                                    'size' => strlen($pngData),
-                                ]);
-                            } else {
-                                Log::warning('Failed to encode transparent profile image', [
-                                    'card_id' => $card->id,
-                                ]);
-                            }
-                        }
-                    }
-                }
-            }
-
 
             Log::info('📤 Uploading new user image to PPS Wallet', [
                 'card_id' => $card->id,
@@ -936,21 +882,101 @@ class DesignController extends Controller
                 ]);
             }
 
-            $userImageGoogleBase64 = $this->imageToBase64($transparentPath ?? $card->profile_image);
-            if ($userImageGoogleBase64) {
-                $userUpload = $this->uploadImageToWalletApi($userImageGoogleBase64);
-                $userImageGoogleFileId = $userUpload['file_id'] ?? null;
-                Log::info('✅ User image upload response', [
+        }
+
+        if ($card->profile_image !== null) {
+            $originalProfileImage = $card->profile_image;
+            $profilePath = storage_path('app/public/' . $originalProfileImage);
+
+            // If file missing, log and skip; otherwise create a transparent 3:1 canvas with the image centered
+            if (!file_exists($profilePath)) {
+                Log::warning('Profile image not found on disk, skipping transparent render', [
                     'card_id' => $card->id,
-                    'api_response' => $userUpload,
-                    'file_id' => $userImageGoogleFileId,
+                    'path' => $profilePath,
                 ]);
             } else {
-                Log::warning('⚠️ Failed to convert user image to Base64', [
-                    'card_id' => $card->id,
-                ]);
+                $mime = mime_content_type($profilePath);
+                $createImage = null;
+                if (in_array($mime, ['image/jpeg', 'image/jpg'])) {
+                    $createImage = fn($p) => imagecreatefromjpeg($p);
+                } elseif ($mime === 'image/png') {
+                    $createImage = fn($p) => imagecreatefrompng($p);
+                }
+
+                if ($createImage) {
+                    [$origW, $origH] = getimagesize($profilePath);
+                    if ($origW > 0 && $origH > 0) {
+                        $src = $createImage($profilePath);
+
+                        // Target canvas: 3:1 ratio, height = original height, width = height * 3
+                        $targetH = $origH;
+                        $targetW = $targetH * 3;
+
+                        $canvas = imagecreatetruecolor($targetW, $targetH);
+                        imagesavealpha($canvas, true);
+                        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+                        imagefill($canvas, 0, 0, $transparent);
+
+                        // Resize source to match target height (preserve aspect), center horizontally
+                        $scale = $targetH / $origH;
+                        $dstW = (int) round($origW * $scale);
+                        $dstH = $targetH;
+                        $dstX = (int) floor(($targetW - $dstW) / 2);
+                        $dstY = 0;
+
+                        imagecopyresampled($canvas, $src, $dstX, $dstY, 0, 0, $dstW, $dstH, $origW, $origH);
+
+                        // Save as PNG with transparent prefix
+                        $pathInfo = pathinfo($card->profile_image);
+                        $transparentName = 'transparent_' . ($pathInfo['filename'] ?? 'image') . '.png';
+                        $transparentPath = trim(($pathInfo['dirname'] ?? ''), '/');
+                        $transparentPath = ($transparentPath ? $transparentPath . '/' : '') . $transparentName;
+
+                        ob_start();
+                        imagepng($canvas);
+                        $pngData = ob_get_clean();
+
+                        imagedestroy($canvas);
+                        imagedestroy($src);
+
+                        if ($pngData !== false) {
+                            Storage::disk('public')->put($transparentPath, $pngData);
+                            Log::info('Created transparent profile image (kept original active)', [
+                                'card_id' => $card->id,
+                                'original' => $originalProfileImage,
+                                'transparent' => $transparentPath,
+                                'size' => strlen($pngData),
+                            ]);
+                        } else {
+                            Log::warning('Failed to encode transparent profile image', [
+                                'card_id' => $card->id,
+                            ]);
+                        }
+                    }
+
+                    // ✅ Check if profile image exists but Google string is missing OR profile image changed
+                    if (!empty($userImageFileId) && (empty($userImageGoogleFileId) || $card->profile_image !== $cardWallet->user_image)) {
+                        $userImageGoogleBase64 = $this->imageToBase64($transparentPath ?? $card->profile_image);
+                        if ($userImageGoogleBase64) {
+                            $userUpload = $this->uploadImageToWalletApi($userImageGoogleBase64);
+                            $userImageGoogleFileId = $userUpload['file_id'] ?? null;
+                            Log::info('✅ Generated and uploaded Google wallet image', [
+                                'card_id' => $card->id,
+                                'reason' => empty($userImageGoogleFileId) ? 'Missing Google string' : 'Profile image changed',
+                                'api_response' => $userUpload,
+                                'file_id' => $userImageGoogleFileId,
+                            ]);
+                        } else {
+                            Log::warning('⚠️ Failed to convert user image to Base64 for Google wallet', [
+                                'card_id' => $card->id,
+                            ]);
+                        }
+                    }
+                }
             }
         }
+
+
 
         // ✅ Handle Company Logo Upload Optimization
         $companyLogoFileId = null;
@@ -1001,6 +1027,63 @@ class DesignController extends Controller
             }
         }
 
+        // ✅ Handle Google Wallet Logo Upload Optimization
+        $googleLogoFileId = null;
+
+        // If the card already has this Google wallet logo → reuse its file ID
+        if ($cardWallet && $template->google_wallet_logo_image === $cardWallet->google_company_logo) {
+            $googleLogoFileId = $cardWallet->google_company_logo_string;
+
+            Log::info('✅ Reusing existing Google company logo file ID (same as current template)', [
+                'card_id' => $card->id,
+                'google_company_logo_string' => $googleLogoFileId,
+            ]);
+        } else {
+            // Otherwise check if another card under the same company has the same Google logo uploaded
+            $existingGoogleLogo = CardWalletDetail::whereIn('card_id', function ($query) use ($template) {
+                $query->select('id')
+                    ->from('cards')
+                    ->where('company_id', $template->company_id);
+            })
+                ->where('google_company_logo', $template->google_wallet_logo_image)
+                ->whereNotNull('google_company_logo_string')
+                ->first();
+
+            if ($existingGoogleLogo) {
+                // Reuse existing Google Wallet logo from another card
+                $googleLogoFileId = $existingGoogleLogo->google_company_logo_string;
+
+                Log::info('♻️ Reusing Google Wallet company logo from another card', [
+                    'card_id' => $card->id,
+                    'source_card_id' => $existingGoogleLogo->card_id,
+                    'google_company_logo_string' => $googleLogoFileId,
+                ]);
+            } else {
+                // Upload new Google Wallet logo
+                Log::info('📤 Uploading new Google Wallet company logo to PPS Wallet', [
+                    'card_id' => $card->id,
+                    'company_id' => $template->company_id,
+                ]);
+
+                $googleLogoBase64 = $this->imageToBase64($template->google_wallet_logo_image);
+
+                if ($googleLogoBase64) {
+                    $googleUploadResponse = $this->uploadImageToWalletApi($googleLogoBase64);
+                    $googleLogoFileId = $googleUploadResponse['file_id'] ?? null;
+
+                    Log::info('✅ Google Wallet logo upload response', [
+                        'card_id' => $card->id,
+                        'api_response' => $googleUploadResponse,
+                        'file_id' => $googleLogoFileId,
+                    ]);
+                } else {
+                    Log::warning('⚠️ Failed to convert Google Wallet logo to Base64', [
+                        'card_id' => $card->id,
+                    ]);
+                }
+            }
+        }
+
         // ✅ Get or create local card wallet record
         $cardWallet = CardWalletDetail::firstOrNew(['card_id' => $card->id]);
 
@@ -1023,14 +1106,14 @@ class DesignController extends Controller
         $payload = [
             'template_id' => 88419,
             'email_to' => $card->primary_email,
-            "organization_name" => $template->company_name,
-            "program_name" => $template->wallet_title,
-            "loyalty_balance" => trim(implode(' ', array_filter([$card->salutation, $card->title, $card->first_name, $card->last_name]))),
-            "loyalty_label" => $template->wallet_label_1,
             'google_pass' => [
                 'img_hero' => $finalUserImageGoogleString,
-                'img_logo' => $companyLogoFileId,
+                'img_logo' => $googleLogoFileId,
                 'background_color' => $template->wallet_bg_color,
+                "organization_name" => $template->company_name,
+                "program_name" => $template->wallet_title,
+                "loyalty_balance" => trim(implode(' ', array_filter([$card->salutation, $card->title, $card->first_name, $card->last_name]))),
+                "loyalty_label" => $template->wallet_label_1,
             ],
             'apple_pass' => [
                 'img_hero' => $userImageFileId,
@@ -1077,6 +1160,7 @@ class DesignController extends Controller
             'pass_id' => $data['pass_id'] ?? $cardWallet->pass_id,
             'template_id' => 88260,
             'company_logo' => $template->wallet_logo_image,
+            'google_company_logo' => $template->google_wallet_logo_image,
             'wallet_email' => $card->primary_email,
             'user_image' => $card->profile_image,
             'company_logo_string' => $companyLogoFileId,
