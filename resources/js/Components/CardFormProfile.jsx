@@ -78,8 +78,8 @@ export default function CardFormProfile() {
                                 }
                                 onChange={handleCardChange}
                                 label="Profile Image"
-                                maxSizeMB={2}
-                                message="Image should be less than 2 MB, in a supported format (JPEG, JPG, PNG) and in a 1x1 aspect ratio."
+                                maxSizeMB={5}
+                                message="Image should be less than 5 MB, in a supported format (JPEG, JPG, PNG) and in a 1x1 aspect ratio."
                             />
                         </div>
                     </div>

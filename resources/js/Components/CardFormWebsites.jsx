@@ -1,12 +1,12 @@
 import { Trash2 } from "lucide-react";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import TextInput from "./TextInput";
-import Picker from "emoji-picker-react";
 import Button from "./Button";
 import ColorInput from "./ColorInput";
 import { toast } from "react-hot-toast";
 import InputLabel from "./InputLabel";
 import { useState } from "react";
+import EmojiPickerButton from "./EmojiPickerButton";
 
 export default function CardFormWebsites() {
     const { cardFormData, setCardFormData, handleCardChange, isTemplate } =
@@ -97,39 +97,21 @@ export default function CardFormWebsites() {
                         <div className="flex flex-col lg:flex-row md:items-center gap-3">
                             <div className="flex items-center gap-3 grow w-full">
                                 {/* Emoji Selector */}
-                                <div className="relative">
-                                    <Button
-                                        variant="secondary"
-                                        type="button"
-                                        onClick={() =>
-                                            setShowPickerIndex(
-                                                showPickerIndex === index
-                                                    ? null
-                                                    : index
-                                            )
+                                <EmojiPickerButton
+                                    value={item.icon}
+                                    onChange={(emoji) => {
+                                        if (isReadOnly) return;
+                                        updateWebsiteField(index, "icon", emoji)
+                                    }}
+                                    showPickerIndex={showPickerIndex}
+                                    pickerIndex={index}
+                                    onPickerToggle={(idx) => {
+                                        if (!isReadOnly) {
+                                            setShowPickerIndex(idx);
                                         }
-                                        className="w-10 h-10 flex items-center justify-center p-0 text-2xl"
-                                    >
-                                        <span className="text-xl">
-                                            {item.icon || <span>🌐</span>}
-                                        </span>
-                                    </Button>
-                                    {showPickerIndex === index && (
-                                        <div className="absolute z-50 mt-2">
-                                            <Picker
-                                                onEmojiClick={(emojiData) => {
-                                                    updateWebsiteField(
-                                                        index,
-                                                        "icon",
-                                                        emojiData.emoji
-                                                    );
-                                                    setShowPickerIndex(null);
-                                                }}
-                                                theme="light"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
+                                    }}
+                                    disabled={isReadOnly}
+                                />
 
                                 {/* Label */}
                                 <div className="w-full">

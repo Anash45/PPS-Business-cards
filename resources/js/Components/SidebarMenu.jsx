@@ -11,93 +11,52 @@ import {
     LayoutDashboard,
     Crown,
     ScanQrCodeIcon,
+    ListTodo,
 } from "lucide-react";
 import React from "react";
 
-// 🧩 Regular user menu
-const companyMenuGroups = [
+// 🧩 Menu items with role-based access control
+const allMenuItems = [
     {
         groupName: "Overview",
+        roles: ["admin", "company"],
         items: [
-            { name: "Overview", icon: LayoutDashboard, route: "dashboard" },
-            { name: "Team", icon: Users2, route: "users.index" },
+            { name: "Overview", icon: LayoutDashboard, route: "dashboard", roles: ["admin", "company"] },
+            { name: "Team", icon: Users2, route: "users.index", roles: ["company", "template_editor"] },
         ],
     },
     {
         groupName: "Design",
-        items: [{ name: "Template", icon: Palette, route: "design.index" }],
+        roles: ["company", "template_editor"],
+        items: [
+            { name: "Template", icon: Palette, route: "design.index", roles: ["company", "template_editor"] },
+        ],
     },
     {
         groupName: "Business Cards",
+        roles: ["company", "editor", "template_editor"],
         items: [
-            { name: "NFC-Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
-            { name: "Employees", icon: IdCardIcon, route: "company.cards" },
-            {
-                name: "Bulk Import",
-                icon: UploadCloud,
-                route: "csv.index",
-            },
+            { name: "NFC-Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards", roles: ["company", "editor", "template_editor"] },
+            { name: "Employees", icon: IdCardIcon, route: "company.cards", roles: ["company", "editor", "template_editor"] },
+            { name: "Bulk Import", icon: UploadCloud, route: "csv.index", roles: ["company", "editor", "template_editor"] },
+            { name: "Background Jobs", icon: ListTodo, route: "background-jobs.index", roles: ["company", "editor", "template_editor"] },
         ],
     },
     {
         groupName: "System",
+        roles: ["company"],
         items: [
-            { name: "Setting", icon: SettingsIcon, route: "settings.index" },
-            { name: "API Documentation", icon: Book, route: "api.documentation" },
+            { name: "Setting", icon: SettingsIcon, route: "settings.index", roles: ["company"] },
+            { name: "API Documentation", icon: Book, route: "api.documentation", roles: ["company"] },
         ],
     },
-];
-
-// 🧩 Regular user menu
-const editorMenuGroups = [
-    {
-        groupName: "Business Cards",
-        items: [
-            { name: "NFC-Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
-            { name: "Employees", icon: IdCardIcon, route: "company.cards" },
-            {
-                name: "Bulk Import",
-                icon: UploadCloud,
-                route: "csv.index",
-            },
-        ],
-    },
-];
-
-const templateEditorMenuGroups = [
-    {
-        groupName: "Overview",
-        items: [
-            { name: "Team", icon: Users2, route: "users.index" },
-        ],
-    },
-    {
-        groupName: "Design",
-        items: [{ name: "Template", icon: Palette, route: "design.index" }],
-    },
-    {
-        groupName: "Business Cards",
-        items: [
-            { name: "NFC-Cards", icon: ScanQrCodeIcon, route: "company.nfc_cards" },
-            { name: "Employees", icon: IdCardIcon, route: "company.cards" },
-            {
-                name: "Bulk Import",
-                icon: UploadCloud,
-                route: "csv.index",
-            },
-        ],
-    },
-];
-
-// 🧩 Admin-only menu
-const adminMenuGroups = [
     {
         groupName: "Admin Panel",
+        roles: ["admin"],
         items: [
-            { name: "Overview", icon: LayoutDashboard, route: "dashboard" },
-            { name: "Users", icon: Users2, route: "users.index" },
-            { name: "Plans", icon: Crown, route: "plans.index" },
-            { name: "Cards", icon: IdCardIcon, route: "cards.index" },
+            { name: "Users", icon: Users2, route: "users.index", roles: ["admin"] },
+            { name: "Plans", icon: Crown, route: "plans.index", roles: ["admin"] },
+            { name: "Cards", icon: IdCardIcon, route: "cards.index", roles: ["admin"] },
         ],
     },
 ];
@@ -127,17 +86,14 @@ const SidebarMenu = () => {
         }
     };
 
-    // 👇 Choose menu based on user role
-    const menuGroups =
-        user?.role === "admin"
-            ? adminMenuGroups
-            : user?.role == "company"
-            ? companyMenuGroups
-            : user?.role == "editor"
-            ? editorMenuGroups
-            : user?.role == "template_editor"
-            ? templateEditorMenuGroups
-            : [];
+    // 👇 Filter menu based on user role
+    const menuGroups = allMenuItems
+        .filter(group => group.roles.includes(user?.role))
+        .map(group => ({
+            ...group,
+            items: group.items.filter(item => item.roles.includes(user?.role))
+        }))
+        .filter(group => group.items.length > 0);
 
     return (
         <ul className="flex flex-col gap-3.5 pb-4 overflow-y-auto">

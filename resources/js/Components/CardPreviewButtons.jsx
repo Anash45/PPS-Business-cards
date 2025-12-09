@@ -25,20 +25,19 @@ export default function CardPreviewButtons({ cardButtons }) {
                             }}
                             className="flex border leading-tight items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn"
                         >
-                            <span
-                                className="shrink-0"
-                                style={{
-                                    fontSize: `${
-                                        Number(cardFormData.buttons_size) + 4
-                                    }px`,
-                                }}
-                            >
-                                {button.icon ? (
-                                    button.icon
-                                ) : (
-                                    <Smile className="h-7 w-7" />
-                                )}
-                            </span>
+                            {button.icon ? (
+                                <span
+                                    className="shrink-0"
+                                    style={{
+                                        fontSize: `${
+                                            Number(cardFormData.buttons_size) +
+                                            4
+                                        }px`,
+                                    }}
+                                >
+                                    {button.icon}
+                                </span>
+                            ) : null}
                             <span>
                                 {isDE && button.button_text_de
                                     ? button.button_text_de

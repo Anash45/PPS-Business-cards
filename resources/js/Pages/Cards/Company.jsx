@@ -18,6 +18,7 @@ import { ChevronDown, EditIcon, Trash2 } from "lucide-react";
 import { SyncingWarning } from "@/Components/SyncingWarning";
 import CardSyncChecker from "@/Components/CardSyncChecker";
 import WalletSyncingPill from "@/Components/WalletSyncingPill";
+import { useWalletSyncMonitor, useEmailSendingMonitor } from "@/hooks/useJobMonitor";
 import { set } from "date-fns";
 
 // Bind DataTables
@@ -225,6 +226,22 @@ export default function Company() {
     const [isSendingEmails, setIsSendingEmails] = useState(hasRunningEmailJob ?? false);
     const [isAnyChecked, setIsAnyChecked] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
+
+    // Monitor wallet sync jobs
+    useWalletSyncMonitor(isSyncingBg, (hasRunning) => {
+        if (!hasRunning && isSyncingBg) {
+            setIsSyncingBg(false);
+            toast.success("Wallet sync completed!");
+        }
+    });
+
+    // Monitor email sending jobs
+    useEmailSendingMonitor(isSendingEmails, (hasRunning) => {
+        if (!hasRunning && isSendingEmails) {
+            setIsSendingEmails(false);
+            toast.success("Email sending completed!");
+        }
+    });
 
     const columns = useMemo(
         () => [

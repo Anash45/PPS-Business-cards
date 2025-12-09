@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Trash2, Smile, ChevronDown } from "lucide-react";
-import Picker from "emoji-picker-react";
+import { Trash2, ChevronDown } from "lucide-react";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import TextInput from "./TextInput";
 import Button from "./Button";
 import ColorInput from "./ColorInput";
 import InputLabel from "./InputLabel";
 import { toast } from "react-hot-toast";
+import EmojiPickerButton from "./EmojiPickerButton";
 import {
     Accordion,
     AccordionBody,
@@ -88,6 +88,9 @@ export default function CardFormButtons() {
         }));
     };
 
+    // Check if button is read-only (company-owned but not in template mode and not card-specific)
+    const isButtonReadOnly = (item) => !isTemplate && item.company_id && !item.card_id;
+
     return (
         <Accordion
             className="border border-[#F4F4F5] rounded-2xl"
@@ -127,45 +130,21 @@ export default function CardFormButtons() {
                             <div className="flex md:flex-row flex-col gap-3 md:items-center">
                                 <div className="flex items-center gap-3 grow">
                                     {/* Emoji Selector */}
-                                    <div className="relative">
-                                        <Button
-                                            variant="secondary"
-                                            type="button"
-                                            onClick={() =>
-                                                setShowPickerIndex(
-                                                    showPickerIndex === index
-                                                        ? null
-                                                        : index
-                                                )
+                                    <EmojiPickerButton
+                                        value={item.icon}
+                                        onChange={(emoji) => {
+                                            if (isButtonReadOnly(item)) return;
+                                            updateButtonField(index, "icon", emoji)
+                                        }}
+                                        showPickerIndex={showPickerIndex}
+                                        pickerIndex={index}
+                                        onPickerToggle={(idx) => {
+                                            if (!isButtonReadOnly(item)) {
+                                                setShowPickerIndex(idx);
                                             }
-                                            className="w-10 h-10 flex items-center justify-center p-0 text-2xl"
-                                        >
-                                            <span className="text-xl">
-                                                {item.icon || (
-                                                    <Smile className="h-8 w-8 shrink-0" />
-                                                )}
-                                            </span>
-                                        </Button>
-                                        {showPickerIndex === index && (
-                                            <div className="absolute z-50 mt-2">
-                                                <Picker
-                                                    onEmojiClick={(
-                                                        emojiData
-                                                    ) => {
-                                                        updateButtonField(
-                                                            index,
-                                                            "icon",
-                                                            emojiData.emoji
-                                                        );
-                                                        setShowPickerIndex(
-                                                            null
-                                                        );
-                                                    }}
-                                                    theme="light"
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
+                                        }}
+                                        disabled={isButtonReadOnly(item)}
+                                    />
 
                                     {/* Button Text */}
                                     <TextInput
@@ -179,6 +158,7 @@ export default function CardFormButtons() {
                                                 e.target.value
                                             )
                                         }
+                                        readOnly={isButtonReadOnly(item)}
                                     />
 
                                     {/* Button Text */}
@@ -193,6 +173,7 @@ export default function CardFormButtons() {
                                                 e.target.value
                                             )
                                         }
+                                        readOnly={isButtonReadOnly(item)}
                                     />
                                 </div>
 
@@ -208,6 +189,7 @@ export default function CardFormButtons() {
                                             e.target.value
                                         )
                                     }
+                                    readOnly={isButtonReadOnly(item)}
                                 />
 
                                 {/* Delete Button */}
@@ -218,6 +200,7 @@ export default function CardFormButtons() {
                                         variant="danger-outline"
                                         className="w-fit ms-auto"
                                         onClick={() => removeButton(index)}
+                                        disabled={isButtonReadOnly(item)}
                                     >
                                         <Trash2 className="h-5 w-5" />
                                     </Button>

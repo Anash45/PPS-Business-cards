@@ -38,16 +38,18 @@ export default function CardPreviewWebsites({ cardWebsites }) {
                     }}
                     className="flex border leading-tight relative items-center gap-3 justify-start rounded-lg px-4 py-2.5 font-medium preview-btn"
                 >
-                    <span
-                        className="shrink-0"
-                        style={{
-                            fontSize: `${
-                                Number(cardFormData.buttons_size) + 4
-                            }px`,
-                        }}
-                    >
-                        {site.icon ? <span>{site.icon}</span> : <span>🌐</span>}
-                    </span>
+                    {site.icon ? (
+                        <span
+                            className="shrink-0"
+                            style={{
+                                fontSize: `${
+                                    Number(cardFormData.buttons_size) + 4
+                                }px`,
+                            }}
+                        >
+                            <span>{site.icon}</span>
+                        </span>
+                    ) : null}
 
                     <span className="truncate">
                         {site.label || site.label_de ? (

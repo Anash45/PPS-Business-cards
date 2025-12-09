@@ -110,8 +110,12 @@ class ProcessBulkEmailJob implements ShouldQueue
 
                 $item->update(['status' => 'sent']);
 
-                // Update heartbeat after each email
-                $job->update(['last_processed_at' => now()]);
+                // Update heartbeat and processed count after each email
+                $processed = $job->items()->whereIn('status', ['sent', 'failed'])->count();
+                $job->update([
+                    'last_processed_at' => now(),
+                    'processed_items' => $processed
+                ]);
 
                 Log::info("[{$this->jobName}] Email sent for card_id={$card->id}");
 
@@ -119,6 +123,13 @@ class ProcessBulkEmailJob implements ShouldQueue
                 $item->update([
                     'status' => 'failed',
                     'reason' => $e->getMessage()
+                ]);
+
+                // Update processed count on failure too
+                $processed = $job->items()->whereIn('status', ['sent', 'failed'])->count();
+                $job->update([
+                    'last_processed_at' => now(),
+                    'processed_items' => $processed
                 ]);
 
                 Log::error("[{$this->jobName}] Failed to send email for card {$item->card_id}: {$e->getMessage()}");

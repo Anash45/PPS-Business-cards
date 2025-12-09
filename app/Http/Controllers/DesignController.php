@@ -1418,7 +1418,7 @@ class DesignController extends Controller
         }
 
         $validated = $request->validate([
-            'profile_image' => 'nullable|image|mimes:jpeg,jpg,png|dimensions:ratio=1/1|max:2048',
+            'profile_image' => 'nullable|image|mimes:jpeg,jpg,png|dimensions:ratio=1/1|max:5120',
             'salutation' => 'nullable|string|max:255',
             'title' => 'nullable|string|max:100',
             'first_name' => 'nullable|string|max:100',

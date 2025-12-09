@@ -46,16 +46,18 @@ export default function CardPreviewPhones({ cardPhones }) {
                     }}
                     className="flex relative border leading-tight items-center gap-3 justify-content-start rounded-lg px-4 py-2.5 font-medium preview-btn w-full"
                 >
-                    <span
-                        className="shrink-0"
-                        style={{
-                            fontSize: `${
-                                Number(cardFormData.buttons_size) + 4
-                            }px`,
-                        }}
-                    >
-                        {phone?.icon ?? "📞"}
-                    </span>
+                    {phone.icon ? (
+                        <span
+                            className="shrink-0"
+                            style={{
+                                fontSize: `${
+                                    Number(cardFormData.buttons_size) + 4
+                                }px`,
+                            }}
+                        >
+                            {phone?.icon ?? "📞"}
+                        </span>
+                    ) : null}
                     <span>
                         {phone.label || phone.label_de ? (
                             <span>

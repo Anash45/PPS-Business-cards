@@ -4,15 +4,15 @@ import {
     AccordionBody,
 } from "@material-tailwind/react";
 import { useEffect, useState } from "react";
-import { ChevronDown, Phone, Smile, Trash2 } from "lucide-react";
+import { ChevronDown, Phone, Trash2 } from "lucide-react";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
-import Picker from "emoji-picker-react";
 import TextInput from "./TextInput";
 import Button from "./Button";
 import ColorInput from "./ColorInput";
 import { toast } from "react-hot-toast";
 import InputLabel from "./InputLabel";
 import SelectInput from "./SelectInput";
+import EmojiPickerButton from "./EmojiPickerButton";
 
 export default function CardFormPhoneNumbers() {
     const { cardFormData, setCardFormData, handleCardChange, isTemplate } =
@@ -105,41 +105,21 @@ export default function CardFormPhoneNumbers() {
                             {/* ✅ Input Group */}
                             <div className="flex flex-wrap items-center gap-3 grow">
                                 {/* Emoji Selector */}
-                                <div className="relative">
-                                    <Button
-                                        variant="secondary"
-                                        type="button"
-                                        onClick={() =>
-                                            setShowPickerIndex(
-                                                showPickerIndex === index
-                                                    ? null
-                                                    : index
-                                            )
+                                <EmojiPickerButton
+                                    value={item.icon}
+                                    onChange={(emoji) => {
+                                        if (isReadOnly) return;
+                                        updatePhoneField(index, "icon", emoji)
+                                    }}
+                                    showPickerIndex={showPickerIndex}
+                                    pickerIndex={index}
+                                    onPickerToggle={(idx) => {
+                                        if (!isReadOnly) {
+                                            setShowPickerIndex(idx);
                                         }
-                                        className="w-10 h-10 flex items-center justify-center p-0 text-2xl"
-                                    >
-                                        <span className="text-xl">
-                                            {item.icon || (
-                                                <Smile className="h-8 w-8 shrink-0" />
-                                            )}
-                                        </span>
-                                    </Button>
-                                    {showPickerIndex === index && (
-                                        <div className="absolute z-50 mt-2">
-                                            <Picker
-                                                onEmojiClick={(emojiData) => {
-                                                    updatePhoneField(
-                                                        index,
-                                                        "icon",
-                                                        emojiData.emoji
-                                                    );
-                                                    setShowPickerIndex(null);
-                                                }}
-                                                theme="light"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
+                                    }}
+                                    disabled={isReadOnly}
+                                />
 
                                 {/* Type Selector */}
                                 <div className="w-full sm:w-[120px] shrink-0">

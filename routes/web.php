@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Api\JobStatusController;
 use App\Http\Controllers\ApiController;
+use App\Http\Controllers\BackgroundJobsController;
 use App\Http\Controllers\BasicController;
 use App\Http\Controllers\CardsController;
 use App\Http\Controllers\CompanyController;
@@ -92,6 +94,12 @@ Route::middleware(['auth', 'role:company,editor,template_editor'])->group(functi
         ->name('design.cardSendingEmails');
     Route::get('/company/cards/sync-status', [DesignController::class, 'syncStatus']);
     Route::get('/company/cards/wallet-syncable-counts', [DesignController::class, 'walletSyncableCounts']);
+
+    Route::get('/background-jobs', [BackgroundJobsController::class, 'index'])
+        ->name('background-jobs.index');
+
+    Route::get('/wallet-jobs/status', [JobStatusController::class, 'walletJobStatus']);
+    Route::get('/email-jobs/status', [JobStatusController::class, 'emailJobStatus']);
 });
 
 
