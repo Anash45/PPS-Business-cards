@@ -261,7 +261,7 @@ class Card extends Model
             'wallet_label_3' => $template?->wallet_label_3,
             'wallet_qr_caption' => $template?->wallet_qr_caption,
             'wallet_logo_image' => $template?->wallet_logo_image,
-            'wallet_wallet_logo_image' => $template?->wallet_wallet_logo_image,
+            'google_wallet_logo_image' => $template?->google_wallet_logo_image,
         ];
 
         $missing = [];
