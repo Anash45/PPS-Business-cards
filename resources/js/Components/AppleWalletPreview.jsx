@@ -35,7 +35,7 @@ export default function AppleWalletPreview({ isReal }) {
                             className="text-xs mb-0.5 tracking-[0.12em] opacity-85 uppercase"
                             style={{
                                 color:
-                                    cardFormData?.wallet_text_color ??
+                                    cardFormData?.wallet_label_color ??
                                     "#000000",
                             }}
                         >
@@ -63,7 +63,7 @@ export default function AppleWalletPreview({ isReal }) {
                     <p
                         className="text-xs mb-0.5 tracking-[0.12em] opacity-85 uppercase"
                         style={{
-                            color: cardFormData?.wallet_text_color ?? "#000000",
+                            color: cardFormData?.wallet_label_color ?? "#000000",
                         }}
                     >
                         {cardFormData?.wallet_label_2 ?? ""}
@@ -76,7 +76,7 @@ export default function AppleWalletPreview({ isReal }) {
                     <p
                         className="text-xs mb-0.5 tracking-[0.12em] opacity-85 uppercase"
                         style={{
-                            color: cardFormData?.wallet_text_color ?? "#000000",
+                            color: cardFormData?.wallet_label_color ?? "#000000",
                         }}
                     >
                         {cardFormData?.wallet_label_3 ?? ""}

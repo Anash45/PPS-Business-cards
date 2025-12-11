@@ -22,6 +22,7 @@ class CardWalletDetail extends Model
         'google_company_logo_string',
         'bg_color',
         'text_color',
+        'label_color',
         'card_code',
         'qr_caption',
         'wallet_email',

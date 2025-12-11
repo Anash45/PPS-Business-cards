@@ -40,6 +40,10 @@ export default function WalletTab() {
                 "wallet_text_color",
                 cardFormData.wallet_text_color
             );
+            formData.append(
+                "wallet_label_color",
+                cardFormData.wallet_label_color
+            );
             formData.append("wallet_bg_color", cardFormData.wallet_bg_color);
             formData.append("wallet_title", cardFormData.wallet_title);
             formData.append("wallet_label_1", cardFormData.wallet_label_1);

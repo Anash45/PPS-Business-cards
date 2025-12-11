@@ -192,6 +192,10 @@ class Card extends Model
                 'expected' => $template?->wallet_text_color,
                 'actual' => $wallet->text_color,
             ],
+            'label_color' => [
+                'expected' => $template?->wallet_label_color,
+                'actual' => $wallet->label_color,
+            ],
             'label_1' => [
                 'expected' => $template?->wallet_label_1,
                 'actual' => $wallet->label_1,

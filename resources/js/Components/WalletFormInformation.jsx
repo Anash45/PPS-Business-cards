@@ -87,20 +87,44 @@ export default function WalletFormInformation({ walletType }) {
                                 />
                             </div>
                             {walletType === "apple" ? (
-                                <div className="space-y-1">
-                                    <InputLabel
-                                        className="text-black text-sm font-medium"
-                                        value={"Wallet Text Color"}
-                                        isDemo={!isTemplate}
-                                    />
-                                    <ColorInput
-                                        id="wallet_text_color"
-                                        value={cardFormData.wallet_text_color}
-                                        onChange={(e) => handleCardChange(e)}
-                                        name="wallet_text_color"
-                                        className="w-full"
-                                    />
-                                </div>
+                                <>
+                                    <div className="space-y-1">
+                                        <InputLabel
+                                            className="text-black text-sm font-medium"
+                                            value={"Wallet Label Color"}
+                                            isDemo={!isTemplate}
+                                        />
+                                        <ColorInput
+                                            id="wallet_label_color"
+                                            value={
+                                                cardFormData.wallet_label_color
+                                            }
+                                            onChange={(e) =>
+                                                handleCardChange(e)
+                                            }
+                                            name="wallet_label_color"
+                                            className="w-full"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <InputLabel
+                                            className="text-black text-sm font-medium"
+                                            value={"Wallet Text Color"}
+                                            isDemo={!isTemplate}
+                                        />
+                                        <ColorInput
+                                            id="wallet_text_color"
+                                            value={
+                                                cardFormData.wallet_text_color
+                                            }
+                                            onChange={(e) =>
+                                                handleCardChange(e)
+                                            }
+                                            name="wallet_text_color"
+                                            className="w-full"
+                                        />
+                                    </div>
+                                </>
                             ) : null}
                         </div>
                         {isTemplate ? (
