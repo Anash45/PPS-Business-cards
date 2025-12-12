@@ -122,64 +122,6 @@ export default function Company() {
         setHeaderText("");
     }, []);
 
-    const renderActions = (data, type, row) => {
-        const container = document.createElement("div");
-
-        setTimeout(() => {
-            const root = createRoot(container);
-            root.render(
-                <Dropdown>
-                    <DropdownItem
-                        onClick={() =>
-                            (window.location.href = `/company/cards/${row.id}/edit`)
-                        }
-                    >
-                        <div className="flex items-center gap-1">
-                            <EditIcon className="h-4 w-4" /> <span>Edit</span>
-                        </div>
-                    </DropdownItem>
-                    <DropdownItem onClick={() => handleDeleteEmployee(row.id)}>
-                        <div className="flex items-center gap-1">
-                            <Trash2 className="h-4 w-4" /> <span>Delete</span>
-                        </div>
-                    </DropdownItem>
-                    <DropdownItem
-                        onClick={() => handleToggleStatus(row.id, row.status)}
-                    >
-                        {row.status === "active"
-                            ? "Set Inactive"
-                            : "Set Active"}
-                    </DropdownItem>
-                </Dropdown>
-            );
-        }, 0);
-
-        return container;
-    };
-
-    const renderWalletStatus = (data, type, row) => {
-        const container = document.createElement("div");
-
-        setTimeout(() => {
-            const root = createRoot(container);
-            root.render(
-                <div className="flex gap-1 items-center flex-wrap">
-                    <WalletEligibilityPill
-                        eligibility={row?.is_eligible_for_sync?.eligible}
-                    />
-
-                    {row.is_syncing && Number(row.is_syncing) === 1 ? (
-                        <WalletSyncingPill /> // show spinner when syncing
-                    ) : (
-                        <WalletStatusPill status={row?.wallet_status?.status} /> // show regular status
-                    )}
-                </div>
-            );
-        }, 0);
-
-        return container;
-    };
-
     const handleToggleStatus = async (id, currentStatus) => {
         const newStatus = currentStatus === "active" ? "inactive" : "active";
 
@@ -577,56 +519,6 @@ export default function Company() {
 
     const [backendErrors, setBackendErrors] = useState([]);
 
-    // --- NEW: background version (calls backend job scheduler endpoint) ---
-    const handleSyncMultipleWalletsBackground = async () => {
-        if (!selectedIds.length) {
-            toast.error("Please select at least one employee.");
-            return;
-        }
-
-        setIsSyncingBg(true);
-        setBackendErrors([]);
-
-        // Save previous state to restore in case of error
-        let previousEmployeesState = [...employees];
-
-        try {
-            const response = await axios.post(
-                "/company/cards/sync-multiple-wallets-background",
-                { ids: selectedIds }
-            );
-
-            if (response.data?.success) {
-                toast.success(
-                    response.data.message || "Employees syncing in background!"
-                );
-                setSelectedIds([]);
-            } else {
-                toast.error(
-                    response.data.message ||
-                        "Failed to schedule background sync."
-                );
-                // revert to previous state
-                setEmployees(previousEmployeesState);
-                setIsSyncingBg(false);
-            }
-        } catch (error) {
-            console.error("Background sync schedule failed:", error);
-            // restore previous state
-            setEmployees(previousEmployeesState);
-            setIsSyncingBg(false);
-            setSelectedIds([]);
-
-            if (error.response?.status === 422 && error.response.data.errors) {
-                setBackendErrors(error.response.data.errors);
-            } else {
-                toast.error(
-                    error.response?.data?.message ||
-                        "Failed to schedule background sync."
-                );
-            }
-        }
-    };
 
     const handleSendEmails = async () => {
         if (!selectedIds.length) {
@@ -638,13 +530,15 @@ export default function Company() {
         setBackendErrors([]);
 
         // Save previous state to restore in case of error
-        let previousEmployeesState = [...employees];
+        let previousEmployeesState = [...employees.data];
 
         try {
             const response = await axios.post(
                 "/company/cards/card-sending-emails",
                 { ids: selectedIds }
             );
+
+            console.log("Email sending response:", response.data);
 
             if (response.data?.success) {
                 toast.success(

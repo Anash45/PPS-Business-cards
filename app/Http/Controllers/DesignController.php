@@ -1095,7 +1095,7 @@ class DesignController extends Controller
             'var1' => env('LINK_URL') . '/card/' . $card->code,
             'var2' => $template->wallet_qr_caption,
             'var3' => $template->wallet_label_1,
-            'var4' => trim(implode(' ', array_filter([$card->salutation, $card->title, $card->first_name, $card->last_name]))),
+            'var4' => trim(implode(' ', array_filter([$card->title, $card->first_name, $card->last_name]))),
             'var5' => $template->wallet_label_2,
             'var6' => $template->company_name,
             'var7' => $template->wallet_label_3,
@@ -1113,7 +1113,7 @@ class DesignController extends Controller
                 'background_color' => $template->wallet_bg_color,
                 "organization_name" => $template->company_name,
                 "program_name" => $template->wallet_title,
-                "loyalty_balance" => trim(implode(' ', array_filter([$card->salutation, $card->title, $card->first_name, $card->last_name]))),
+                "loyalty_balance" => trim(implode(' ', array_filter([$card->title, $card->first_name, $card->last_name]))),
                 "loyalty_label" => $template->wallet_label_1,
             ],
             'apple_pass' => [

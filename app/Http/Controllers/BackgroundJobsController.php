@@ -39,7 +39,7 @@ class BackgroundJobsController extends Controller
         ];
 
         // Fetch wallet sync jobs with pagination
-        $walletQuery = BulkWalletApiJob::where('company_id', $companyId);
+        $walletQuery = BulkWalletApiJob::where('company_id', $companyId)->orderBy('created_at', 'desc');
         $walletJobs = $this->applyDataTableFilters(
             $walletQuery,
             $request,
@@ -66,7 +66,7 @@ class BackgroundJobsController extends Controller
         ];
 
         // Fetch email sending jobs with pagination
-        $emailQuery = BulkEmailJob::where('company_id', $companyId);
+        $emailQuery = BulkEmailJob::where('company_id', $companyId)->orderBy('created_at', 'desc');
         $emailJobs = $this->applyDataTableFilters(
             $emailQuery,
             $request,
@@ -79,5 +79,63 @@ class BackgroundJobsController extends Controller
             'walletJobs' => $walletJobs,
             'emailJobs' => $emailJobs,
         ]);
+    }
+
+    public function cancelWalletJob(Request $request, $id)
+    {
+        $user = auth()->user();
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id
+            : ($user->company_id ?? null);
+
+        $job = BulkWalletApiJob::where('id', $id)
+            ->where('company_id', $companyId)
+            ->whereIn('status', ['pending', 'processing'])
+            ->firstOrFail();
+
+        // Update the main job
+        $job->update([
+            'status' => 'cancelled',
+            'reason' => 'Cancelled by user'
+        ]);
+
+        // Update all pending/processing items
+        $job->items()
+            ->whereIn('status', ['pending', 'processing'])
+            ->update([
+                'status' => 'cancelled',
+                'reason' => 'Cancelled by user'
+            ]);
+
+        return redirect()->back()->with('success', 'Wallet job cancelled successfully');
+    }
+
+    public function cancelEmailJob(Request $request, $id)
+    {
+        $user = auth()->user();
+        $companyId = $user->isCompany()
+            ? $user->companyProfile->id
+            : ($user->company_id ?? null);
+
+        $job = BulkEmailJob::where('id', $id)
+            ->where('company_id', $companyId)
+            ->whereIn('status', ['pending', 'processing'])
+            ->firstOrFail();
+
+        // Update the main job
+        $job->update([
+            'status' => 'cancelled',
+            'reason' => 'Cancelled by user'
+        ]);
+
+        // Update all pending/processing items
+        $job->items()
+            ->whereIn('status', ['pending', 'processing'])
+            ->update([
+                'status' => 'cancelled',
+                'reason' => 'Cancelled by user'
+            ]);
+
+        return redirect()->back()->with('success', 'Email job cancelled successfully');
     }
 }

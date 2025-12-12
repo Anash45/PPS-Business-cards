@@ -103,6 +103,10 @@ Route::middleware(['auth', 'role:company,editor,template_editor'])->group(functi
 
     Route::get('/background-jobs', [BackgroundJobsController::class, 'index'])
         ->name('background-jobs.index');
+    Route::post('/background-jobs/wallet/{id}/cancel', [BackgroundJobsController::class, 'cancelWalletJob'])
+        ->name('background-jobs.wallet.cancel');
+    Route::post('/background-jobs/email/{id}/cancel', [BackgroundJobsController::class, 'cancelEmailJob'])
+        ->name('background-jobs.email.cancel');
 
     Route::get('/wallet-jobs/status', [JobStatusController::class, 'walletJobStatus']);
     Route::get('/email-jobs/status', [JobStatusController::class, 'emailJobStatus']);

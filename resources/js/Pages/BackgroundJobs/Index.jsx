@@ -6,6 +6,7 @@ import CustomDataTable from "@/Components/CustomDataTable";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
 import capitalize from "@/utils/capitalize";
+import { Dropdown, DropdownItem } from "@/Components/DropdownUi";
 
 dayjs.locale("de");
 
@@ -21,8 +22,8 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
     // Auto-refresh data every 10 seconds
     useEffect(() => {
         const interval = setInterval(() => {
-            router.reload({ 
-                only: ['walletJobs', 'emailJobs'],
+            router.reload({
+                only: ["walletJobs", "emailJobs"],
             });
         }, 10000);
 
@@ -41,19 +42,25 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
                 label: "Status",
                 sortable: true,
                 render: (value) => {
-                    let badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
+                    let badgeClass =
+                        "bg-gray-100 text-gray-700 border-gray-200";
                     if (value === "completed") {
-                        badgeClass = "bg-green-100 text-green-700 border-green-200";
+                        badgeClass =
+                            "bg-green-100 text-green-700 border-green-200";
                     } else if (value === "processing") {
-                        badgeClass = "bg-blue-100 text-blue-700 border-blue-200";
+                        badgeClass =
+                            "bg-blue-100 text-blue-700 border-blue-200";
                     } else if (value === "failed") {
                         badgeClass = "bg-red-100 text-red-700 border-red-200";
                     } else if (value === "pending") {
-                        badgeClass = "bg-yellow-100 text-yellow-700 border-yellow-200";
+                        badgeClass =
+                            "bg-yellow-100 text-yellow-700 border-yellow-200";
                     }
 
                     return (
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${badgeClass}`}>
+                        <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full border ${badgeClass}`}
+                        >
                             {capitalize(value)}
                         </span>
                     );
@@ -66,17 +73,20 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
                 render: (value, row) => {
                     const total = row.total_items || 0;
                     const processed = row.processed_items || 0;
-                    const percent = total > 0 ? Math.round((processed / total) * 100) : 0;
+                    const percent =
+                        total > 0 ? Math.round((processed / total) * 100) : 0;
 
                     return (
                         <div className="flex items-center gap-2">
                             <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div 
-                                    className="bg-blue-500 h-full transition-all" 
+                                <div
+                                    className="bg-blue-500 h-full transition-all"
                                     style={{ width: `${percent}%` }}
                                 ></div>
                             </div>
-                            <span className="text-xs font-medium">{processed}/{total}</span>
+                            <span className="text-xs font-medium">
+                                {processed}/{total}
+                            </span>
                         </div>
                     );
                 },
@@ -85,7 +95,8 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
                 key: "last_processed_at",
                 label: "Last Processed",
                 sortable: true,
-                render: (value) => value ? dayjs(value).format("DD.MM.YYYY HH:mm") : "—",
+                render: (value) =>
+                    value ? dayjs(value).format("DD.MM.YYYY HH:mm") : "—",
             },
             {
                 key: "reason",
@@ -98,6 +109,29 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
                 label: "Created",
                 sortable: true,
                 render: (value) => dayjs(value).format("DD.MM.YYYY HH:mm"),
+            },
+            {
+                key: "actions",
+                label: "Actions",
+                sortable: false,
+                render: (value, row) => {
+                    const canCancel =
+                        row.status === "pending" || row.status === "processing";
+
+                    if (!canCancel) {
+                        return <span className="text-gray-400 text-xs">—</span>;
+                    }
+
+                    return (
+                        <Dropdown>
+                            <DropdownItem
+                                onClick={() => handleCancelWalletJob(row.id)}
+                            >
+                                Cancel
+                            </DropdownItem>
+                        </Dropdown>
+                    );
+                },
             },
         ],
         []
@@ -115,19 +149,25 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
                 label: "Status",
                 sortable: true,
                 render: (value) => {
-                    let badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
+                    let badgeClass =
+                        "bg-gray-100 text-gray-700 border-gray-200";
                     if (value === "completed") {
-                        badgeClass = "bg-green-100 text-green-700 border-green-200";
+                        badgeClass =
+                            "bg-green-100 text-green-700 border-green-200";
                     } else if (value === "processing") {
-                        badgeClass = "bg-blue-100 text-blue-700 border-blue-200";
+                        badgeClass =
+                            "bg-blue-100 text-blue-700 border-blue-200";
                     } else if (value === "failed") {
                         badgeClass = "bg-red-100 text-red-700 border-red-200";
                     } else if (value === "pending") {
-                        badgeClass = "bg-yellow-100 text-yellow-700 border-yellow-200";
+                        badgeClass =
+                            "bg-yellow-100 text-yellow-700 border-yellow-200";
                     }
 
                     return (
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${badgeClass}`}>
+                        <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full border ${badgeClass}`}
+                        >
                             {capitalize(value)}
                         </span>
                     );
@@ -140,17 +180,20 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
                 render: (value, row) => {
                     const total = row.total_items || 0;
                     const processed = row.processed_items || 0;
-                    const percent = total > 0 ? Math.round((processed / total) * 100) : 0;
+                    const percent =
+                        total > 0 ? Math.round((processed / total) * 100) : 0;
 
                     return (
                         <div className="flex items-center gap-2">
                             <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div 
-                                    className="bg-green-500 h-full transition-all" 
+                                <div
+                                    className="bg-green-500 h-full transition-all"
                                     style={{ width: `${percent}%` }}
                                 ></div>
                             </div>
-                            <span className="text-xs font-medium">{processed}/{total}</span>
+                            <span className="text-xs font-medium">
+                                {processed}/{total}
+                            </span>
                         </div>
                     );
                 },
@@ -159,7 +202,8 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
                 key: "last_processed_at",
                 label: "Last Processed",
                 sortable: true,
-                render: (value) => value ? dayjs(value).format("DD.MM.YYYY HH:mm") : "—",
+                render: (value) =>
+                    value ? dayjs(value).format("DD.MM.YYYY HH:mm") : "—",
             },
             {
                 key: "reason",
@@ -173,9 +217,68 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
                 sortable: true,
                 render: (value) => dayjs(value).format("DD.MM.YYYY HH:mm"),
             },
+            {
+                key: "actions",
+                label: "Actions",
+                sortable: false,
+                render: (value, row) => {
+                    const canCancel =
+                        row.status === "pending" || row.status === "processing";
+
+                    if (!canCancel) {
+                        return <span className="text-gray-400 text-xs">—</span>;
+                    }
+
+                    return (
+                        <Dropdown>
+                            <DropdownItem
+                                onClick={() => handleCancelEmailJob(row.id)}
+                            >
+                                Cancel
+                            </DropdownItem>
+                        </Dropdown>
+                    );
+                },
+            },
         ],
         []
     );
+
+    const handleCancelWalletJob = (jobId) => {
+        if (!confirm("Are you sure you want to cancel this wallet sync job?")) {
+            return;
+        }
+
+        router.post(
+            route("background-jobs.wallet.cancel", jobId),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    router.reload({ only: ["walletJobs"] });
+                },
+            }
+        );
+    };
+
+    const handleCancelEmailJob = (jobId) => {
+        if (
+            !confirm("Are you sure you want to cancel this email sending job?")
+        ) {
+            return;
+        }
+
+        router.post(
+            route("background-jobs.email.cancel", jobId),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    router.reload({ only: ["emailJobs"] });
+                },
+            }
+        );
+    };
 
     return (
         <AuthenticatedLayout>
@@ -207,7 +310,10 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
                     </div>
 
                     {/* Tab Content */}
-                    <div className="overflow-auto" style={{ maxHeight: "700px" }}>
+                    <div
+                        className="overflow-auto"
+                        style={{ maxHeight: "700px" }}
+                    >
                         {activeTab === "wallet" && (
                             <CustomDataTable
                                 columns={walletColumns}
