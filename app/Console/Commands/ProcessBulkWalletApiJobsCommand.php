@@ -13,12 +13,12 @@ class ProcessBulkWalletApiJobsCommand extends Command
 
     public function handle()
     {
-        Log::info('[ProcessBulkWalletApiJobsCommand] Cron command started at ' . now());
-        $this->info('Starting ProcessBulkWalletApiJob dispatch...');
+        Log::info('[2 ProcessBulkWalletApiJobsCommand] Cron command started at ' . now());
+        $this->info('2 Starting ProcessBulkWalletApiJob dispatch...');
 
         ProcessBulkWalletApiJob::dispatch();
 
-        $this->info('ProcessBulkWalletApiJob dispatched successfully.');
-        Log::info('[ProcessBulkWalletApiJobsCommand] Cron command ended at ' . now());
+        $this->info('2 ProcessBulkWalletApiJob dispatched successfully.');
+        Log::info('[2 ProcessBulkWalletApiJobsCommand] Cron command ended at ' . now());
     }
 }

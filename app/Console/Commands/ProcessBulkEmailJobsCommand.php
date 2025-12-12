@@ -13,18 +13,18 @@ class ProcessBulkEmailJobsCommand extends Command
 
     public function handle()
     {
-        Log::info('[ProcessBulkEmailJobsCommand] Command started at ' . now());
-        $this->info('Dispatching ProcessBulkEmailJob...');
+        Log::info('[3 ProcessBulkEmailJobsCommand] Command started at ' . now());
+        $this->info('3 Dispatching ProcessBulkEmailJob...');
 
         try {
             ProcessBulkEmailJob::dispatch();
-            $this->info('ProcessBulkEmailJob dispatched successfully.');
-            Log::info('[ProcessBulkEmailJobsCommand] Job dispatched successfully.');
+            $this->info('3 ProcessBulkEmailJob dispatched successfully.');
+            Log::info('[3 ProcessBulkEmailJobsCommand] Job dispatched successfully.');
         } catch (\Exception $e) {
-            $this->error('Failed to dispatch email job: ' . $e->getMessage());
-            Log::error('[ProcessBulkEmailJobsCommand] Failed: ' . $e->getMessage());
+            $this->error('3 Failed to dispatch email job: ' . $e->getMessage());
+            Log::error('[3 ProcessBulkEmailJobsCommand] Failed: ' . $e->getMessage());
         }
 
-        Log::info('[ProcessBulkEmailJobsCommand] Command finished at ' . now());
+        Log::info('[3 ProcessBulkEmailJobsCommand] Command finished at ' . now());
     }
 }
