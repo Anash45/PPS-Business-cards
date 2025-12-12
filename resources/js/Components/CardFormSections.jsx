@@ -114,7 +114,9 @@ export default function CardFormSections() {
                                             >
                                                 <GripVertical className="h-5 w-5" />
                                             </span>
-                                            {cardComponentMap[section.id]}
+                                            <div className="relative">
+                                                {cardComponentMap[section.id]}
+                                            </div>
                                         </div>
                                     )}
                                 </Draggable>

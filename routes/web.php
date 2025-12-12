@@ -52,8 +52,14 @@ Route::middleware(['auth', 'role:company,editor,template_editor'])->group(functi
     Route::get('/company/cards', [CardsController::class, 'companyCards'])
         ->name('company.cards');
 
+    Route::get('/company/cards1', [CardsController::class, 'companyCards1'])
+        ->name('company.cards1');
+
     Route::get('/company/nfc-cards', [CardsController::class, 'companyNfcCards'])
         ->name('company.nfc_cards');
+
+    Route::get('/company/employees/search', [CardsController::class, 'searchEmployees'])
+        ->name('company.employees.search');
 
     Route::get('/company/cards/{card}/edit', [DesignController::class, 'cardEdit'])
         ->name('card.edit');

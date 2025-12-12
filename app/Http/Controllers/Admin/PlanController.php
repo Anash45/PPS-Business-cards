@@ -4,18 +4,51 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
+use App\Traits\DataTableTrait;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class PlanController extends Controller
 {
+    use DataTableTrait;
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $plans = Plan::orderBy('id', 'desc')->get();
+        // Define searchable columns
+        $searchableColumns = [
+            'name',
+            'price_monthly',
+            'price_annual',
+        ];
+
+        // Define sortable columns
+        $sortableColumns = [
+            'id',
+            'name',
+            'cards_included',
+            'nfc_cards_included',
+            'price_monthly',
+            'price_annual',
+            'active',
+            'created_at',
+            'updated_at',
+        ];
+
+        // Start with base query
+        $query = Plan::query();
+
+        // Apply DataTable filters (search, sort, pagination)
+        $plans = $this->applyDataTableFilters(
+            $query,
+            $request,
+            $searchableColumns,
+            $sortableColumns,
+            10 // default per page
+        );
 
         return Inertia::render('Plans/Index', [
             'plans' => $plans,

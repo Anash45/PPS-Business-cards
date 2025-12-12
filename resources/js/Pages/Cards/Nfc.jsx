@@ -2,10 +2,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage, router } from "@inertiajs/react";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { useEffect, useMemo, useState } from "react";
-import DataTable from "datatables.net-react";
-import DT from "datatables.net-dt";
-import "datatables.net-dt/css/dataTables.dataTables.css";
-import { createRoot } from "react-dom/client";
+import CustomDataTable from "@/Components/CustomDataTable";
 import { Dropdown, DropdownItem } from "@/Components/DropdownUi";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -13,12 +10,11 @@ import { getDomain } from "@/utils/viteConfig";
 import SelectInput from "@/Components/SelectInput";
 import { ChevronDown } from "lucide-react";
 
-// Bind DataTables
-DataTable.use(DT);
-
 export default function Nfc() {
     const { nfcCards, employeeCards, isSubscriptionActive } = usePage().props;
     const { setHeaderTitle, setHeaderText } = useGlobal(GlobalProvider);
+
+    console.log("NFC Cards: ", nfcCards);
 
     const [linkDomain, setLinkDomain] = useState(
         "https://app.ppsbusinesscards.de"
@@ -36,29 +32,6 @@ export default function Nfc() {
         setHeaderTitle("NFC-Card management");
         setHeaderText("");
     }, []);
-
-    const renderActions = (data, type, row) => {
-        const container = document.createElement("div");
-
-        setTimeout(() => {
-            const root = createRoot(container);
-            root.render(
-                <Dropdown>
-                    <DropdownItem
-                        onClick={() => handleToggleStatus(row.id, row.status)}
-                    >
-                        {row.status === "active"
-                            ? "Set Inactive"
-                            : "Set Active"}
-                    </DropdownItem>
-                </Dropdown>
-            );
-        }, 0);
-
-        return container;
-    };
-
-    console.log("nfcCards: ", nfcCards);
 
     const handleToggleStatus = async (id, currentStatus) => {
         const newStatus = currentStatus === "active" ? "inactive" : "active";
@@ -104,45 +77,88 @@ export default function Nfc() {
         }
     };
 
-    const [isAnyChecked, setIsAnyChecked] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
+
+    const handleSelectAll = (e) => {
+        e.stopPropagation();
+        const isChecked = e.target.checked;
+        if (isChecked) {
+            const allIds = nfcCards.data.map(card => card.id);
+            setSelectedIds(allIds);
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleRowCheckboxChange = (e, id) => {
+        e.stopPropagation();
+        setSelectedIds(prev => {
+            if (prev.includes(id)) {
+                return prev.filter(selectedId => selectedId !== id);
+            } else {
+                return [...prev, id];
+            }
+        });
+    };
 
     const columns = useMemo(
         () => [
             {
-                title: `<input type="checkbox" id="select-all" /> ID`,
-                data: "id",
-                orderable: false,
-                render: (data, type, row) => {
+                key: "id",
+                label: (
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={selectedIds.length > 0 && selectedIds.length === nfcCards.data?.length}
+                            onChange={handleSelectAll}
+                            onClick={(e)=> e.stopPropagation()}
+                            className="rounded border-gray-300"
+                        />
+                        <span>ID</span>
+                    </label>
+                ),
+                sortable: true,
+                render: (id, row) => {
                     const isChecked = selectedIds.includes(row.id);
-                    return `
-        <div class="flex items-center gap-2">
-            <input type="checkbox" 
-                   class="row-checkbox" 
-                   value="${row.id}" 
-                   ${isChecked ? "checked" : ""} />
-            <span>${row.id}</span>
-        </div>
-    `;
+                    return (
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                className="row-checkbox rounded border-gray-300"
+                                value={row.id}
+                                checked={isChecked}
+                                onChange={(e) => handleRowCheckboxChange(e, row.id)}
+                            />
+                            <span className="text-sm text-gray-700">{row.id}</span>
+                        </label>
+                    );
                 },
             },
             {
-                title: "Code",
-                data: "qr_code",
-                render: (data, type, row) => {
-                    return `<a href="${linkDomain}/card/${row.qr_code}" target="_blank" class="text-[#50bd5b] underline">${data}</a>`;
-                },
+                key: "qr_code",
+                label: "Code",
+                sortable: true,
+                render: (qrCode, row) => (
+                    <a
+                        href={`${linkDomain}/card/${qrCode}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#50bd5b] underline hover:text-[#3da047]"
+                    >
+                        {qrCode}
+                    </a>
+                ),
             },
             {
-                title: "Employee",
-                data: null,
-                render: (data, type, row) => {
-                    // Use the associated card
-                    const card = row.card;
+                key: "employee",
+                label: "Employee",
+                sortable: false,
+                render: (employee, row) => {
+                    const card = row?.card || null;
 
                     if (!card) {
-                        return `<p class="text-sm text-gray-400">Not assigned</p>`;
+                        return <p className="text-sm text-gray-400">Not assigned</p>;
                     }
 
                     const nameParts = [
@@ -157,95 +173,60 @@ export default function Nfc() {
                         ? `/storage/${card.profile_image}`
                         : "/assets/images/profile-placeholder.png";
 
-                    return `
-        <div class="flex items-center gap-2">
-            <img
-                src="${profileImage}"
-                alt="Profile"
-                class="rounded-full border-2 bg-white border-white w-8 h-8 object-cover shrink-0"
-            />
-            <div>
-                <p class="font-medium text-[#181D27] text-sm">
-                    ${fullName || "Not assigned"}
-                </p>
-            </div>
-        </div>
-        `;
+                    return (
+                        <div className="flex items-center gap-2">
+                            <img
+                                src={profileImage}
+                                alt="Profile"
+                                className="rounded-full border-2 bg-white border-white w-8 h-8 object-cover shrink-0"
+                            />
+                            <div>
+                                <p className="font-medium text-[#181D27] text-sm">
+                                    {fullName || "Not assigned"}
+                                </p>
+                            </div>
+                        </div>
+                    );
                 },
             },
             {
-                title: "Status",
-                data: "status",
-                render: (data) => {
-                    const isActive = data === "active";
+                key: "status",
+                label: "Status",
+                sortable: true,
+                render: (status, row) => {
+                    const isActive = status === "active";
                     const badgeClass = isActive
                         ? "bg-green-100 text-green-700 border border-green-200"
                         : "bg-red-100 text-red-700 border border-red-200";
 
-                    return `<span class="px-2 py-1 text-xs font-medium rounded-full ${badgeClass}">
-                    ${isActive ? "Active" : "Inactive"}
-                </span>`;
+                    return (
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${badgeClass}`}>
+                            {isActive ? "Active" : "Inactive"}
+                        </span>
+                    );
                 },
             },
             {
-                title: "Actions",
-                data: null,
-                orderable: false,
-                searchable: false,
-                render: renderActions,
+                key: "actions",
+                label: "Actions",
+                sortable: false,
+                render: (actions, row) => (
+                    <Dropdown>
+                        <DropdownItem
+                            onClick={() => handleToggleStatus(row.id, row.status)}
+                        >
+                            {row.status === "active"
+                                ? "Set Inactive"
+                                : "Set Active"}
+                        </DropdownItem>
+                    </Dropdown>
+                ),
             },
         ],
-        [linkDomain]
+        [linkDomain, selectedIds, nfcCards]
     );
 
-    useEffect(() => {
-        const selectAll = document.getElementById("select-all");
-        if (!selectAll) return;
 
-        // Handle "select all"
-        const handleSelectAll = (e) => {
-            const isChecked = e.target.checked;
-            const checkboxes = document.querySelectorAll(".row-checkbox");
-
-            const newSelectedIds = [];
-            checkboxes.forEach((cb) => {
-                cb.checked = isChecked;
-                if (isChecked) newSelectedIds.push(parseInt(cb.value));
-            });
-
-            setSelectedIds(isChecked ? newSelectedIds : []);
-            setIsAnyChecked(isChecked);
-        };
-
-        // Handle individual checkbox changes
-        const handleRowCheckboxChange = () => {
-            const checkboxes = document.querySelectorAll(".row-checkbox");
-            const checkedBoxes = Array.from(
-                document.querySelectorAll(".row-checkbox:checked")
-            );
-            const ids = checkedBoxes.map((cb) => parseInt(cb.value));
-
-            // Update the "Select All" checkbox
-            selectAll.checked = checkedBoxes.length === checkboxes.length;
-
-            // Update states
-            setSelectedIds(ids);
-            setIsAnyChecked(ids.length > 0);
-        };
-
-        // Add listeners
-        selectAll.addEventListener("change", handleSelectAll);
-        document.addEventListener("change", (e) => {
-            if (e.target.classList.contains("row-checkbox")) {
-                handleRowCheckboxChange();
-            }
-        });
-
-        // Cleanup
-        return () => {
-            selectAll.removeEventListener("change", handleSelectAll);
-        };
-    }, [linkDomain]);
 
     const [toggling, setToggling] = useState(false);
     const [assigning, setAssigning] = useState(false);
@@ -448,58 +429,39 @@ export default function Nfc() {
                                             isSearchable={true}
                                             placeholder="Select or search employee..."
                                             name="employee"
-                                            value={selectedEmployee} // use the new state
+                                            value={selectedEmployee}
                                             onChange={(selected) => {
                                                 setSelectedEmployee(
                                                     selected.target.value
-                                                ); // update new state
+                                                );
                                             }}
                                             className="w-full block"
-                                            options={employeeCards.map(
-                                                (employee) => ({
-                                                    value: employee.id,
-                                                    label: (() => {
-                                                        const id = employee.id;
-                                                        const internal =
-                                                            employee.internal_employee_number;
-                                                        const nameParts = [
-                                                            employee.first_name,
-                                                            employee.last_name,
-                                                        ]
-                                                            .filter(Boolean)
-                                                            .join(" "); // join name parts with space
-
-                                                        // If both internal and name are empty
-                                                        if (
-                                                            !internal &&
-                                                            !nameParts
-                                                        )
-                                                            return "Not assigned";
-
-                                                        const inner = [
-                                                            internal,
-                                                            nameParts,
-                                                        ]
-                                                            .filter(Boolean)
-                                                            .join(" - ");
-                                                        return `${id} - (${inner})`;
-                                                    })(),
-                                                    icon: () => (
-                                                        <img
-                                                            src={
-                                                                employee.profile_image
-                                                                    ? `/storage/${employee.profile_image}`
-                                                                    : "/assets/images/profile-placeholder.png"
-                                                            } // fallback
-                                                            alt={
-                                                                employee.first_name ||
-                                                                "Employee"
-                                                            }
-                                                            className="h-6 w-6 rounded-full"
-                                                        />
-                                                    ),
-                                                })
-                                            )}
+                                            async={true}
+                                            loadOptions={(inputValue) => {
+                                                console.log("Searching for: ", inputValue);
+                                                return axios
+                                                    .get(route('company.employees.search'), {
+                                                        params: { q: inputValue }
+                                                    })
+                                                    .then(response => {
+                                                        console.log("Search results: ", response.data);
+                                                        return response.data.map(emp => ({
+                                                            value: emp.value,
+                                                            label: emp.label,
+                                                            icon: () => (
+                                                                <img
+                                                                    src={emp.image}
+                                                                    alt={emp.label}
+                                                                    className="h-6 w-6 rounded-full"
+                                                                />
+                                                            ),
+                                                        }));
+                                                    })
+                                                    .catch((error) => {
+                                                        console.error("Search error: ", error);
+                                                        return [];
+                                                    });
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -509,20 +471,18 @@ export default function Nfc() {
                                     </p>
                                 ) : null}
                             </div>
-                            <DataTable
-                                key={linkDomain}
-                                data={nfcCards}
+                            <CustomDataTable
                                 columns={columns}
-                                className="display site-datatable"
-                                options={{
-                                    responsive: true,
-                                    pageLength: 10,
-                                    lengthMenu: [10, 25, 50, 100],
-                                    dom:
-                                        "<'flex justify-between items-center mb-3 sd-top'<'flex items-center gap-2'l><'flex items-center gap-2'f>>" +
-                                        "rt" +
-                                        "<'flex justify-center mt-3 sd-bottom'p>",
-                                }}
+                                data={nfcCards}
+                                endpoint={route("company.nfc_cards")}
+                                tableKey="nfcCards"
+                                searchable={true}
+                                paginated={true}
+                                perPageOptions={[10, 25, 50, 100]}
+                                selectable={true}
+                                selectedIds={selectedIds}
+                                onSelectionChange={setSelectedIds}
+                                emptyMessage="No NFC cards found."
                             />
                         </div>
                     </div>

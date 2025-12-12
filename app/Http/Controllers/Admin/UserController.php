@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\Hotel;
 use App\Models\Plan;
 use App\Models\User;
+use App\Traits\DataTableTrait;
 use Auth;
 use DB;
 use Illuminate\Http\Request;
@@ -14,6 +15,7 @@ use Log;
 
 class UserController extends Controller
 {
+    use DataTableTrait;
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -30,7 +32,6 @@ class UserController extends Controller
             if ($company) {
                 $teamMemberIds = $company->teamMembers()->pluck('id')->toArray();
 
-
                 // ✅ Exclude the company owner (himself) explicitly
                 $query->whereIn('id', $teamMemberIds);
             } else {
@@ -43,24 +44,24 @@ class UserController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        // 🔹 Apply search filter
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('role', 'like', "%{$search}%");
-            });
-        }
+        // Define searchable and sortable columns for DataTable
+        $searchableColumns = ['name', 'email', 'role', 'company.name'];
+        $sortableColumns = ['id', 'company.name', 'name', 'email', 'role', 'created_at'];
 
-        $users = $query->latest()->paginate(10)->withQueryString();
+        // Apply DataTable filters (search, sort, pagination)
+        $users = $this->applyDataTableFilters(
+            $query,
+            $request,
+            $searchableColumns,
+            $sortableColumns,
+            25 // default per page
+        );
+
         $plans = Plan::get();
         $companies = Company::get();
 
         return inertia('Users/Index', [
             'users' => $users,
-            'filters' => [
-                'search' => $search,
-            ],
             'plans' => $plans,
             'companies' => $companies,
         ]);

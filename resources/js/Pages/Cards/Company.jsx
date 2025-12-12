@@ -18,14 +18,19 @@ import { ChevronDown, EditIcon, Trash2 } from "lucide-react";
 import { SyncingWarning } from "@/Components/SyncingWarning";
 import CardSyncChecker from "@/Components/CardSyncChecker";
 import WalletSyncingPill from "@/Components/WalletSyncingPill";
-import { useWalletSyncMonitor, useEmailSendingMonitor } from "@/hooks/useJobMonitor";
+import {
+    useWalletSyncMonitor,
+    useEmailSendingMonitor,
+} from "@/hooks/useJobMonitor";
 import { set } from "date-fns";
+import CustomDataTable from "@/Components/CustomDataTable";
 
 // Bind DataTables
 DataTable.use(DT);
 
 export default function Company() {
-    const { cards, isSubscriptionActive, hasRunningJob, hasRunningEmailJob } = usePage().props;
+    const { cards, isSubscriptionActive, hasRunningJob, hasRunningEmailJob } =
+        usePage().props;
     const { setHeaderTitle, setHeaderText } = useGlobal(GlobalProvider);
 
     const [linkDomain, setLinkDomain] = useState(
@@ -223,7 +228,9 @@ export default function Company() {
 
     const [isSyncing, setIsSyncing] = useState(false);
     const [isSyncingBg, setIsSyncingBg] = useState(hasRunningJob ?? false);
-    const [isSendingEmails, setIsSendingEmails] = useState(hasRunningEmailJob ?? false);
+    const [isSendingEmails, setIsSendingEmails] = useState(
+        hasRunningEmailJob ?? false
+    );
     const [isAnyChecked, setIsAnyChecked] = useState(false);
     const [selectedIds, setSelectedIds] = useState([]);
 
@@ -243,193 +250,258 @@ export default function Company() {
         }
     });
 
+    // Helper function for date formatting
+    const formatDateTime = (dateString) => {
+        if (!dateString) return null;
+        const date = new Date(dateString);
+        const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
+        const dateStr = `${pad(date.getDate())}.${pad(
+            date.getMonth() + 1
+        )}.${date.getFullYear()}`;
+        let hours = date.getHours();
+        const minutes = pad(date.getMinutes());
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        if (hours === 0) hours = 12;
+        const timeStr = `${hours}:${minutes} ${ampm}`;
+        return { dateStr, timeStr };
+    };
+
+    const handleSelectAll = (e) => {
+        e.stopPropagation();
+        const isChecked = e.target.checked;
+        if (isChecked) {
+            const allIds = cards.data.map((card) => card.id);
+            setSelectedIds(allIds);
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleRowCheckboxChange = (e, id) => {
+        e.stopPropagation();
+        setSelectedIds((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter((selectedId) => selectedId !== id);
+            } else {
+                return [...prev, id];
+            }
+        });
+    };
+
     const columns = useMemo(
         () => [
             {
-                title: `<input type="checkbox" id="select-all" /> ID`,
-                data: "id",
-                render: (data, type, row) => {
+                key: "id",
+
+                label: (
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={
+                                selectedIds.length > 0 &&
+                                selectedIds.length === cards.data?.length
+                            }
+                            onChange={handleSelectAll}
+                            onClick={(e) => e.stopPropagation()}
+                            className="rounded border-gray-300"
+                        />
+                        <span>ID</span>
+                    </label>
+                ),
+                sortable: true,
+                render: (id, row) => {
                     const isChecked = selectedIds.includes(row.id);
-                    return `
-        <label class="flex items-center gap-2">
-            <input type="checkbox" 
-                   class="row-checkbox" 
-                   value="${row.id}" 
-                   ${isChecked ? "checked" : ""} />
-            <span>${row.id}</span>
-        </label>
-    `;
+                    return (
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                className="row-checkbox rounded border-gray-300"
+                                value={row.id}
+                                checked={isChecked}
+                                onChange={(e) => handleRowCheckboxChange(e, row.id)}
+                            />
+                            <span className="text-sm text-gray-700">{row.id}</span>
+                        </label>
+                    );
                 },
             },
             {
-                title: "Code",
-                data: "code",
-                render: (data, type, row) => {
-                    return `<a href="${linkDomain}/card/${data}" target="_blank" class="text-[#50bd5b] underline">${data}</a>`;
-                },
+                key: "code",
+                label: "Code",
+                sortable: true,
+                render: (code) => (
+                    <a
+                        href={`${linkDomain}/card/${code}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#50bd5b] underline hover:text-[#3da147]"
+                    >
+                        {code}
+                    </a>
+                ),
             },
             {
-                title: "User",
-                data: null,
-                render: (data, type, row) => {
+                key: "first_name",
+                label: "User",
+                sortable: true,
+                render: (firstName, row) => {
                     const nameParts = [
                         row.salutation,
                         row.title,
                         row.first_name,
                         row.last_name,
                     ].filter(Boolean);
-                    const fullName = nameParts.join(" ");
-                    return `
-                    <div class="flex items-center gap-2">
-                        <img
-                            src="${
-                                row.profile_image
-                                    ? `/storage/${row.profile_image}`
-                                    : "/assets/images/profile-placeholder.png"
-                            }"
-                            alt="Profile"
-                            class="rounded-full border-2 bg-white border-white w-8 h-8 object-cover shrink-0"
-                        />
-                        <div class="space-y0.5">
-                            <p class="font-medium text-[#181D27] text-sm">
-                                ${fullName || "Not assigned"}
-                            </p>
-                            ${
-                                row.primary_email
-                                    ? `<p class="text-xs">${row.primary_email}</p>`
-                                    : ""
-                            }
+                    const fullName = nameParts.join(" ") || "Not assigned";
+
+                    return (
+                        <div className="flex items-center gap-2">
+                            <img
+                                src={
+                                    row.profile_image
+                                        ? `/storage/${row.profile_image}`
+                                        : "/assets/images/profile-placeholder.png"
+                                }
+                                alt="Profile"
+                                className="rounded-full border-2 bg-white border-white w-8 h-8 object-cover shrink-0"
+                            />
+                            <div className="space-y-0.5">
+                                <p className="font-medium text-[#181D27] text-sm">
+                                    {fullName}
+                                </p>
+                                {row.primary_email && (
+                                    <p className="text-xs text-gray-600">
+                                        {row.primary_email}
+                                    </p>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                `;
+                    );
                 },
             },
-            { title: "Position", data: "position" },
-            { title: "Department", data: "department" },
             {
-                title: "Notified",
-                data: null,
-                render: (data, type, row) => {
-                    const ts = row.last_email_sent
-                        ? new Date(row.last_email_sent)
-                        : null;
-                    const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
-                    const formatDate = (d) =>
-                        `${pad(d.getDate())}.${pad(
-                            d.getMonth() + 1
-                        )}.${d.getFullYear()}`;
-                    const formatTime = (d) => {
-                        let hours = d.getHours();
-                        const minutes = pad(d.getMinutes());
-                        const ampm = hours >= 12 ? "PM" : "AM";
-                        hours = hours % 12;
-                        if (hours === 0) hours = 12;
-                        return `${hours}:${minutes} ${ampm}`;
-                    };
+                key: "position",
+                label: "Position",
+                sortable: true,
+                render: (position) =>
+                    position || <span className="text-gray-400">—</span>,
+            },
+            {
+                key: "department",
+                label: "Department",
+                sortable: true,
+                render: (department) =>
+                    department || <span className="text-gray-400">—</span>,
+            },
+            {
+                key: "last_email_sent",
+                label: "Notified",
+                sortable: true,
+                render: (lastEmailSent) => {
+                    const datetime = formatDateTime(lastEmailSent);
 
-                    if (ts) {
-                        const dateStr = formatDate(ts);
-                        const timeStr = formatTime(ts);
-                        return `
-                            <div class="flex items-center gap-2">
-                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 border border-green-200">
+                    if (datetime) {
+                        return (
+                            <div className="flex items-center gap-2">
+                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 border border-green-200">
                                     Sent
                                 </span>
-                                <div class="flex flex-col leading-tight text-xs">
-                                    <span>${dateStr}</span>
-                                    <span>${timeStr}</span>
+                                <div className="flex flex-col leading-tight text-xs">
+                                    <span>{datetime.dateStr}</span>
+                                    <span className="text-gray-500">
+                                        {datetime.timeStr}
+                                    </span>
                                 </div>
                             </div>
-                        `;
+                        );
                     }
 
-                    return `
-                        <div class="flex items-center gap-2">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700 border border-red-200">
-                                Never
-                            </span>
-                        </div>
-                    `;
+                    return (
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700 border border-red-200">
+                            Never
+                        </span>
+                    );
                 },
             },
             {
-                title: "Status",
-                data: "status",
-                render: (data) => {
-                    const isActive = data === "active";
-                    const badgeClass = isActive
-                        ? "bg-green-100 text-green-700 border border-green-200"
-                        : "bg-red-100 text-red-700 border border-red-200";
-
-                    return `<span class="px-2 py-1 text-xs font-medium rounded-full ${badgeClass}">
-                    ${isActive ? "Active" : "Inactive"}
-                </span>`;
+                key: "status",
+                label: "Status",
+                sortable: true,
+                render: (status) => {
+                    const isActive = status === "active";
+                    return (
+                        <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                isActive
+                                    ? "bg-green-100 text-green-700 border border-green-200"
+                                    : "bg-red-100 text-red-700 border border-red-200"
+                            }`}
+                        >
+                            {isActive ? "Active" : "Inactive"}
+                        </span>
+                    );
                 },
             },
             {
-                title: "Wallet Status",
-                data: null,
-                render: renderWalletStatus,
+                key: "wallet_status",
+                label: "Wallet Status",
+                sortable: true,
+                render: (walletStatus, row) => (
+                    <div className="flex gap-1 items-center flex-wrap">
+                        <WalletEligibilityPill
+                            eligibility={row?.is_eligible_for_sync?.eligible}
+                        />
+                        {row.is_syncing && Number(row.is_syncing) === 1 ? (
+                            <WalletSyncingPill />
+                        ) : (
+                            <WalletStatusPill
+                                status={row?.wallet_status?.status}
+                            />
+                        )}
+                    </div>
+                ),
             },
             {
-                title: "Actions",
-                data: null,
-                orderable: false,
-                searchable: false,
-                render: renderActions,
+                key: "actions",
+                label: "Actions",
+                sortable: false,
+                className: "text-right",
+                headerClassName: "text-right",
+                render: (_, row) => (
+                    <Dropdown>
+                        <DropdownItem
+                            onClick={() =>
+                                (window.location.href = `/company/cards/${row.id}/edit`)
+                            }
+                        >
+                            <div className="flex items-center gap-1">
+                                <EditIcon className="h-4 w-4" />{" "}
+                                <span>Edit</span>
+                            </div>
+                        </DropdownItem>
+                        <DropdownItem
+                            onClick={() => handleDeleteEmployee(row.id)}
+                        >
+                            <div className="flex items-center gap-1">
+                                <Trash2 className="h-4 w-4" />{" "}
+                                <span>Delete</span>
+                            </div>
+                        </DropdownItem>
+                        <DropdownItem
+                            onClick={() =>
+                                handleToggleStatus(row.id, row.status)
+                            }
+                        >
+                            {row.status === "active"
+                                ? "Set Inactive"
+                                : "Set Active"}
+                        </DropdownItem>
+                    </Dropdown>
+                ),
             },
         ],
-        [linkDomain]
+        [linkDomain, selectedIds]
     );
-
-    useEffect(() => {
-        const selectAll = document.getElementById("select-all");
-        if (!selectAll) return;
-
-        // Handle "select all"
-        const handleSelectAll = (e) => {
-            const isChecked = e.target.checked;
-            const checkboxes = document.querySelectorAll(".row-checkbox");
-
-            const newSelectedIds = [];
-            checkboxes.forEach((cb) => {
-                cb.checked = isChecked;
-                if (isChecked) newSelectedIds.push(parseInt(cb.value));
-            });
-
-            setSelectedIds(isChecked ? newSelectedIds : []);
-            setIsAnyChecked(isChecked);
-        };
-
-        // Handle individual checkbox changes
-        const handleRowCheckboxChange = () => {
-            const checkboxes = document.querySelectorAll(".row-checkbox");
-            const checkedBoxes = Array.from(
-                document.querySelectorAll(".row-checkbox:checked")
-            );
-            const ids = checkedBoxes.map((cb) => parseInt(cb.value));
-
-            // Update the "Select All" checkbox
-            selectAll.checked = checkedBoxes.length === checkboxes.length;
-
-            // Update states
-            setSelectedIds(ids);
-            setIsAnyChecked(ids.length > 0);
-        };
-
-        // Add listeners
-        selectAll.addEventListener("change", handleSelectAll);
-        document.addEventListener("change", (e) => {
-            if (e.target.classList.contains("row-checkbox")) {
-                handleRowCheckboxChange();
-            }
-        });
-
-        // Cleanup
-        return () => {
-            selectAll.removeEventListener("change", handleSelectAll);
-        };
-    }, [linkDomain]);
 
     const [saving, setSaving] = useState(false);
 
@@ -607,8 +679,6 @@ export default function Company() {
         setIsSyncingBg(hasRunningJob);
     }, [hasRunningJob]);
 
-
-
     console.log("backendErrors: ", backendErrors);
 
     return (
@@ -684,9 +754,7 @@ export default function Company() {
                                         </DropdownItem>
 
                                         <DropdownItem
-                                            onClick={
-                                                handleSendEmails
-                                            }
+                                            onClick={handleSendEmails}
                                             closeOnClick={true}
                                             disabled={!isAnyChecked}
                                         >
@@ -730,20 +798,16 @@ export default function Company() {
                                 isSyncing={isSendingEmails}
                                 syncType="emailSending"
                             />
-                            <DataTable
-                                key={linkDomain}
-                                data={employees}
+
+                            <CustomDataTable
                                 columns={columns}
-                                className="display site-datatable"
-                                options={{
-                                    responsive: true,
-                                    pageLength: 10,
-                                    lengthMenu: [10, 25, 50, 100],
-                                    dom:
-                                        "<'flex justify-between items-center mb-3 sd-top'<'flex items-center gap-2'l><'flex items-center gap-2'f>>" +
-                                        "rt" +
-                                        "<'flex justify-center mt-3 sd-bottom'p>",
-                                }}
+                                data={cards}
+                                endpoint={route("company.cards")}
+                                tableKey="cards"
+                                searchable={true}
+                                paginated={true}
+                                perPageOptions={[10, 25, 50, 100]}
+                                emptyMessage="No employees found."
                             />
                         </div>
                     </div>

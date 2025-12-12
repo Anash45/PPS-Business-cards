@@ -16,7 +16,6 @@ export default function Cards() {
         setHeaderText("");
     }, []);
 
-    console.log(cardsGroups);
 
     return (
         <AuthenticatedLayout>
@@ -45,7 +44,7 @@ export default function Cards() {
                                 History of cards created.
                             </p>
                         </div>
-                        <CardsGroupsPreview previewGroups={cardsGroups} setPreviewCards={setPreviewCards} />
+                        <CardsGroupsPreview cardsGroups={cardsGroups} setPreviewCards={setPreviewCards} />
                     </div>
                 </div>
             </div>

@@ -42,8 +42,6 @@ export default function Dashboard() {
         }
     }, [company]);
 
-    const isAdmin = auth.user.role === "admin";
-    const isCompany = auth.user.role === "company";
 
     console.log("Dashboard data:", dashboardStats, company);
 
@@ -60,6 +58,8 @@ export default function Dashboard() {
             .then((res) => setViewsData(res.data))
             .catch((err) => console.error("Error fetching chart data", err));
     }, [selectedDuration]);
+
+    console.log("Company data:", company);
 
     return (
         <AuthenticatedLayout>

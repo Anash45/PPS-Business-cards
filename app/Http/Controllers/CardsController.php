@@ -8,6 +8,7 @@ use App\Models\Card;
 use App\Models\CardsGroup;
 use App\Models\Company;
 use App\Models\NfcCard;
+use App\Traits\DataTableTrait;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -18,10 +19,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CardsController extends Controller
 {
-    public function index()
+    use DataTableTrait;
+    public function index(Request $request)
     {
         // Load companies with owner → subscription → plan
-        $companies = Company::with(['owner.subscription.plan', 'cards', 'nfcCards'])->get();
+        $companies = Company::with(['owner.subscription.plan', 'nfcCards'])->get();
 
         $companies = $companies->map(function ($company) {
             $plan = $company->owner?->subscription?->plan;
@@ -51,8 +53,22 @@ class CardsController extends Controller
             return $company;
         });
 
-        // Load card groups with normal cards and NFC cards counts
-        $cardsGroups = CardsGroup::with([
+        // Define searchable columns for cardsGroups
+        $searchableColumns = [
+            'id',
+            'company.name',
+            'created_at',
+        ];
+
+        // Define sortable columns for cardsGroups
+        $sortableColumns = [
+            'id',
+            'created_at',
+            'updated_at',
+        ];
+
+        // Start with base query - card groups with relations
+        $query = CardsGroup::with([
             'company',
             'cards' => function ($query) {
                 $query->orderByDesc('created_at')->take(100);
@@ -60,10 +76,16 @@ class CardsController extends Controller
             'nfcCards' => function ($query) {
                 $query->orderByDesc('created_at')->take(100);
             },
-        ])
-            ->withCount(['cards', 'nfcCards'])
-            ->orderByDesc('created_at')
-            ->get();
+        ])->withCount(['cards', 'nfcCards']);
+
+        // Apply DataTable filters (search, sort, pagination)
+        $cardsGroups = $this->applyDataTableFilters(
+            $query,
+            $request,
+            $searchableColumns,
+            $sortableColumns,
+            10 // default per page
+        );
 
         return inertia('Cards/Index', [
             'companies' => $companies,
@@ -290,7 +312,9 @@ class CardsController extends Controller
             ], 400);
         }
 
-        // Safe to delete the group
+        // Safe to delete the group and all its cards
+        $group->cards()->delete();
+        $group->nfcCards()->delete();
         $group->delete();
 
         return response()->json([
@@ -386,15 +410,56 @@ class CardsController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    public function companyCards()
+
+    public function companyCards(Request $request)
     {
         $user = Auth::user();
 
         // Determine correct company reference
         $company = $user->isCompany() ? $user->companyProfile : $user->company;
 
-        // Get all cards for this company
-        $cards = Card::where('company_id', $company->id)->get();
+        // Define searchable columns
+        $searchableColumns = [
+            'code',
+            'first_name',
+            'last_name',
+            'primary_email',
+            'position',
+            'department',
+            'salutation',
+            'title',
+        ];
+
+        // Define sortable columns
+        $sortableColumns = [
+            'id',
+            'code',
+            'first_name',
+            'last_name',
+            'email',
+            'primary_email',
+            'position',
+            'department',
+            'wallet_status',
+            'wallet_eligibility',
+            'status',
+            'last_email_sent',
+            'created_at',
+            'updated_at',
+        ];
+
+        // Start with base query - only cards for this company
+        $query = Card::query()
+            ->where('company_id', $company->id);
+
+        // Apply DataTable filters (search, sort, pagination)
+        $cards = $this->applyDataTableFilters(
+            $query,
+            $request,
+            $searchableColumns,
+            $sortableColumns,
+            25 // default per page
+        );
 
         // Check if ANY job is pending/processing for this company
         $hasRunningJob = BulkWalletApiJob::where('company_id', $company->id)
@@ -414,8 +479,122 @@ class CardsController extends Controller
         ]);
     }
 
+    public function companyCards1(Request $request)
+    {
+        $user = Auth::user();
 
-    public function companyNfcCards()
+        // Determine correct company reference
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+
+        // Define searchable columns
+        $searchableColumns = [
+            'code',
+            'first_name',
+            'last_name',
+            'primary_email',
+            'position',
+            'department',
+            'salutation',
+            'title',
+        ];
+
+        // Define sortable columns
+        $sortableColumns = [
+            'id',
+            'code',
+            'first_name',
+            'last_name',
+            'email',
+            'primary_email',
+            'position',
+            'department',
+            'wallet_status',
+            'wallet_eligibility',
+            'status',
+            'last_email_sent',
+            'created_at',
+            'updated_at',
+        ];
+
+        // Start with base query - only cards for this company
+        $query = Card::query()
+            ->where('company_id', $company->id);
+
+        // Apply DataTable filters (search, sort, pagination)
+        $cards = $this->applyDataTableFilters(
+            $query,
+            $request,
+            $searchableColumns,
+            $sortableColumns,
+            25 // default per page
+        );
+
+        // Check if ANY job is pending/processing for this company
+        $hasRunningJob = BulkWalletApiJob::where('company_id', $company->id)
+            ->whereIn('status', ['pending', 'processing'])
+            ->exists();
+
+        $hasRunningEmailJob = BulkEmailJob::where('company_id', $company->id)
+            ->whereIn('status', ['pending', 'processing'])
+            ->exists();
+
+        // Pass to Inertia
+        return Inertia::render('Cards/Company1', [
+            'cards' => $cards,
+            'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
+            'hasRunningJob' => $hasRunningJob,
+            'hasRunningEmailJob' => $hasRunningEmailJob,
+        ]);
+    }
+
+    public function searchEmployees(Request $request)
+    {
+        $user = Auth::user();
+        $company = $user->isCompany() ? $user->companyProfile : $user->company;
+        
+        $query = $request->input('q', '');
+        
+        $employees = Card::where('company_id', $company->id)
+            ->where(function($q) use ($query) {
+                $q->where('id', 'like', "%{$query}%")
+                  ->orWhere('internal_employee_number', 'like', "%{$query}%")
+                  ->orWhere('first_name', 'like', "%{$query}%")
+                  ->orWhere('last_name', 'like', "%{$query}%")
+                  ->orWhere('primary_email', 'like', "%{$query}%")
+                  ->orWhere('title', 'like', "%{$query}%");
+            })
+            ->select('id', 'internal_employee_number', 'first_name', 'last_name', 'profile_image')
+            ->limit(50)
+            ->get()
+            ->map(function($employee) {
+                $nameParts = array_filter([
+                    $employee->first_name,
+                    $employee->last_name,
+                ]);
+                $fullName = implode(' ', $nameParts);
+                
+                $internal = $employee->internal_employee_number;
+                $label = $employee->id;
+                
+                if ($internal || $fullName) {
+                    $inner = array_filter([$internal, $fullName]);
+                    $label .= ' - (' . implode(' - ', $inner) . ')';
+                } else {
+                    $label .= ' - (Not assigned)';
+                }
+                
+                return [
+                    'value' => $employee->id,
+                    'label' => $label,
+                    'image' => $employee->profile_image 
+                        ? '/storage/' . $employee->profile_image
+                        : '/assets/images/profile-placeholder.png'
+                ];
+            });
+        
+        return response()->json($employees);
+    }
+    public function companyNfcCards(Request $request)
     {
         $user = Auth::user();
 
@@ -423,17 +602,45 @@ class CardsController extends Controller
         $company = $user->isCompany() ? $user->companyProfile : $user->company;
 
         // Get all normal cards for this company
-        $normalCards = $company->cards()->get();
+        // $normalCards = $company->cards()->get();
 
-        // Get all NFC cards for this company, including their associated normal card
-        $nfcCards = NfcCard::where('company_id', $company->id)
-            ->with('card')
-            ->get();
+        // Define searchable columns
+        $searchableColumns = [
+            'qr_code',
+            'status',
+            'card.first_name',
+            'card.last_name',
+            'card.position',
+            'card.department',
+        ];
+
+        // Define sortable columns
+        $sortableColumns = [
+            'id',
+            'qr_code',
+            'status',
+            'created_at',
+            'updated_at',
+        ];
+
+        // Start with base query - only NFC cards for this company
+        $query = NfcCard::query()
+            ->where('company_id', $company->id)
+            ->with('card');
+
+        // Apply DataTable filters (search, sort, pagination)
+        $nfcCards = $this->applyDataTableFilters(
+            $query,
+            $request,
+            $searchableColumns,
+            $sortableColumns,
+            25 // default per page
+        );
 
         // Pass to Inertia
         return Inertia::render('Cards/Nfc', [
-            'employeeCards' => $normalCards,   // all company cards
-            'nfcCards' => $nfcCards,         // NFC cards with their associated card
+            'employeeCards' => [],   // all company cards
+            'nfcCards' => $nfcCards,         // NFC cards with pagination
             'isSubscriptionActive' => $company->owner->hasActiveSubscription(),
         ]);
     }

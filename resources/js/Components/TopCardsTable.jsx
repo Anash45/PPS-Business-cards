@@ -1,17 +1,12 @@
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
-import DataTable from "datatables.net-react";
-import DT from "datatables.net-dt";
-import "datatables.net-dt/css/dataTables.dataTables.css";
 import { getDomain } from "@/utils/viteConfig";
 import { usePage } from "@inertiajs/react";
-
-// Bind DataTables
-DataTable.use(DT);
+import CustomDataTable from "@/Components/CustomDataTable";
 
 export default function TopCardsTable({ duration }) {
     const { auth } = usePage().props;
-    const [cards, setCards] = useState([]);
+    const [cards, setCards] = useState({ data: [] });
     const [linkDomain, setLinkDomain] = useState(
         "https://app.ppsbusinesscards.de"
     );
@@ -29,21 +24,21 @@ export default function TopCardsTable({ duration }) {
         axios
             .get(`/dashboard/top-cards`, { params: { duration } })
             .then((res) => {
-                if (res.data.success) setCards(res.data.data);
+                if (res.data.success) setCards({ data: res.data.data });
             });
     }, [duration]);
 
     const columns = useMemo(() => {
         const cols = [
             {
-                title: "Rank",
-                data: null,
-                render: (data, type, row, meta) => meta.row + 1,
+                key: "rank",
+                label: "Rank",
+                render: (value, row, index) => index + 1,
             },
             {
-                title: "User",
-                data: null,
-                render: (data, type, row) => {
+                key: "user",
+                label: "User",
+                render: (value, row) => {
                     const fullName = [row.first_name, row.last_name]
                         .filter(Boolean)
                         .join(" ");
@@ -51,56 +46,78 @@ export default function TopCardsTable({ duration }) {
                         ? `/storage/${row.profile_image}`
                         : "/assets/images/profile-placeholder.png";
 
-                    return `
-                        <div class="flex items-center gap-2">
+                    return (
+                        <div className="flex items-center gap-2">
                             <img
-                                src="${profileImg}"
+                                src={profileImg}
                                 alt="Profile"
-                                class="rounded-full border-2 bg-white border-white w-8 h-8 object-cover shrink-0"
+                                className="rounded-full border-2 bg-white border-white w-8 h-8 object-cover shrink-0"
                             />
-                            <div>
-                                <p class="font-medium text-[#181D27] text-sm">${fullName}</p>
+                            <div className="space-y-0.5">
+                                <p className="font-medium text-[#181D27] text-sm">
+                                    {fullName}
+                                </p>
+                                {row.primary_email && (
+                                    <p className="text-xs text-gray-600">
+                                        {row.primary_email}
+                                    </p>
+                                )}
                             </div>
                         </div>
-                    `;
+                    );
                 },
             },
-            { title: "Position", data: "position" },
-            { title: "Department", data: "department" },
-            { title: "Views", data: "total_views" },
+            { 
+                key: "position", 
+                label: "Position",
+                render: (value) => value || "-",
+            },
+            { 
+                key: "department", 
+                label: "Department",
+                render: (value) => value || "-",
+            },
+            { 
+                key: "total_views", 
+                label: "Views",
+            },
             {
-                title: "Card",
-                data: "code",
-                render: (data, type, row) =>
-                    `<a href="${linkDomain}/card/${data}" target="_blank" class="text-[#50bd5b] underline">${data}</a>`,
+                key: "code",
+                label: "Card",
+                render: (value, row) => (
+                    <a 
+                        href={`${linkDomain}/card/${value}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-[#50bd5b] underline"
+                    >
+                        {value}
+                    </a>
+                ),
             },
         ];
 
         // 👇 Add company column only if user is admin
         if (authUser?.role === "admin" || authUser?.is_admin) {
             cols.splice(2, 0, {
-                title: "Company",
-                data: (row) => row.company?.name || "-",
+                key: "company",
+                label: "Company",
+                render: (value, row) => row.company?.name || "-",
             });
         }
 
         return cols;
     }, [authUser, linkDomain]);
 
+    console.log("Top cards data:", cards);
+
     return (
-        <DataTable
+        <CustomDataTable
             key={duration}
             data={cards}
             columns={columns}
-            className="display site-datatable"
-            options={{
-                responsive: true,
-                pageLength: 10,
-                dom:
-                    "<'flex justify-between items-center mb-3 sd-top'<'flex items-center gap-2'l><'flex items-center gap-2'f>>" +
-                    "rt" +
-                    "<'flex justify-center mt-3 sd-bottom'p>",
-            }}
+            searchable={false}
+            perPageOptions={[10]}
         />
     );
 }

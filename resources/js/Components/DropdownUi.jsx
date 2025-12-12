@@ -63,7 +63,7 @@ export function Dropdown({
                 <div
                     className={`absolute ${horizontalClasses} ${verticalClasses} w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10`}
                 >
-                    <div className="py-1">{childrenWithCloseControl}</div>
+                    <div className="py-1 flex flex-col">{childrenWithCloseControl}</div>
                 </div>
             )}
         </div>

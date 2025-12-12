@@ -2,21 +2,16 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
 import { GlobalProvider, useGlobal } from "@/context/GlobalProvider";
 import { useEffect, useMemo, useState } from "react";
-import DataTable from "datatables.net-react";
-import DT from "datatables.net-dt";
-import "datatables.net-dt/css/dataTables.dataTables.css";
+import CustomDataTable from "@/Components/CustomDataTable";
 import dayjs from "dayjs";
 import "dayjs/locale/de";
 import capitalize from "@/utils/capitalize";
 
-// Bind DataTables
-DataTable.use(DT);
 dayjs.locale("de");
 
 export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
     const { setHeaderTitle, setHeaderText } = useGlobal(GlobalProvider);
     const [activeTab, setActiveTab] = useState("wallet");
-    const [tableKey, setTableKey] = useState(0);
 
     useEffect(() => {
         setHeaderTitle("Background Jobs");
@@ -28,10 +23,6 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
         const interval = setInterval(() => {
             router.reload({ 
                 only: ['walletJobs', 'emailJobs'],
-                onSuccess: () => {
-                    // Force DataTable re-render by updating key
-                    setTableKey(prev => prev + 1);
-                }
             });
         }, 10000);
 
@@ -40,69 +31,73 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
 
     const walletColumns = useMemo(
         () => [
-            { title: "ID", data: "id" },
             {
-                title: "Status",
-                data: "status",
-                render: (data) => {
-                    let badgeClass =
-                        "bg-gray-100 text-gray-700 border-gray-200";
-                    if (data === "completed") {
-                        badgeClass =
-                            "bg-green-100 text-green-700 border-green-200";
-                    } else if (data === "processing") {
-                        badgeClass =
-                            "bg-blue-100 text-blue-700 border-blue-200";
-                    } else if (data === "failed") {
+                key: "id",
+                label: "ID",
+                sortable: true,
+            },
+            {
+                key: "status",
+                label: "Status",
+                sortable: true,
+                render: (value) => {
+                    let badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
+                    if (value === "completed") {
+                        badgeClass = "bg-green-100 text-green-700 border-green-200";
+                    } else if (value === "processing") {
+                        badgeClass = "bg-blue-100 text-blue-700 border-blue-200";
+                    } else if (value === "failed") {
                         badgeClass = "bg-red-100 text-red-700 border-red-200";
-                    } else if (data === "pending") {
-                        badgeClass =
-                            "bg-yellow-100 text-yellow-700 border-yellow-200";
+                    } else if (value === "pending") {
+                        badgeClass = "bg-yellow-100 text-yellow-700 border-yellow-200";
                     }
 
-                    return `<span class="px-2 py-1 text-xs font-medium rounded-full border ${badgeClass}">
-                        ${capitalize(data)}
-                    </span>`;
+                    return (
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${badgeClass}`}>
+                            {capitalize(value)}
+                        </span>
+                    );
                 },
             },
             {
-                title: "Progress",
-                data: null,
-                render: (data, type, row) => {
+                key: "progress",
+                label: "Progress",
+                sortable: false,
+                render: (value, row) => {
                     const total = row.total_items || 0;
                     const processed = row.processed_items || 0;
-                    const percent =
-                        total > 0 ? Math.round((processed / total) * 100) : 0;
+                    const percent = total > 0 ? Math.round((processed / total) * 100) : 0;
 
-                    return `
-                        <div class="flex items-center gap-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div class="bg-blue-500 h-full" style="width: ${percent}%"></div>
+                    return (
+                        <div className="flex items-center gap-2">
+                            <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div 
+                                    className="bg-blue-500 h-full transition-all" 
+                                    style={{ width: `${percent}%` }}
+                                ></div>
                             </div>
-                            <span class="text-xs font-medium">${processed}/${total}</span>
+                            <span className="text-xs font-medium">{processed}/{total}</span>
                         </div>
-                    `;
+                    );
                 },
             },
             {
-                title: "Last Processed",
-                data: "last_processed_at",
-                render: (data) => {
-                    if (!data) return "—";
-                    return dayjs(data).format("DD.MM.YYYY HH:mm");
-                },
+                key: "last_processed_at",
+                label: "Last Processed",
+                sortable: true,
+                render: (value) => value ? dayjs(value).format("DD.MM.YYYY HH:mm") : "—",
             },
             {
-                title: "Reason",
-                data: "reason",
-                render: (data) => data || "—",
+                key: "reason",
+                label: "Reason",
+                sortable: false,
+                render: (value) => value || "—",
             },
             {
-                title: "Created",
-                data: "created_at",
-                render: (data) => {
-                    return dayjs(data).format("DD.MM.YYYY HH:mm");
-                },
+                key: "created_at",
+                label: "Created",
+                sortable: true,
+                render: (value) => dayjs(value).format("DD.MM.YYYY HH:mm"),
             },
         ],
         []
@@ -110,69 +105,73 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
 
     const emailColumns = useMemo(
         () => [
-            { title: "ID", data: "id" },
             {
-                title: "Status",
-                data: "status",
-                render: (data) => {
-                    let badgeClass =
-                        "bg-gray-100 text-gray-700 border-gray-200";
-                    if (data === "completed") {
-                        badgeClass =
-                            "bg-green-100 text-green-700 border-green-200";
-                    } else if (data === "processing") {
-                        badgeClass =
-                            "bg-blue-100 text-blue-700 border-blue-200";
-                    } else if (data === "failed") {
+                key: "id",
+                label: "ID",
+                sortable: true,
+            },
+            {
+                key: "status",
+                label: "Status",
+                sortable: true,
+                render: (value) => {
+                    let badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
+                    if (value === "completed") {
+                        badgeClass = "bg-green-100 text-green-700 border-green-200";
+                    } else if (value === "processing") {
+                        badgeClass = "bg-blue-100 text-blue-700 border-blue-200";
+                    } else if (value === "failed") {
                         badgeClass = "bg-red-100 text-red-700 border-red-200";
-                    } else if (data === "pending") {
-                        badgeClass =
-                            "bg-yellow-100 text-yellow-700 border-yellow-200";
+                    } else if (value === "pending") {
+                        badgeClass = "bg-yellow-100 text-yellow-700 border-yellow-200";
                     }
 
-                    return `<span class="px-2 py-1 text-xs font-medium rounded-full border ${badgeClass}">
-                        ${capitalize(data)}
-                    </span>`;
+                    return (
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${badgeClass}`}>
+                            {capitalize(value)}
+                        </span>
+                    );
                 },
             },
             {
-                title: "Progress",
-                data: null,
-                render: (data, type, row) => {
+                key: "progress",
+                label: "Progress",
+                sortable: false,
+                render: (value, row) => {
                     const total = row.total_items || 0;
                     const processed = row.processed_items || 0;
-                    const percent =
-                        total > 0 ? Math.round((processed / total) * 100) : 0;
+                    const percent = total > 0 ? Math.round((processed / total) * 100) : 0;
 
-                    return `
-                        <div class="flex items-center gap-2">
-                            <div class="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-                                <div class="bg-green-500 h-full" style="width: ${percent}%"></div>
+                    return (
+                        <div className="flex items-center gap-2">
+                            <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div 
+                                    className="bg-green-500 h-full transition-all" 
+                                    style={{ width: `${percent}%` }}
+                                ></div>
                             </div>
-                            <span class="text-xs font-medium">${processed}/${total}</span>
+                            <span className="text-xs font-medium">{processed}/{total}</span>
                         </div>
-                    `;
+                    );
                 },
             },
             {
-                title: "Last Processed",
-                data: "last_processed_at",
-                render: (data) => {
-                    if (!data) return "—";
-                    return dayjs(data).format("DD.MM.YYYY HH:mm");
-                },
+                key: "last_processed_at",
+                label: "Last Processed",
+                sortable: true,
+                render: (value) => value ? dayjs(value).format("DD.MM.YYYY HH:mm") : "—",
             },
             {
-                title: "Reason",
-                data: "reason",
-                render: (data) => data || "—",
+                key: "reason",
+                label: "Reason",
+                sortable: false,
+                render: (value) => value || "—",
             },
             {
-                title: "Created",
-                data: "created_at",
-                render: (data) => {
-                    return dayjs(data).format("DD.MM.YYYY HH:mm");
-                },
+                key: "created_at",
+                label: "Created",
+                sortable: true,
+                render: (value) => dayjs(value).format("DD.MM.YYYY HH:mm"),
             },
         ],
         []
@@ -208,44 +207,29 @@ export default function BackgroundJobsIndex({ walletJobs, emailJobs }) {
                     </div>
 
                     {/* Tab Content */}
-                    <div
-                        className="overflow-auto"
-                        style={{ maxHeight: "700px" }}
-                    >
+                    <div className="overflow-auto" style={{ maxHeight: "700px" }}>
                         {activeTab === "wallet" && (
-                            <DataTable
-                                key={`wallet-${tableKey}`}
-                                data={walletJobs}
+                            <CustomDataTable
                                 columns={walletColumns}
-                                className="display site-datatable text-sm"
-                                options={{
-                                    pageLength: 25,
-                                    order: [[0, "desc"]],
-                                    responsive: true,
-                                    scrollX: true,
-                                    dom:
-                                        "<'flex justify-between items-center mb-3 sd-top'<'flex items-center gap-2'l><'flex items-center gap-2'f>>" +
-                                        "rt" +
-                                        "<'flex justify-center mt-3 sd-bottom'p>",
-                                }}
+                                data={walletJobs}
+                                endpoint={route("background-jobs.index")}
+                                tableKey="walletJobs"
+                                searchable={true}
+                                paginated={true}
+                                perPageOptions={[10, 25, 50]}
+                                size="sm"
                             />
                         )}
                         {activeTab === "email" && (
-                            <DataTable
-                                key={`email-${tableKey}`}
-                                data={emailJobs}
+                            <CustomDataTable
                                 columns={emailColumns}
-                                className="display site-datatable text-sm"
-                                options={{
-                                    pageLength: 25,
-                                    order: [[0, "desc"]],
-                                    responsive: true,
-                                    scrollX: true,
-                                    dom:
-                                        "<'flex justify-between items-center mb-3 sd-top'<'flex items-center gap-2'l><'flex items-center gap-2'f>>" +
-                                        "rt" +
-                                        "<'flex justify-center mt-3 sd-bottom'p>",
-                                }}
+                                data={emailJobs}
+                                endpoint={route("background-jobs.index")}
+                                tableKey="emailJobs"
+                                searchable={true}
+                                paginated={true}
+                                perPageOptions={[10, 25, 50]}
+                                size="sm"
                             />
                         )}
                     </div>

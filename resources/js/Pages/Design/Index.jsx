@@ -10,11 +10,9 @@ import WalletTab from "@/Components/WalletTab";
 
 export default function Design() {
     const {
-        company,
         isSubscriptionActive,
         selectedCard = null,
         wallet_status = null,
-        wallet_eligibility = null,
         pageType,
     } = usePage().props;
     const {
@@ -100,6 +98,7 @@ export default function Design() {
             preserveScroll: true,
         });
     }, [activeTab]);
+
 
     return (
         <AuthenticatedLayout>

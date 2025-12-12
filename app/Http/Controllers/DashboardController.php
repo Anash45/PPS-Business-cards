@@ -54,15 +54,17 @@ class DashboardController extends Controller
                 return response()->json(['message' => 'No company associated with this user'], 404);
             }
 
-            $cards = $company->cards ?? collect();
-            $cardIds = $cards->pluck('id');
+            // Query cards directly without loading relationship
+            $companyId = $user->company_id;
 
             $data = [
-                'total_cards' => $cards->count(),
-                'active_cards' => $cards->where('status', 'active')->count(),
-                'inactive_cards' => $cards->where('status', 'inactive')->count(),
-                'total_views' => CardView::whereIn('card_id', $cardIds)->count(),
-                'total_downloads' => Card::whereIn('id', $cardIds)->sum('downloads'),
+                'total_cards' => Card::where('company_id', $companyId)->count(),
+                'active_cards' => Card::where('company_id', $companyId)->where('status', 'active')->count(),
+                'inactive_cards' => Card::where('company_id', $companyId)->where('status', 'inactive')->count(),
+                'total_views' => CardView::whereHas('card', function ($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                })->count(),
+                'total_downloads' => Card::where('company_id', $companyId)->sum('downloads'),
             ];
         }
 
@@ -157,9 +159,13 @@ class DashboardController extends Controller
         // Step 2: Extract IDs
         $cardIds = $topViews->pluck('card_id');
 
-        // Step 3: Fetch card details (with company if admin)
-        $cardsQuery = Card::whereIn('id', $cardIds)
-            ->with(['company:id,name']); // add other relations if needed
+        // Step 3: Fetch card details
+        $cardsQuery = Card::whereIn('id', $cardIds);
+
+        // Only load company relation if admin
+        if ($user->isAdmin()) {
+            $cardsQuery->with(['company:id,name']);
+        }
 
         if ($user->isCompany()) {
             $cardsQuery->where('company_id', $user->company_id);

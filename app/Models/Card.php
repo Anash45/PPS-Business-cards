@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes; // ✅ import SoftDeletes
 
 class Card extends Model
 {
-    use HasFactory, SoftDeletes; // ✅ add SoftDeletes
+    use HasFactory; // ✅ add SoftDeletes
 
     protected $fillable = [
         'salutation',
