@@ -289,6 +289,10 @@ export default function Company() {
         });
     };
 
+    useEffect(() => {
+        setIsAnyChecked(selectedIds.length > 0);
+    }, [selectedIds]);
+
     const columns = useMemo(
         () => [
             {
