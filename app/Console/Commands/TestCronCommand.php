@@ -12,8 +12,8 @@ class TestCronCommand extends Command
 
     public function handle()
     {
-        Log::info('TestCronCommand ran successfully at ' . now());
-        $this->info('TestCronCommand ran successfully at ' . now());
+        Log::info('1 TestCronCommand ran successfully at ' . now());
+        $this->info('1 TestCronCommand ran successfully at ' . now());
 
         return 0;
     }
