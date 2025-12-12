@@ -1,5 +1,7 @@
 <?php
 
+use App\Console\Commands\ProcessBulkEmailJobsCommand;
+use App\Console\Commands\ProcessBulkWalletApiJobsCommand;
 use App\Console\Commands\TestCronCommand;
 use App\Jobs\ProcessBulkEmailJob;
 use App\Jobs\ProcessBulkWalletApiJob;
@@ -15,13 +17,13 @@ Artisan::command('test:cron', function () {
 });
 
 Artisan::command('wallet:process-jobs', function () {
-    $this->comment('Dispatching ProcessBulkWalletApiJob...');
-    ProcessBulkWalletApiJob::dispatch();
-    $this->comment('ProcessBulkWalletApiJob dispatched successfully.');
+    $this->comment('2 Dispatching ProcessBulkWalletApiJob...');
+    $this->call(ProcessBulkWalletApiJobsCommand::class);
+    $this->comment('2 ProcessBulkWalletApiJob dispatched successfully.');
 })->describe('Process pending Bulk Wallet API jobs in batches');
 
 Artisan::command('emails:process-jobs', function () {
-    $this->comment('Dispatching ProcessBulkEmailJob...');
-    ProcessBulkEmailJob::dispatch();
-    $this->comment('ProcessBulkEmailJob dispatched successfully.');
+    $this->comment('3 Dispatching ProcessBulkEmailJob...');
+    $this->call(ProcessBulkEmailJobsCommand::class);
+    $this->comment('3 ProcessBulkEmailJob dispatched successfully.');
 })->describe('Process pending Bulk Email jobs in batches');
