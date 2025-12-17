@@ -83,6 +83,10 @@ export default function CardFormGeneralInformation() {
                                     placeholder="Select status"
                                     options={[
                                         {
+                                            value: "",
+                                            label: "None",
+                                        },
+                                        {
                                             value: "Mr.",
                                             label: "Mr.",
                                         },
