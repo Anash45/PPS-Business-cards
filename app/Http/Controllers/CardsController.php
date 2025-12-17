@@ -172,6 +172,7 @@ class CardsController extends Controller
             $nfcCards = [];
             $createdNfcCards = [];
             $now = now();
+            $chunkSize = 1000; // safe batch size
 
             // Create normal cards
             if ($request->quantity > 0) {
@@ -200,7 +201,6 @@ class CardsController extends Controller
                         'updated_at' => $now->toDateTimeString(),
                     ];
                 }
-                $chunkSize = 1000; // safe batch size
                 if (!empty($cards)) {
                     foreach (array_chunk($cards, $chunkSize) as $chunk) {
                         Card::insert($chunk);

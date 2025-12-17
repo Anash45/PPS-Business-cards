@@ -154,7 +154,6 @@ class Card extends Model
         $fields = [
             'label_1_value' => [
                 'expected' => trim(implode(' ', array_filter([
-                    $this->salutation,
                     $this->title,
                     $this->first_name,
                     $this->last_name,
