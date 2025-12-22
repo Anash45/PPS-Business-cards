@@ -40,6 +40,8 @@ class NfcCardsController extends Controller
             'csv_file' => 'required|file|mimes:csv,txt|max:5120', // Max 5MB
         ]);
 
+        $separator = $request->input('csv_separator', ';');
+
         // Get the uploaded file
         $file = $request->file('csv_file');
         $path = $file->getRealPath();
@@ -51,7 +53,7 @@ class NfcCardsController extends Controller
         }
 
         // Read the header row and check for 'qr_code' column (case-insensitive)
-        $header = fgetcsv($handle);
+        $header = fgetcsv($handle, 0, $separator);
         $qrCodeIndex = null;
         foreach ($header as $index => $column) {
             if (strtolower(trim($column)) === 'qr_code') {
@@ -66,7 +68,7 @@ class NfcCardsController extends Controller
 
         // Collect QR codes from the CSV
         $qrCodes = [];
-        while (($row = fgetcsv($handle)) !== false) {
+        while (($row = fgetcsv($handle, 0, $separator)) !== false) {
             if (isset($row[$qrCodeIndex]) && !empty(trim($row[$qrCodeIndex]))) {
                 $qrCodes[] = trim($row[$qrCodeIndex]);
             }

@@ -13,6 +13,7 @@ export default function AddNfcCardModal({ onClose, onSuccess }) {
     const [show, setShow] = useState(false);
     const [qrCode, setQrCode] = useState("");
     const [csvFile, setCsvFile] = useState(null);
+    const [csvSeparator, setCsvSeparator] = useState(';');
     // Helper to clear error for a field
     const clearFieldError = (field) => {
         if (fieldErrors[field])
@@ -47,6 +48,7 @@ export default function AddNfcCardModal({ onClose, onSuccess }) {
                 // CSV upload
                 const formData = new FormData();
                 formData.append("csv_file", csvFile);
+                formData.append("csv_separator", csvSeparator);
                 const res = await axios.post(
                     "/nfc-cards/addMultiple",
                     formData,
@@ -189,8 +191,7 @@ export default function AddNfcCardModal({ onClose, onSuccess }) {
                     <div className="space-y-1">
                         <InputLabel htmlFor="csvFile" value="CSV file" />
                         <span className="block text-xs text-gray-500 mb-1">
-                            Note: CSV file should have a column named{" "}
-                            <b>QR_Code</b>
+                            Note: CSV file should have a column named <b>QR_Code</b>
                         </span>
                         <TextInput
                             id="csvFile"
@@ -204,6 +205,18 @@ export default function AddNfcCardModal({ onClose, onSuccess }) {
                             className="w-full block"
                         />
                         <InputError message={fieldErrors.csvFile} />
+                    </div>
+                    <div className="space-y-1">
+                        <InputLabel htmlFor="csvSeparator" value="CSV Separator" />
+                        <TextInput
+                            id="csvSeparator"
+                            name="csvSeparator"
+                            value={csvSeparator}
+                            onChange={e => setCsvSeparator(e.target.value)}
+                            className="w-24 block"
+                            placeholder=";"
+                        />
+                        <span className="block text-xs text-gray-500">Default is <b>;</b>. Change if your CSV uses a different separator.</span>
                     </div>
                     <div className="flex justify-end gap-3 pt-3">
                         <Button
