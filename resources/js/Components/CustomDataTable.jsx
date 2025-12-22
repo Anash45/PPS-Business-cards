@@ -40,6 +40,7 @@ export default function CustomDataTable({
     data = { data: [], total: 0, per_page: 10, current_page: 1, last_page: 1 },
     endpoint,
     searchable = true,
+    showPerPageOptions = true,
     paginated = true,
     perPageOptions = [10, 25, 50, 100],
     tableKey = "default",
@@ -208,23 +209,25 @@ export default function CustomDataTable({
             {/* Top Controls */}
             <div className="datatable-header flex flex-wrap items-center justify-between gap-4 mb-4">
                 {/* Per Page Selector */}
-                <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-600">Show</label>
-                    <select
-                        value={perPage}
-                        onChange={(e) =>
-                            handlePerPageChange(Number(e.target.value))
-                        }
-                        className="w-20 border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary shadow-none focus:shadow-none"
-                    >
-                        {perPageOptions.map((option) => (
-                            <option key={option} value={option}>
-                                {option}
-                            </option>
-                        ))}
-                    </select>
-                    <label className="text-sm text-gray-600">entries</label>
-                </div>
+                {showPerPageOptions && (
+                    <div className="flex items-center gap-2">
+                        <label className="text-sm text-gray-600">Show</label>
+                        <select
+                            value={perPage}
+                            onChange={(e) =>
+                                handlePerPageChange(Number(e.target.value))
+                            }
+                            className="w-20 border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary shadow-none focus:shadow-none"
+                        >
+                            {perPageOptions.map((option) => (
+                                <option key={option} value={option}>
+                                    {option}
+                                </option>
+                            ))}
+                        </select>
+                        <label className="text-sm text-gray-600">entries</label>
+                    </div>
+                )}
 
                 {/* Search Box */}
                 {searchable && (
@@ -242,7 +245,7 @@ export default function CustomDataTable({
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+            <div className="overflow-x-auto border border-gray-200 rounded-lg cdt-table">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-primary">
                         <tr>
@@ -250,7 +253,9 @@ export default function CustomDataTable({
                                 <th
                                     key={`${column.key}-${index}`}
                                     onClick={() => handleSort(column)}
-                                    className={`${paddingClasses.header} text-left text-xs font-medium text-white uppercase tracking-wider ${
+                                    className={`${
+                                        paddingClasses.header
+                                    } text-left text-xs font-medium text-white uppercase tracking-wider ${
                                         column.sortable
                                             ? "cursor-pointer hover:bg-[#76a87b]"
                                             : ""
@@ -279,7 +284,7 @@ export default function CustomDataTable({
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-200 cdt-table-body">
                         {loading ? (
                             <tr>
                                 <td
@@ -315,7 +320,9 @@ export default function CustomDataTable({
                                     {columns.map((column, colIndex) => (
                                         <td
                                             key={`${column.key}-${colIndex}`}
-                                            className={`${paddingClasses.cell} whitespace-nowrap text-sm text-gray-900 ${
+                                            className={`${
+                                                paddingClasses.cell
+                                            } whitespace-nowrap text-sm text-gray-900 ${
                                                 column.className || ""
                                             }`}
                                         >

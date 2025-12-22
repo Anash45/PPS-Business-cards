@@ -57,12 +57,13 @@ export default function CardsPreview({ independentCards, previewCards, domain })
             <p className="text-sm leading-5 font-medium text-[#475569]">
                 Max 100 URLs are being shown.
             </p>
-            <div className="mt-5 overflow-y-auto max-h-[500px]">
+            <div className="mt-5 overflow-y-auto cards-preview-table">
                 <CustomDataTable
                     columns={columns}
                     data={tableData}
                     searchable={false}
                     paginated={false}
+                    showPerPageOptions={false}
                     size="md"
                     className="text-xs"
                 />

@@ -169,3 +169,8 @@ body {
 .custom-select__input{
     box-shadow: none !important;
 }
+
+.cards-preview-table .cdt-table{
+    max-height: 500px;
+    overflow-y: auto;
+}
