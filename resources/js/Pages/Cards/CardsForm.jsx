@@ -10,7 +10,11 @@ import Button from "@/Components/Button";
 import { toast } from "react-hot-toast";
 import { router, usePage } from "@inertiajs/react";
 
-export default function CardsForm({ previewCards, setPreviewCards }) {
+export default function CardsForm({
+    previewCards,
+    setPreviewCards,
+    independentCards = false,
+}) {
     const { companies } = usePage().props;
 
     const [linkDomain, setLinkDomain] = useState(
@@ -21,6 +25,7 @@ export default function CardsForm({ previewCards, setPreviewCards }) {
     const [data, setData] = useState({
         company_id: companies.length > 0 ? companies[0].id : "",
         quantity: 10,
+        title: "",
         nfc_quantity: 50,
         domain: linkDomain,
     });
@@ -69,20 +74,25 @@ export default function CardsForm({ previewCards, setPreviewCards }) {
         setPreviewCards([]);
 
         try {
-            const response = await axios.post("/cards", {
-                company_id: data.company_id,
-                quantity: data.quantity,
-                nfc_quantity: data.nfc_quantity,
-            });
+            const response = !independentCards
+                ? await axios.post("/cards", {
+                      company_id: data.company_id,
+                      quantity: data.quantity,
+                      nfc_quantity: data.nfc_quantity,
+                  })
+                : await axios.post("/cards/independent", {
+                      title: data.title,
+                      nfc_quantity: data.nfc_quantity,
+                  });
 
-            console.log("Cards: ",response.data);
+            console.log("Cards: ", response.data);
 
             if (response.data.success) {
                 setPreviewCards(response.data.createdNfcCards);
                 toast.success(
-                    `${response.data.cards_created} cards generated successfully!`
+                    `Generated successfully!`
                 );
-                router.reload({ only: ["cardsGroups", "companies"] });
+                router.reload({ only: ["cardsGroups", "independentGroups", "companies"] });
             } else {
                 toast.error(
                     response.data.message || "Failed to generate cards"
@@ -105,52 +115,85 @@ export default function CardsForm({ previewCards, setPreviewCards }) {
                 className="grid gap-3 md:grid-cols-2 grid-cols-1"
             >
                 {/* Company Select */}
-                <div className="space-y-1">
-                    <InputLabel
-                        htmlFor="company"
-                        value="Company"
-                        className="text-[#344054] font-medium"
-                    />
-                    <SelectInput
-                        id="company"
-                        name="company_id"
-                        value={data.company_id}
-                        onChange={(e) =>
-                            setData({ ...data, company_id: e.target.value })
-                        }
-                        className="w-full block"
-                        options={companies.map((company) => ({
-                            value: company.id,
-                            label: company.name,
-                        }))}
-                    />
-                </div>
+                {!independentCards && (
+                    <>
+                        <div className="space-y-1">
+                            <InputLabel
+                                htmlFor="company"
+                                value="Company"
+                                className="text-[#344054] font-medium"
+                            />
+                            <SelectInput
+                                id="company"
+                                name="company_id"
+                                value={data.company_id}
+                                onChange={(e) =>
+                                    setData({
+                                        ...data,
+                                        company_id: e.target.value,
+                                    })
+                                }
+                                className="w-full block"
+                                options={companies.map((company) => ({
+                                    value: company.id,
+                                    label: company.name,
+                                }))}
+                            />
+                        </div>
 
-                {/* Number of employees */}
-                <div className="space-y-1">
-                    <div className="flex gap-2 flex-wrap items-center">
-                        <InputLabel
-                            htmlFor="quantity"
-                            value="Number of employees"
-                            className="text-[#344054] font-medium leading-tight"
+                        {/* Number of employees */}
+                        <div className="space-y-1">
+                            <div className="flex gap-2 flex-wrap items-center">
+                                <InputLabel
+                                    htmlFor="quantity"
+                                    value="Number of employees"
+                                    className="text-[#344054] font-medium leading-tight"
+                                />
+                                <span className="text-xs font-semibold text-[#344054] leading-tight">
+                                    ({companyInfo.used_cards}/
+                                    {companyInfo.total_cards_allowed})
+                                </span>
+                            </div>
+                            <TextInput
+                                id="quantity"
+                                name="quantity"
+                                type="number"
+                                value={data.quantity}
+                                onChange={(e) =>
+                                    setData({
+                                        ...data,
+                                        quantity: e.target.value,
+                                    })
+                                }
+                                className="block w-full"
+                                required
+                            />
+                        </div>
+                    </>
+                )}
+
+                {independentCards && (
+                    <div className="space-y-1">
+                        <div className="flex gap-2 flex-wrap items-center">
+                            <InputLabel
+                                htmlFor="title"
+                                value="Cards title"
+                                className="text-[#344054] font-medium leading-tight"
+                            />
+                        </div>
+                        <TextInput
+                            id="title"
+                            name="title"
+                            type="text"
+                            value={data.title}
+                            onChange={(e) =>
+                                setData({ ...data, title: e.target.value })
+                            }
+                            className="block w-full"
+                            required
                         />
-                        <span className="text-xs font-semibold text-[#344054] leading-tight">
-                            ({companyInfo.used_cards}/
-                            {companyInfo.total_cards_allowed})
-                        </span>
                     </div>
-                    <TextInput
-                        id="quantity"
-                        name="quantity"
-                        type="number"
-                        value={data.quantity}
-                        onChange={(e) =>
-                            setData({ ...data, quantity: e.target.value })
-                        }
-                        className="block w-full"
-                        required
-                    />
-                </div>
+                )}
 
                 {/* Number of NFC cards */}
                 <div className="space-y-1">
@@ -160,9 +203,12 @@ export default function CardsForm({ previewCards, setPreviewCards }) {
                             value="Number of NFC cards"
                             className="text-[#344054] font-medium leading-tight"
                         />
-                        <span className="text-xs font-semibold text-[#344054] leading-tight">
-                            ({companyInfo.nfc_used}/{companyInfo.total_nfc_cards})
-                        </span>
+                        {!independentCards && (
+                            <span className="text-xs font-semibold text-[#344054] leading-tight">
+                                ({companyInfo.nfc_used}/
+                                {companyInfo.total_nfc_cards})
+                            </span>
+                        )}
                     </div>
                     <TextInput
                         id="nfc_quantity"
@@ -209,7 +255,7 @@ export default function CardsForm({ previewCards, setPreviewCards }) {
             </form>
 
             {previewCards.length > 0 && (
-                <CardsPreview domain={linkDomain} previewCards={previewCards} />
+                <CardsPreview independentCards={independentCards} domain={linkDomain} previewCards={previewCards} />
             )}
         </>
     );

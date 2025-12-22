@@ -9,9 +9,12 @@ import axios from "axios";
 import { getDomain } from "@/utils/viteConfig";
 import SelectInput from "@/Components/SelectInput";
 import { ChevronDown } from "lucide-react";
+import Button from "@/Components/Button";
+import AddNfcCardModal from "@/Components/AddNfcCardModal";
+import { useModal } from "@/context/ModalProvider";
 
 export default function Nfc() {
-    const { nfcCards, employeeCards, isSubscriptionActive } = usePage().props;
+    const { nfcCards, isSubscriptionActive } = usePage().props;
     const { setHeaderTitle, setHeaderText } = useGlobal(GlobalProvider);
 
     console.log("NFC Cards: ", nfcCards);
@@ -32,6 +35,8 @@ export default function Nfc() {
         setHeaderTitle("NFC-Card management");
         setHeaderText("");
     }, []);
+
+    const { openModal } = useModal();
 
     const handleToggleStatus = async (id, currentStatus) => {
         const newStatus = currentStatus === "active" ? "inactive" : "active";
@@ -84,7 +89,7 @@ export default function Nfc() {
         e.stopPropagation();
         const isChecked = e.target.checked;
         if (isChecked) {
-            const allIds = nfcCards.data.map(card => card.id);
+            const allIds = nfcCards.data.map((card) => card.id);
             setSelectedIds(allIds);
         } else {
             setSelectedIds([]);
@@ -93,9 +98,9 @@ export default function Nfc() {
 
     const handleRowCheckboxChange = (e, id) => {
         e.stopPropagation();
-        setSelectedIds(prev => {
+        setSelectedIds((prev) => {
             if (prev.includes(id)) {
-                return prev.filter(selectedId => selectedId !== id);
+                return prev.filter((selectedId) => selectedId !== id);
             } else {
                 return [...prev, id];
             }
@@ -110,9 +115,12 @@ export default function Nfc() {
                     <label className="flex items-center gap-2">
                         <input
                             type="checkbox"
-                            checked={selectedIds.length > 0 && selectedIds.length === nfcCards.data?.length}
+                            checked={
+                                selectedIds.length > 0 &&
+                                selectedIds.length === nfcCards.data?.length
+                            }
                             onChange={handleSelectAll}
-                            onClick={(e)=> e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
                             className="rounded border-gray-300"
                         />
                         <span>ID</span>
@@ -128,9 +136,13 @@ export default function Nfc() {
                                 className="row-checkbox rounded border-gray-300"
                                 value={row.id}
                                 checked={isChecked}
-                                onChange={(e) => handleRowCheckboxChange(e, row.id)}
+                                onChange={(e) =>
+                                    handleRowCheckboxChange(e, row.id)
+                                }
                             />
-                            <span className="text-sm text-gray-700">{row.id}</span>
+                            <span className="text-sm text-gray-700">
+                                {row.id}
+                            </span>
                         </label>
                     );
                 },
@@ -158,7 +170,11 @@ export default function Nfc() {
                     const card = row?.card || null;
 
                     if (!card) {
-                        return <p className="text-sm text-gray-400">Not assigned</p>;
+                        return (
+                            <p className="text-sm text-gray-400">
+                                Not assigned
+                            </p>
+                        );
                     }
 
                     const nameParts = [
@@ -200,7 +216,9 @@ export default function Nfc() {
                         : "bg-red-100 text-red-700 border border-red-200";
 
                     return (
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${badgeClass}`}>
+                        <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${badgeClass}`}
+                        >
                             {isActive ? "Active" : "Inactive"}
                         </span>
                     );
@@ -213,7 +231,9 @@ export default function Nfc() {
                 render: (actions, row) => (
                     <Dropdown>
                         <DropdownItem
-                            onClick={() => handleToggleStatus(row.id, row.status)}
+                            onClick={() =>
+                                handleToggleStatus(row.id, row.status)
+                            }
                         >
                             {row.status === "active"
                                 ? "Set Inactive"
@@ -225,8 +245,6 @@ export default function Nfc() {
         ],
         [linkDomain, selectedIds, nfcCards]
     );
-
-
 
     const [toggling, setToggling] = useState(false);
     const [assigning, setAssigning] = useState(false);
@@ -343,6 +361,14 @@ export default function Nfc() {
                         <div className="py-4 md:px-6 px-4 rounded-[14px] bg-white flex flex-col gap-3 space-y-3">
                             <div className="relative mb-2">
                                 <div className="flex items-center gap-3 flex-wrap">
+                                    <Button
+                                        onClick={() =>
+                                            openModal("AddNfcCardModal")
+                                        }
+                                        variant="primary"
+                                    >
+                                        Add Cards
+                                    </Button>
                                     <Dropdown
                                         align="left"
                                         button={
@@ -438,27 +464,49 @@ export default function Nfc() {
                                             className="w-full block"
                                             async={true}
                                             loadOptions={(inputValue) => {
-                                                console.log("Searching for: ", inputValue);
+                                                console.log(
+                                                    "Searching for: ",
+                                                    inputValue
+                                                );
                                                 return axios
-                                                    .get(route('company.employees.search'), {
-                                                        params: { q: inputValue }
-                                                    })
-                                                    .then(response => {
-                                                        console.log("Search results: ", response.data);
-                                                        return response.data.map(emp => ({
-                                                            value: emp.value,
-                                                            label: emp.label,
-                                                            icon: () => (
-                                                                <img
-                                                                    src={emp.image}
-                                                                    alt={emp.label}
-                                                                    className="h-6 w-6 rounded-full"
-                                                                />
-                                                            ),
-                                                        }));
+                                                    .get(
+                                                        route(
+                                                            "company.employees.search"
+                                                        ),
+                                                        {
+                                                            params: {
+                                                                q: inputValue,
+                                                            },
+                                                        }
+                                                    )
+                                                    .then((response) => {
+                                                        console.log(
+                                                            "Search results: ",
+                                                            response.data
+                                                        );
+                                                        return response.data.map(
+                                                            (emp) => ({
+                                                                value: emp.value,
+                                                                label: emp.label,
+                                                                icon: () => (
+                                                                    <img
+                                                                        src={
+                                                                            emp.image
+                                                                        }
+                                                                        alt={
+                                                                            emp.label
+                                                                        }
+                                                                        className="h-6 w-6 rounded-full"
+                                                                    />
+                                                                ),
+                                                            })
+                                                        );
                                                     })
                                                     .catch((error) => {
-                                                        console.error("Search error: ", error);
+                                                        console.error(
+                                                            "Search error: ",
+                                                            error
+                                                        );
                                                         return [];
                                                     });
                                             }}

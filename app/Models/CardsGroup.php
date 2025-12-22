@@ -9,7 +9,7 @@ class CardsGroup extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['uuid', 'company_id'];
+    protected $fillable = ['uuid', 'company_id', 'title', 'is_independent'];
 
     public function company()
     {

@@ -5,6 +5,7 @@ import ManageSubscriptionModal from "@/Components/ManageSubscriptionModal";
 import ManageUserModal from "@/Components/ManageUserModal";
 import UpdateCsvRecordModal from "@/Components/UpdateCsvRecordModal";
 import ManageCompanyModal from "@/Components/ManageCompanyModal";
+import AddNfcCardModal from "@/Components/AddNfcCardModal";
 
 const ModalContext = createContext();
 
@@ -69,6 +70,16 @@ export function ModalProvider({ children }) {
                             {...modal.props}
                             onSuccess={() => {
                                 router.reload({ only: ["users","selectedCard"] });
+                            }}
+                            onClose={closeModal}
+                        />
+                    )}
+                    {modal?.name === "AddNfcCardModal" && (
+                        <AddNfcCardModal
+                            {...modal.props}
+                            onSuccess={() => {
+                                router.reload({ only: ["nfcCards"] });
+                                closeModal();
                             }}
                             onClose={closeModal}
                         />

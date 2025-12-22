@@ -56,9 +56,23 @@ trait DataTableTrait
             if (in_array($sortBy, $sortableColumns)) {
                 // Handle dot notation for relationships
                 if (str_contains($sortBy, '.')) {
-                    [$relation, $field] = explode('.', $sortBy, 2);
-                    // Join the relationship table for sorting
-                    $query->orderByRelation($relation, $field, $sortDirection);
+                        [$relation, $field] = explode('.', $sortBy, 2);
+                        // Only supports belongsTo for now
+                        $relationMethod = $relation;
+                        $model = $query->getModel();
+                        if (method_exists($model, $relationMethod)) {
+                            $relationObj = $model->$relationMethod();
+                            $relatedTable = $relationObj->getRelated()->getTable();
+                            $foreignKey = $relationObj->getForeignKeyName();
+                            $ownerKey = $relationObj->getOwnerKeyName();
+                            // Join related table
+                            $query->leftJoin($relatedTable, $model->getTable() . '.' . $foreignKey, '=', $relatedTable . '.' . $ownerKey);
+                            $query->orderBy($relatedTable . '.' . $field, $sortDirection);
+                            // Avoid duplicate results
+                            $query->select($model->getTable() . '.*');
+                        } else {
+                            // Fallback: do not sort if relation not found
+                        }
                 } else {
                     $query->orderBy($sortBy, $sortDirection);
                 }

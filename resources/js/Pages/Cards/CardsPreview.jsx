@@ -3,15 +3,18 @@ import dayjs from "dayjs";
 import { useMemo } from "react";
 import CustomDataTable from "@/Components/CustomDataTable";
 
-export default function CardsPreview({ previewCards, domain }) {
-    const columns = useMemo(
-        () => [
-            {
+export default function CardsPreview({ independentCards, previewCards, domain }) {
+    const columns = useMemo(() => {
+        const cols = [];
+        if (!independentCards) {
+            cols.push({
                 key: "company",
                 label: "Company",
                 sortable: false,
                 render: (value, row) => row.company?.name || "-",
-            },
+            });
+        }
+        cols.push(
             {
                 key: "qr_code",
                 label: "URL",
@@ -34,10 +37,10 @@ export default function CardsPreview({ previewCards, domain }) {
                 sortable: false,
                 render: (value, row) =>
                     dayjs(row.created_at).format("DD.MM.YYYY, HH:mm"),
-            },
-        ],
-        [domain]
-    );
+            }
+        );
+        return cols;
+    }, [domain, independentCards]);
 
     // Limit to 100 records and format for CustomDataTable
     const tableData = {

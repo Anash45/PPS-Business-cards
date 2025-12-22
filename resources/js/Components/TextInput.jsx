@@ -71,11 +71,32 @@ export default forwardRef(function TextInput(
         );
     }
 
+    if (type === "file") {
+        return (
+            <input
+                {...props}
+                type="file"
+                className={
+                    "block w-full text-gray-900 file:mr-4 file:py-2 file:px-4 " +
+                    "file:rounded-md file:border-0 file:text-sm file:font-semibold " +
+                    "file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 " +
+                    className
+                }
+                ref={localRef}
+                onChange={e => {
+                    if (onChange) {
+                        onChange(e.target.files && e.target.files.length > 0 ? e.target.files[0] : null, e);
+                    }
+                }}
+            />
+        );
+    }
+
     // 🔹 If type is "textarea" → Render textarea
     if (type === "textarea") {
         return (
             <textarea
-            rows={3}
+                rows={3}
                 {...props}
                 ref={localRef}
                 value={value}

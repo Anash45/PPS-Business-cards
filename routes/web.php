@@ -11,6 +11,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CsvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DesignController;
+use App\Http\Controllers\NfcCardsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\SubscriptionsController;
 use Illuminate\Foundation\Application;
@@ -83,7 +84,10 @@ Route::middleware(['auth', 'role:company,editor,template_editor'])->group(functi
     Route::post('/nfc-cards/toggle-multiple-status', [CardsController::class, 'toggleMultipleNfcStatus'])
         ->name('cards.toggleMultipleStatus');
     Route::put('/nfc-cards/{nfcCard}/toggle-status', [CardsController::class, 'toggleNfcStatus']);
-
+    Route::post('/nfc-cards/addSingle', [NfcCardsController::class, 'addSingle'])
+        ->name('nfc-cards.addSingle');
+        Route::post('/nfc-cards/addMultiple', [NfcCardsController::class, 'addMultiple'])
+        ->name('nfc-cards.addMultiple');
     Route::post('/nfc-cards/assign', [CardsController::class, 'assignToEmployee'])
         ->name('nfc-cards.assign');
     Route::post('/nfc-cards/unassign', [CardsController::class, 'unassignFromEmployee'])
@@ -124,6 +128,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/cards/groups/{group}/download', [CardsController::class, 'downloadGroup'])
         ->name('cards.group.download');
     Route::resource('cards', CardsController::class);
+    Route::post('cards/independent', [CardsController::class, 'storeIndependentGroup'])
+        ->name('cards.groups.storeIndependent');
     Route::delete('/cards/groups/{group}', [CardsController::class, 'destroyGroup'])
         ->name('cards.groups.destroy');
     Route::delete('/cards-group/{group}/delete-cards', [CardsController::class, 'deleteCards'])

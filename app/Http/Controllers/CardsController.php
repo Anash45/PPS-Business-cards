@@ -59,10 +59,26 @@ class CardsController extends Controller
             'company.name',
             'created_at',
         ];
+        
+        $searchableColumns2 = [
+            'id',
+            'title',
+            'created_at',
+        ];
 
         // Define sortable columns for cardsGroups
         $sortableColumns = [
             'id',
+            'company.name',
+            'cards_count',
+            'nfc_cards_count',
+            'created_at',
+            'updated_at',
+        ];
+        $sortableColumns2 = [
+            'id',
+            'title',
+            'nfc_cards_count',
             'created_at',
             'updated_at',
         ];
@@ -76,7 +92,16 @@ class CardsController extends Controller
             'nfcCards' => function ($query) {
                 $query->orderByDesc('created_at')->take(100);
             },
-        ])->withCount(['cards', 'nfcCards']);
+        ])->where('is_independent', false)
+          ->withCount(['cards', 'nfcCards']);
+
+        // Independent groups query
+        $independentQuery = CardsGroup::with([
+            'nfcCards' => function ($query) {
+                $query->orderByDesc('created_at')->take(100);
+            },
+        ])->where('is_independent', true)
+          ->withCount(['nfcCards']);
 
         // Apply DataTable filters (search, sort, pagination)
         $cardsGroups = $this->applyDataTableFilters(
@@ -87,9 +112,18 @@ class CardsController extends Controller
             10 // default per page
         );
 
+        $independentGroups = $this->applyDataTableFilters(
+            $independentQuery,
+            $request,
+            $searchableColumns2,
+            $sortableColumns2,
+            10, // default per page for independent groups
+        );
+
         return inertia('Cards/Index', [
             'companies' => $companies,
             'cardsGroups' => $cardsGroups,
+            'independentGroups' => $independentGroups,
         ]);
     }
 
@@ -268,6 +302,92 @@ class CardsController extends Controller
         }
     }
 
+    
+    public function storeIndependentGroup(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'nfc_quantity' => 'required|integer|min:1|max:10000',
+        ]);
+
+        // At least one quantity must be > 0
+        if ($validated['nfc_quantity'] == 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You must create one NFC card.',
+            ], 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Create Card Group with is_independent true, company_id null, and title
+            $group = CardsGroup::create([
+                'company_id' => null,
+                'uuid' => Str::uuid(),
+                'title' => $validated['title'],
+                'is_independent' => true,
+            ]);
+
+            $nfcCards = [];
+            $createdNfcCards = [];
+            $now = now();
+            $chunkSize = 1000; // safe batch size
+
+            // Create NFC cards with company_id null
+            for ($i = 0; $i < $validated['nfc_quantity']; $i++) {
+                $qr = Card::generateCode();
+
+                $nfcCards[] = [
+                    'company_id' => null,
+                    'card_code' => null,
+                    'qr_code' => $qr,
+                    'cards_group_id' => $group->id,
+                    'status' => 'inactive',
+                    'views' => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+
+                $createdNfcCards[] = [
+                    'qr_code' => $qr,
+                    'status' => 'inactive',
+                    'company' => null,
+                    'group_id' => $group->id,
+                    'views' => 0,
+                    'created_at' => $now->toDateTimeString(),
+                    'updated_at' => $now->toDateTimeString(),
+                ];
+            }
+            if (!empty($nfcCards)) {
+                foreach (array_chunk($nfcCards, $chunkSize) as $chunk) {
+                    NfcCard::insert($chunk);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'group_id' => $group->id,
+                'cards_created' => 0,
+                'nfc_cards_created' => $validated['nfc_quantity'],
+                'remaining_after_creation' => null,
+                'remaining_nfc_after_creation' => null,
+                'createdCards' => [],
+                'createdNfcCards' => $createdNfcCards,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
 
 
@@ -377,7 +497,10 @@ class CardsController extends Controller
     {
         $group = CardsGroup::with(['cards', 'company'])->findOrFail($groupId);
 
-        $filename = "cards_group_{$group->id}.csv";
+        // Use title for filename if company is null and title is present
+        $filename = $group->company && $group->company->name
+            ? "cards_group_{$group->company->name}_{$group->id}.csv"
+            : ($group->title ? "cards_group_{$group->title}_{$group->id}.csv" : "cards_group_{$group->id}.csv");
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -388,16 +511,23 @@ class CardsController extends Controller
             $file = fopen('php://output', 'w');
 
             // CSV header
-            fputcsv($file, ['Sr#', 'Card id', 'Company', 'URL', 'Code', 'Created']);
+            $headerLabel = $group->company && $group->company->name
+                ? $group->company->name
+                : ($group->title ?? '');
+            fputcsv($file, ['Sr#', 'Card id', $headerLabel, 'URL', 'QR_Code', 'Created']);
 
             // Add rows
             foreach ($group->nfcCards as $index => $card) {
                 $createdAt = Carbon::parse($card->created_at)->format('d.m.Y H:i');
 
+                $companyOrTitle = $group->company && $group->company->name
+                    ? $group->company->name
+                    : ($group->title ?? '');
+
                 fputcsv($file, [
                     $index + 1,
                     $card->id,
-                    $group->company->name ?? '',
+                    $companyOrTitle,
                     env('LINK_URL') . '/card/' . $card->qr_code, // URL format
                     $card->qr_code,
                     $createdAt,
